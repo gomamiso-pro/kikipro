@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>KIKI PRO V1</title>
   <link rel="stylesheet" href="style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Oswald:wght@500;700&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
 </head>
 <body onclick="closeAllDetails(event)">
 
@@ -18,8 +18,8 @@
   </div>
 </div>
 
-<div id="login-overlay" class="overlay" style="display: none; background: var(--bg); overflow-y: auto;">
-  <div id="auth-box" class="auth-box">
+<div id="login-overlay" class="overlay" style="display: none; background: var(--bg);">
+  <div class="auth-box">
     <h2 id="auth-title">KIKI LOGIN</h2>
     <div id="login-fields">
       <input type="email" id="login-id" placeholder="メールアドレス" class="auth-input">
@@ -27,8 +27,8 @@
     </div>
     <div id="register-fields" style="display:none;">
       <input type="text" id="reg-nick" placeholder="ニックネーム" class="auth-input">
-      <input type="email" id="reg-id" placeholder="登録メールアドレス" class="auth-input">
-      <input type="password" id="reg-pass" placeholder="登録パスワード" class="auth-input">
+      <input type="email" id="reg-id" placeholder="メールアドレス" class="auth-input">
+      <input type="password" id="reg-pass" placeholder="パスワード" class="auth-input">
     </div>
     <div class="auto-login-row">
       <input type="checkbox" id="auto-login">
@@ -45,8 +45,8 @@
 <div class="header">
   <div class="header-logo" style="font-family:'Oswald'; color:var(--accent); font-size:20px;">KIKI PRO</div>
   <div style="display:flex; align-items:center; gap:8px;">
-    <div id="user-display" style="font-size:11px; background:var(--panel); padding:4px 10px; border-radius:4px; font-weight:bold;">---</div>
-    <button onclick="logout()" style="background:var(--danger); color:#fff; border:none; padding:4px 8px; border-radius:4px; font-size:9px; font-weight:900; cursor:pointer;">LOGOUT</button>
+    <div id="user-display" style="font-size:11px; background:var(--panel); padding:4px 10px; border-radius:4px; font-weight:900;">---</div>
+    <button onclick="logout()" style="background:var(--danger); color:#fff; border:none; padding:5px 10px; border-radius:4px; font-size:10px; font-weight:900;">LOGOUT</button>
   </div>
 </div>
 
@@ -54,7 +54,7 @@
   <div class="top-tab active-work" id="tab-work" onclick="switchView('work')">入力</div>
   <div class="top-tab" id="tab-log" onclick="switchView('log')">履歴</div>
   <div style="width:50px; display:flex; justify-content:center; align-items:center; cursor:pointer;" onclick="showQR()">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
   </div>
 </div>
 
@@ -64,15 +64,15 @@
   <div class="view-mode-bar">
     <button id="mode-list-btn" onclick="setMode('list')">リスト</button>
     <button id="mode-tile-btn" onclick="setMode('tile')">全体</button>
-    <button id="last-unit-btn" onclick="scrollToLastWork()">最終🚩</button>
+    <button onclick="scrollToLastWork()">最終🚩</button>
     <button onclick="toggleAllSelection()">全選択</button>
   </div>
 </div>
 
 <div id="view-work"><div id="zone-display"></div></div>
-<div id="view-log" style="display:none; padding:10px;"><div id="log-list"></div></div>
+<div id="view-log" style="display:none;"><div id="log-list" style="padding:10px;"></div></div>
 
-<div class="footer" id="main-footer">
+<div class="footer">
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
     <div style="font-family:Oswald; font-size:32px; color:var(--accent);"><span id="u-total">0</span> <small style="font-size:12px;">UNITS</small></div>
     <div class="date-container">
