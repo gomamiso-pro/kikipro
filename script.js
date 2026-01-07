@@ -130,10 +130,11 @@ function renderList() {
         <div class="zone-flex">
           <div class="zone-check-area" onclick="handleZoneCheck(event, ${z.s}, ${z.e})"><input type="checkbox" ${selCount===zoneUnits.length?'checked':''} readonly></div>
           <div class="zone-main-content" style="background:${z.bg}; color:#000;">
-            <div style="display:flex; justify-content:space-between; font-family:'Oswald';">
-              <b>${i===finalIdx?'🚩':''}${z.name}</b>
-              <span style="font-size:12px;font-weight:900;">${formatLastDate(z)}</span>
-            </div>
+// renderTile関数内 1段目
+<div style="display:flex; justify-content:space-between; align-items:center;">
+  <div onclick="handleZoneCheck(event, ${z.s}, ${z.e})"><input type="checkbox" ${selCount===zoneUnits.length?'checked':''} style="pointer-events:none;"></div>
+  <span style="font-size:14px; font-weight:900; font-family:'Oswald';">${i===finalIdx?'🚩':''}${formatLastDate(z)}</span>
+</div>
             <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:5px;">
               <span class="f-oswald" style="font-size:20px;">No.${z.s}-${z.e}</span>
               <span class="f-oswald">${selCount}/${zoneUnits.length}</span>
@@ -171,10 +172,8 @@ function renderTile() {
           <span style="font-size:14px; font-weight:900; font-family:'Oswald';">${formatLastDate(z)}</span>
         </div>
         <div style="font-weight:900; font-size:11px;">${i===finalIdx?'🚩':''}${z.name.replace('ゾーン','')}</div>
-        <div style="text-align:left; font-family:'Oswald'; font-weight:700; font-size:12px;">No.${z.s}-${z.e}</div>
-        <div style="text-align:right; font-family:'Oswald'; font-size:10px; font-weight:700;">${selCount}/${zoneUnits.length}台</div>
-        <div class="progress-container status-bar-bg">
-          ${zoneUnits.map(m => {
+        <div style="text-align:left; font-family:'Oswald'; font-weight:700; font-size:15px;">No.${z.s}-${z.e}</div>
+        <div style="text-align:right; font-family:'Oswald'; font-size:10px; font-weight:700;">${selCount}/${zoneUnits.xt-align:right; font-family:'Oswald'; font-size:13px; font-weight:700;">${selCoun:}/${zoneU.map(m => {
             const isTarget = (Number(m[tIdx]) === 1 || selectedUnits.has(Number(m[0])));
             return `<div class="p-seg ${isTarget ? 'active' : ''}"></div>`;
           }).join('')}
