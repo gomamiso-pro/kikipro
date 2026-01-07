@@ -11,7 +11,14 @@
 
 <div id="loading" class="overlay"><div style="color:var(--accent); font-weight:900;">処理中...</div></div>
 
-<div id="login-overlay" class="overlay" style="display: flex; background: var(--bg); overflow-y: auto;">
+<div id="qr-overlay" class="overlay" onclick="hideQR()">
+  <div style="background:#fff; padding:20px; border-radius:15px; text-align:center;" onclick="event.stopPropagation()">
+    <div id="qr-target"></div>
+    <button onclick="hideQR()" style="margin-top:15px; padding:8px 20px; border:none; border-radius:5px; background:#111; color:white; font-weight:bold;">閉じる</button>
+  </div>
+</div>
+
+<div id="login-overlay" class="overlay" style="display: none; background: var(--bg); overflow-y: auto;">
   <div id="auth-box" class="auth-box">
     <h2 id="auth-title">KIKI LOGIN</h2>
     <div id="login-fields">
@@ -37,14 +44,17 @@
 
 <div class="header">
   <div class="header-logo" style="font-family:'Oswald'; color:var(--accent); font-size:20px;">KIKI PRO</div>
-  <div id="user-display" style="font-size:11px; background:var(--panel); padding:4px 10px; border-radius:4px;">---</div>
+  <div style="display:flex; align-items:center; gap:8px;">
+    <div id="user-display" style="font-size:11px; background:var(--panel); padding:4px 10px; border-radius:4px; font-weight:bold;">---</div>
+    <button onclick="logout()" style="background:var(--danger); color:#fff; border:none; padding:4px 8px; border-radius:4px; font-size:9px; font-weight:900; cursor:pointer;">LOGOUT</button>
+  </div>
 </div>
 
 <div class="nav-row">
   <div class="top-tab active-work" id="tab-work" onclick="switchView('work')">入力</div>
   <div class="top-tab" id="tab-log" onclick="switchView('log')">履歴</div>
-  <div style="width:50px; display:flex; justify-content:center; align-items:center; cursor:pointer;" onclick="logout()">
-    <small style="font-size:9px;">LOGOUT</small>
+  <div style="width:50px; display:flex; justify-content:center; align-items:center; cursor:pointer;" onclick="showQR()">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
   </div>
 </div>
 
