@@ -6,6 +6,7 @@
   <title>KIKI PRO V2</title>
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body onclick="closeAllDetails(event)">
 
@@ -44,18 +45,21 @@
 
 <div class="header">
   <div class="header-logo" style="font-family:'Oswald'; color:var(--accent); font-size:20px;">KIKI PRO</div>
-  <div style="display:flex; align-items:center; gap:8px;">
-    <div id="user-display" style="font-size:11px; background:var(--panel); padding:4px 10px; border-radius:4px; font-weight:900;">---</div>
-    <button onclick="logout()" style="background:var(--danger); color:#fff; border:none; padding:5px 10px; border-radius:4px; font-size:10px; font-weight:900;">LOGOUT</button>
+  <div style="display:flex; align-items:center; gap:12px;">
+    <div class="qr-btn" onclick="showQR()">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+    </div>
+    <div class="user-profile">
+      <div class="user-icon">👤</div>
+      <div id="user-display">---</div>
+    </div>
+    <button onclick="logout()" class="logout-btn">LOGOUT</button>
   </div>
 </div>
 
 <div class="nav-row">
   <div class="top-tab active-work" id="tab-work" onclick="switchView('work')">入力</div>
   <div class="top-tab" id="tab-log" onclick="switchView('log')">履歴</div>
-  <div style="width:50px; display:flex; justify-content:center; align-items:center; cursor:pointer;" onclick="showQR()">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-  </div>
 </div>
 
 <div class="type-bar" id="type-tabs"></div>
