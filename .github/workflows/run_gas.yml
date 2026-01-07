@@ -1,0 +1,20 @@
+name: GAS_Execution_Workflow
+
+# いつ実行するか（例：mainブランチにpushした時）
+on:
+  push:
+    branches:
+      - main
+  # 手動でボタンを押して実行したい場合
+  workflow_dispatch:
+
+jobs:
+  call-gas-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Request to GAS
+        run: |
+          curl -L "${{ secrets.GAS_WEBAPP_URL }}" \
+          -X POST \
+          -H "Content-Type: application/json" \
+          -d '{"status": "request_from_github"}'
