@@ -10,12 +10,15 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
 .overlay { position: fixed; inset:0; background:rgba(0,0,0,0.85); display:none; flex-direction:column; justify-content:center; align-items:center; z-index:5000; }
 .auth-box { text-align:center; padding:30px; background:var(--card); border-radius:15px; width:85%; max-width:320px; }
 .auth-input { width:100%; padding:12px; border-radius:6px; border:1px solid var(--panel); margin-bottom:10px; box-sizing:border-box; background:#1a1c23; color:#fff; }
-.auth-btn { width:100%; padding:12px; background:var(--accent); color:#000; border:none; border-radius:6px; font-weight:900; }
+.auth-btn { width:100%; padding:12px; background:var(--accent); color:#000; border:none; border-radius:6px; font-weight:900; cursor:pointer; }
+.auth-toggle-msg { margin-top:20px; font-size:12px; color:var(--text-dim); }
+.auth-toggle-msg a { color:var(--accent); font-weight:bold; text-decoration:none; margin-left:5px; }
+.auto-login-row { margin: 15px 0; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 12px; color: var(--text-dim); }
 
 /* ヘッダー・ナビ */
-.header { height: 50px; background: var(--header-bg); border-bottom: 1px solid var(--panel); display: flex; justify-content: space-between; align-items: center; padding: 0 15px; }
+.header { height: 55px; background: var(--header-bg); border-bottom: 1px solid var(--panel); display: flex; justify-content: space-between; align-items: center; padding: 0 15px; }
 .nav-row { display: flex; background: var(--header-bg); border-bottom: 1px solid var(--panel); }
-.top-tab { flex: 1; padding: 12px; text-align: center; font-size: 14px; font-weight: 900; color: var(--text-dim); cursor: pointer; }
+.top-tab { flex: 1; padding: 14px; text-align: center; font-size: 14px; font-weight: 900; color: var(--text-dim); cursor: pointer; }
 .top-tab.active-work { background: #5e81ac; color: #fff; }
 .top-tab.active-log { background: #d08770; color: #fff; }
 
@@ -23,30 +26,29 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
 .type-btn { background: var(--header-bg); border: none; color: var(--text-dim); padding: 12px 0; font-size: 10px; font-weight: 900; }
 .type-btn.active { background: var(--panel); color: #fff; border-bottom: 3px solid var(--accent); }
 
-/* 表示モード切替バー */
 .view-mode-bar { display:flex; padding:8px 10px; gap:8px; background:var(--bg); }
-.view-mode-bar button { flex:1; padding:8px; border-radius:6px; border:none; background:var(--card); color:var(--text); font-weight:900; font-size:12px; }
+.view-mode-bar button { flex:1; padding:10px; border-radius:6px; border:none; background:var(--card); color:var(--text); font-weight:900; font-size:12px; }
 
-/* 共通カードデザイン (リスト・全体共通) */
+/* コンテナ設定 */
 #view-work { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 .zone-container-list { padding: 10px; display: flex; flex-direction: column; gap: 10px; padding-bottom: 180px; }
 .zone-container-tile { padding: 8px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding-bottom: 180px; }
 
-/* カード本体 */
+/* カードデザイン (デザイン完全統一) */
 .base-card { border-radius: 8px; overflow: hidden; background: #fff; border: 2.5px solid transparent; color: #000; display: flex; flex-direction: column; }
 .has-selection { border-color: var(--accent) !important; box-shadow: 0 0 12px rgba(250, 204, 21, 0.4); }
 
 .card-top { display: flex; justify-content: space-between; align-items: flex-start; padding: 8px 10px 4px 10px; }
 .card-mid { padding: 0 10px 8px 10px; display: flex; justify-content: space-between; align-items: flex-end; }
 
-/* 進捗バー */
-.progress-container { height: 6px; background: rgba(0,0,0,0.1); display: flex; gap: 1px; width: 100%; margin-top: auto; }
+/* ステータスバー（進捗バー） */
+.progress-container { height: 7px; background: rgba(0,0,0,0.12); display: flex; gap: 1px; width: 100%; margin-top: auto; }
 .p-seg.active { background: var(--accent); }
 
-/* 詳細展開エリア */
+/* 詳細エリア */
 .expand-box { display: none; padding: 12px; background: #111; border-top: 2px solid var(--accent); }
 .expanded .expand-box { display: block; }
-.unit-chip { background: #2d313d; color: #fff; border-radius: 4px; padding: 10px 0; text-align: center; font-size: 14px; font-weight: 900; font-family: 'Oswald'; }
+.unit-chip { background: #2d313d; color: #fff; border-radius: 4px; padding: 12px 0; text-align: center; font-size: 14px; font-weight: 900; font-family: 'Oswald'; }
 .unit-chip.active { background: var(--accent) !important; color: #000 !important; }
 
 /* フッター */
