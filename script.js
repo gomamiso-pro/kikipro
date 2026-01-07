@@ -1,5 +1,5 @@
 const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwUAlllOM9Tncn732dvIc9j4si4d4PJDUgov8nT9tb9-U3kxaS5y8J8x8FjA8Lf-SxbNg/exec";
-const GAS_API_URL = "YOUR_GAS_WEBAPP_URL_HERE";
+
 
 let DATA = {};
 let activeType = "通常";
