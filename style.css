@@ -46,7 +46,8 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
     padding: 8px 6px;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    gap: 2px;
+    justify-content: flex-start !important;
     border-radius: 8px;
     position: relative;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
@@ -58,16 +59,52 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
 
 .f-oswald { font-family: 'Oswald', sans-serif; }
 
-/* 進捗バーの背景を少し暗くして黄色(accent)を引き立てる */
+/* ユーザープロフィールの縦並び */
+.user-profile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+  gap: 2px;
+}
+.user-icon { font-size: 14px; }
+#user-display {
+  font-size: 9px !important;
+  padding: 2px 6px !important;
+  background: var(--panel);
+  border-radius: 3px;
+}
+
+/* ログアウトボタンを少し小さく */
+.logout-btn {
+  background: var(--danger);
+  color: #fff;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 900;
+}
+
+/* ステータスバーの連動（黄色を際立たせる） */
 .status-bar-bg {
-    background: rgba(0, 0, 0, 0.2) !important;
-    height: 10px !important; /* 少し太くして見やすく */
-    border-radius: 2px;
+  background: rgba(0, 0, 0, 0.15) !important;
+  height: 10px !important;
+  margin-top: 4px;
+  border-radius: 2px;
+  display: flex;
+  gap: 1px;
+}
+
+.p-seg {
+  flex: 1;
+  height: 100%;
+  background: transparent; /* 非対象は透明 */
 }
 
 .p-seg.active {
-    background: #ffea00 !important; /* より鮮やかな黄色 */
-    box-shadow: 0 0 4px rgba(250, 204, 21, 0.6);
+  background: #ffff00 !important; /* 対象は鮮やかな黄色 */
+  box-shadow: 0 0 3px rgba(0,0,0,0.2);
 }
 
 .expand-box { display: none; width: 100%; padding: 12px; background: #111; box-sizing: border-box; border-top: 2px solid var(--accent); }
