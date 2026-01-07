@@ -136,6 +136,19 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
   align-items: center;
   z-index: 9999;
 }
+/* タイル展開時の個別ボタンを小さく調整 */
+.tile-card.expanded {
+    grid-column: span 2; /* 展開したときだけ少し横幅を広げる（任意） */
+    z-index: 10;
+    height: auto;
+}
+
+.tile-card .expand-box {
+    margin-top: 10px;
+    background: rgba(0,0,0,0.8);
+    border-radius: 4px;
+    padding: 8px;
+}
 
 /* ローディングも最前面に */
 #loading {
