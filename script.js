@@ -16,11 +16,17 @@ const DATE_COL_MAP = { "通常":8, "セル盤":9, "計数機":10, "ユニット"
 window.onload = () => {
   const savedID = localStorage.getItem('kiki_authID');
   const savedPass = localStorage.getItem('kiki_authPass');
+
   if (savedID && savedPass) {
     authID = savedID;
     authPass = savedPass;
     silentLogin();
+  } else {
+    // 保存された情報がない場合は、ログイン画面を強制表示
+    document.getElementById('login-overlay').style.display = 'flex';
+    document.getElementById('loading').style.display = 'none';
   }
+
   const d = new Date();
   document.getElementById('work-date').value = d.toISOString().split('T')[0];
   updateDateDisplay();
@@ -78,7 +84,16 @@ async function silentLogin() {
   }
 }
 
-function logout() { if(confirm("ログアウトしますか？")) { localStorage.clear(); location.reload(); } }
+function logout() {
+  if (confirm("ログアウトしますか？")) {
+    localStorage.clear();
+    // 認証情報をクリア
+    authID = "";
+    authPass = "";
+    // ページをリロード（これでonloadのチェックが走り、ログイン画面が出る）
+    location.reload(); 
+  }
+}
 
 // 共通通信
 async function callGAS(method, data = {}) {
