@@ -147,6 +147,7 @@ function renderList() {
             </div>
           </div>
         </div>
+      </div>
 // --- ステータスバーのループ部分 ---
 <div class="progress-container status-bar-bg">
   ${zoneUnits.map(m => {
