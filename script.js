@@ -142,25 +142,27 @@ function renderTile() {
   const finalIdx = getFinalWorkZoneIndex();
 
   container.innerHTML = DATA.cols.map((z, i) => {
-    const zoneUnits = DATA.master.filter(m => Number(m[0])>=Math.min(z.s,z.e) && Number(m[0])<=Math.max(z.s,z.e) && (Number(m[tIdx])===1 || selectedUnits.has(Number(m[0]))));
-    if (zoneUnits.length === 0) return "";
-    const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
+    // フィルタ条件：マスタの対象列(tIdx)が1、または現在選択中のIDであるもの（これらが黄色くなる）
+    const zoneUnits = DATA.master.filter(m => 
+      Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e)
+    );
+    const targetUnits = zoneUnits.filter(m => Number(m[tIdx]) === 1 || selectedUnits.has(Number(m[0])));
+    const selCount = targetUnits.length;
     
     return `
       <div id="zone-card-${i}" class="tile-card ${selCount>0?'has-selection':''} ${expandedZoneId===i?'expanded':''}" style="background:${z.bg}; color:#000;" onclick="handleZoneAction(event, ${i})">
-        <div style="display:flex; justify-content:space-between; align-items:center; font-size:9px; font-weight:bold; font-family:'Oswald';">
-          <div onclick="handleZoneCheck(event, ${z.s}, ${z.e})"><input type="checkbox" ${selCount===zoneUnits.length?'checked':''} style="pointer-events:none; transform:scale(0.8);"></div>
-          <span>${formatLastDate(z)}</span>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div onclick="handleZoneCheck(event, ${z.s}, ${z.e})"><input type="checkbox" ${selCount===zoneUnits.length?'checked':''} style="pointer-events:none;"></div>
+          <span style="font-size:14px; font-weight:900; font-family:'Oswald';">${formatLastDate(z)}</span>
         </div>
-        <div style="font-size:11px; font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-           ${i===finalIdx?'🚩':''}${z.name.replace('ゾーン','')}
-        </div>
-        <div style="text-align:center; font-family:'Oswald'; font-weight:700; font-size:12px; line-height:1;">No.${z.s}-${z.e}</div>
-        <div style="text-align:right; font-family:'Oswald'; font-size:10px; font-weight:700;">${selCount}/${zoneUnits.length}</div>
-        <div class="progress-container status-bar-bg">${zoneUnits.map(m=>`<div class="p-seg ${selectedUnits.has(Number(m[0]))?'active':''}"></div>`).join('')}</div>
-        
-        <div class="expand-box" onclick="event.stopPropagation()">
-          ${zoneUnits.map(m=>`<div class="unit-chip ${selectedUnits.has(Number(m[0]))?'active':''}" onclick="toggleUnit(${m[0]})">${m[0]}</div>`).join('')}
+        <div style="font-weight:900; font-size:11px;">${i===finalIdx?'🚩':''}${z.name.replace('ゾーン','')}</div>
+        <div style="text-align:left; font-family:'Oswald'; font-weight:700; font-size:12px;">No.${z.s}-${z.e}</div>
+        <div style="text-align:right; font-family:'Oswald'; font-size:10px; font-weight:700;">${selCount}/${zoneUnits.length}台</div>
+        <div class="progress-container status-bar-bg">
+          ${zoneUnits.map(m => {
+            const isTarget = (Number(m[tIdx]) === 1 || selectedUnits.has(Number(m[0])));
+            return `<div class="p-seg ${isTarget ? 'active' : ''}"></div>`;
+          }).join('')}
         </div>
       </div>`;
   }).join('');
@@ -253,3 +255,13 @@ function renderLogs() {
 function startEdit(row, ids, date) { editingLogRow=row; selectedUnits=new Set(ids.split(',').map(Number)); document.getElementById('work-date').value=date.replace(/\//g,'-'); switchView('work'); }
 function cancelEdit() { editingLogRow=null; selectedUnits.clear(); renderAll(); }
 async function handleDelete(row) { if(confirm("削除しますか？")) { document.getElementById('loading').style.display='flex'; await callGAS("deleteLog",{row}); await silentLogin(); } }
+function showQR() {
+  const target = document.getElementById("qr-target");
+  target.innerHTML = ""; // 前回のQRを消去
+  new QRCode(target, {
+    text: window.location.href,
+    width: 200,
+    height: 200
+  });
+  document.getElementById("qr-overlay").style.display = "flex";
+}
