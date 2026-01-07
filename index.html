@@ -20,15 +20,15 @@
 
 <div id="login-overlay" class="overlay" style="display: none; background: var(--bg);">
   <div class="auth-box">
-    <h2 id="auth-title">KIKI LOGIN</h2>
+    <h2 id="auth-title" style="font-family:'Oswald'; color:var(--accent);">KIKI LOGIN</h2>
     <div id="login-fields">
       <input type="email" id="login-id" placeholder="メールアドレス" class="auth-input">
       <input type="password" id="login-pass" placeholder="パスワード" class="auth-input">
     </div>
     <div id="register-fields" style="display:none;">
       <input type="text" id="reg-nick" placeholder="ニックネーム" class="auth-input">
-      <input type="email" id="reg-id" placeholder="メールアドレス" class="auth-input">
-      <input type="password" id="reg-pass" placeholder="パスワード" class="auth-input">
+      <input type="email" id="reg-id" placeholder="登録用メールアドレス" class="auth-input">
+      <input type="password" id="reg-pass" placeholder="登録用パスワード" class="auth-input">
     </div>
     <div class="auto-login-row">
       <input type="checkbox" id="auto-login">
@@ -44,18 +44,18 @@
 
 <div class="header">
   <div class="header-logo" style="font-family:'Oswald'; color:var(--accent); font-size:20px;">KIKI PRO</div>
-  <div style="display:flex; align-items:center; gap:8px;">
+  <div style="display:flex; align-items:center; gap:10px;">
+    <div onclick="showQR()" style="cursor:pointer; display:flex; color:var(--text);">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+    </div>
     <div id="user-display" style="font-size:11px; background:var(--panel); padding:4px 10px; border-radius:4px; font-weight:900;">---</div>
-    <button onclick="logout()" style="background:var(--danger); color:#fff; border:none; padding:5px 10px; border-radius:4px; font-size:10px; font-weight:900;">LOGOUT</button>
+    <button onclick="logout()" style="background:var(--danger); color:#fff; border:none; padding:5px 8px; border-radius:4px; font-size:10px; font-weight:900; cursor:pointer;">LOGOUT</button>
   </div>
 </div>
 
 <div class="nav-row">
   <div class="top-tab active-work" id="tab-work" onclick="switchView('work')">入力</div>
   <div class="top-tab" id="tab-log" onclick="switchView('log')">履歴</div>
-  <div style="width:50px; display:flex; justify-content:center; align-items:center; cursor:pointer;" onclick="showQR()">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-  </div>
 </div>
 
 <div class="type-bar" id="type-tabs"></div>
@@ -65,7 +65,7 @@
     <button id="mode-list-btn" onclick="setMode('list')">リスト</button>
     <button id="mode-tile-btn" onclick="setMode('tile')">全体</button>
     <button onclick="scrollToLastWork()">最終🚩</button>
-    <button onclick="toggleAllSelection()">全選択</button>
+    <button onclick="toggleAllSelection()">全選択/全解除</button>
   </div>
 </div>
 
