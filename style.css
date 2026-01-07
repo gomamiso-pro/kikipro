@@ -34,12 +34,28 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
 .zone-container-list { padding: 10px; display: flex; flex-direction: column; gap: 10px; padding-bottom: 180px; }
 .zone-container-tile { padding: 8px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding-bottom: 180px; }
 
-/* カードデザイン (デザイン完全統一) */
-.base-card { border-radius: 8px; overflow: hidden; background: #fff; border: 2.5px solid transparent; color: #000; display: flex; flex-direction: column; }
+/* 文字サイズとステータスバーの強化 */
+.base-card { border-radius: 10px; overflow: hidden; background: #fff; border: 2.5px solid transparent; color: #000; display: flex; flex-direction: column; }
 .has-selection { border-color: var(--accent) !important; box-shadow: 0 0 12px rgba(250, 204, 21, 0.4); }
 
 .card-top { display: flex; justify-content: space-between; align-items: flex-start; padding: 8px 10px 4px 10px; }
 .card-mid { padding: 0 10px 8px 10px; display: flex; justify-content: space-between; align-items: flex-end; }
+
+/* リスト表示用：台数と日付を特大に */
+.list-big-font { font-size: 24px !important; font-weight: 900 !important; font-family: 'Oswald', sans-serif; }
+.list-date-font { font-size: 20px !important; font-weight: 900 !important; }
+
+/* タイル表示：4段組み構造 */
+.tile-row { width: 100%; text-align: center; line-height: 1.2; padding: 2px 0; }
+.tile-date { font-size: 10px; font-weight: 900; border-bottom: 1px solid rgba(0,0,0,0.1); }
+.tile-zone { font-size: 11px; font-weight: 900; overflow: hidden; white-space: nowrap; }
+.tile-no { font-size: 13px; font-weight: 900; font-family: 'Oswald'; }
+.tile-count { font-size: 12px; font-weight: 900; font-family: 'Oswald'; }
+
+/* ステータスバー（より太く、はっきりと） */
+.progress-container { height: 10px; background: #ddd; display: flex; gap: 1px; width: 100%; border-top: 1px solid rgba(0,0,0,0.05); }
+.p-seg { flex: 1; height: 100%; background: #eee; }
+.p-seg.active { background: #222 !important; } /* 選択中は黒で強調 */
 
 /* ステータスバー（進捗バー） */
 .progress-container { height: 7px; background: rgba(0,0,0,0.12); display: flex; gap: 1px; width: 100%; margin-top: auto; }
