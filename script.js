@@ -103,20 +103,29 @@ function renderList() {
   const container = document.getElementById('zone-display');
   container.className = "zone-container-list";
   const tIdx = TYPE_MAP[activeType];
+  const finalIdx = getFinalWorkZoneIndex(); // 🚩用
+
   container.innerHTML = DATA.cols.map((z, i) => {
     const zoneUnits = DATA.master.filter(m => Number(m[0])>=Math.min(z.s,z.e) && Number(m[0])<=Math.max(z.s,z.e) && (Number(m[tIdx])===1 || selectedUnits.has(Number(m[0]))));
     if (zoneUnits.length === 0) return "";
     const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
+    
     return `
       <div id="zone-card-${i}" class="zone-row ${selCount>0?'has-selection':''} ${expandedZoneId===i?'expanded':''}" onclick="handleZoneAction(event, ${i})">
         <div class="zone-flex">
           <div class="zone-check-area" onclick="handleZoneCheck(event, ${z.s}, ${z.e})"><input type="checkbox" ${selCount===zoneUnits.length?'checked':''} readonly></div>
           <div class="zone-main-content" style="background:${z.bg}; color:#000;">
-            <div style="display:flex; justify-content:space-between;"><b>${z.name}</b><span style="font-size:12px;font-weight:900;">${formatLastDate(z)}</span></div>
-            <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:5px;"><span class="f-oswald" style="font-size:20px;">No.${z.s}-${z.e}</span><span>${selCount}/${zoneUnits.length}</span></div>
+            <div style="display:flex; justify-content:space-between; font-family:'Oswald';">
+              <b>${i===finalIdx?'🚩':''}${z.name}</b>
+              <span style="font-size:12px;font-weight:900;">${formatLastDate(z)}</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:5px;">
+              <span class="f-oswald" style="font-size:20px;">No.${z.s}-${z.e}</span>
+              <span class="f-oswald">${selCount}/${zoneUnits.length}</span>
+            </div>
           </div>
         </div>
-        <div class="progress-container">${zoneUnits.map(m=>`<div class="p-seg ${selectedUnits.has(Number(m[0]))?'active':''}"></div>`).join('')}</div>
+        <div class="progress-container status-bar-bg">${zoneUnits.map(m=>`<div class="p-seg ${selectedUnits.has(Number(m[0]))?'active':''}"></div>`).join('')}</div>
         <div class="expand-box" onclick="event.stopPropagation()">
           <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(60px, 1fr)); gap:8px;">
             ${zoneUnits.map(m=>`<div class="unit-chip ${selectedUnits.has(Number(m[0]))?'active':''}" onclick="toggleUnit(${m[0]})">${m[0]}</div>`).join('')}
@@ -131,18 +140,25 @@ function renderTile() {
   container.className = "zone-container-tile";
   const tIdx = TYPE_MAP[activeType];
   const finalIdx = getFinalWorkZoneIndex();
+
   container.innerHTML = DATA.cols.map((z, i) => {
     const zoneUnits = DATA.master.filter(m => Number(m[0])>=Math.min(z.s,z.e) && Number(m[0])<=Math.max(z.s,z.e) && (Number(m[tIdx])===1 || selectedUnits.has(Number(m[0]))));
     if (zoneUnits.length === 0) return "";
     const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
+    
     return `
       <div id="zone-card-${i}" class="tile-card ${selCount>0?'has-selection':''} ${expandedZoneId===i?'expanded':''}" style="background:${z.bg}; color:#000;" onclick="handleZoneAction(event, ${i})">
-        <div style="display:flex; justify-content:space-between; font-size:10px;">
-          <div onclick="handleZoneCheck(event, ${z.s}, ${z.e})"><input type="checkbox" ${selCount===zoneUnits.length?'checked':''} style="pointer-events:none;"></div>
-          <b>${i===finalIdx?'🚩':''}${z.name.replace('ゾーン','')}</b>
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:9px; font-weight:bold; font-family:'Oswald';">
+          <div onclick="handleZoneCheck(event, ${z.s}, ${z.e})"><input type="checkbox" ${selCount===zoneUnits.length?'checked':''} style="pointer-events:none; transform:scale(0.8);"></div>
+          <span>${formatLastDate(z)}</span>
         </div>
-        <div style="text-align:center; font-family:Oswald; font-weight:700;">No.${z.s}</div>
-        <div class="progress-container" style="background:rgba(0,0,0,0.1);">${zoneUnits.map(m=>`<div class="p-seg ${selectedUnits.has(Number(m[0]))?'active':''}"></div>`).join('')}</div>
+        <div style="font-size:11px; font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+           ${i===finalIdx?'🚩':''}${z.name.replace('ゾーン','')}
+        </div>
+        <div style="text-align:center; font-family:'Oswald'; font-weight:700; font-size:12px; line-height:1;">No.${z.s}-${z.e}</div>
+        <div style="text-align:right; font-family:'Oswald'; font-size:10px; font-weight:700;">${selCount}/${zoneUnits.length}</div>
+        <div class="progress-container status-bar-bg">${zoneUnits.map(m=>`<div class="p-seg ${selectedUnits.has(Number(m[0]))?'active':''}"></div>`).join('')}</div>
+        
         <div class="expand-box" onclick="event.stopPropagation()">
           ${zoneUnits.map(m=>`<div class="unit-chip ${selectedUnits.has(Number(m[0]))?'active':''}" onclick="toggleUnit(${m[0]})">${m[0]}</div>`).join('')}
         </div>
@@ -179,12 +195,20 @@ function switchView(v) {
   document.getElementById('tab-log').className = 'top-tab ' + (!isWork ? 'active-log' : '');
   renderAll();
 }
+// 日付フォーマットの修正（曜日追加）
 function formatLastDate(z) {
   const tCol = DATE_COL_MAP[activeType];
   const units = DATA.master.filter(m => Number(m[0])>=Math.min(z.s,z.e) && Number(m[0])<=Math.max(z.s,z.e));
   let last = null;
-  units.forEach(m => { if(m[tCol]) { const d=new Date(m[tCol]); if(!last || d>last) last=d; } });
-  return last ? `${last.getMonth()+1}/${last.getDate()}` : "未";
+  units.forEach(m => { 
+    if(m[tCol]) { 
+      const d = new Date(m[tCol]); 
+      if(!last || d > last) last = d; 
+    } 
+  });
+  if(!last) return "未入力";
+  const days = ["日","月","火","水","木","金","土"];
+  return `${last.getMonth()+1}/${last.getDate()}(${days[last.getDay()]})`;
 }
 function getFinalWorkZoneIndex() {
   const tCol = DATE_COL_MAP[activeType];
