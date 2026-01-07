@@ -1,18 +1,15 @@
-name: Run GAS Web App
+name: Run GAS with Token
 
 on:
   push:
-    branches:
-      - main
-  # 定期実行したい場合は schedule を使う
-  # schedule:
-  #   - cron: '0 0 * * *' 
+    branches: [ main ]
 
 jobs:
   run-gas:
     runs-on: ubuntu-latest
     steps:
-      - name: Call GAS Web App
+      - name: Call GAS via curl
         run: |
           curl -L "${{ secrets.GAS_WEBAPP_URL }}" \
-          -X POST
+          -H "Content-Type: application/json" \
+          -d '{"token": "your_shared_secret_here", "data": "GitHubからのメッセージ"}'
