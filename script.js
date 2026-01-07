@@ -255,13 +255,30 @@ function renderLogs() {
 function startEdit(row, ids, date) { editingLogRow=row; selectedUnits=new Set(ids.split(',').map(Number)); document.getElementById('work-date').value=date.replace(/\//g,'-'); switchView('work'); }
 function cancelEdit() { editingLogRow=null; selectedUnits.clear(); renderAll(); }
 async function handleDelete(row) { if(confirm("削除しますか？")) { document.getElementById('loading').style.display='flex'; await callGAS("deleteLog",{row}); await silentLogin(); } }
+// QRを表示する関数
 function showQR() {
   const target = document.getElementById("qr-target");
-  target.innerHTML = ""; // 前回のQRを消去
+  if (!target) return;
+
+  target.innerHTML = ""; // 前回のQRを消去（重要！）
+  
+  // QRCodeライブラリを使用して生成
   new QRCode(target, {
-    text: window.location.href,
-    width: 200,
-    height: 200
+    text: window.location.href, // 現在のサイトURL
+    width: 180,
+    height: 180,
+    colorDark : "#000000",
+    colorLight : "#ffffff",
+    correctLevel : QRCode.CorrectLevel.H
   });
+
   document.getElementById("qr-overlay").style.display = "flex";
+}
+
+// QRを閉じる関数（ここが反応していない可能性があります）
+function hideQR() {
+  const overlay = document.getElementById("qr-overlay");
+  if (overlay) {
+    overlay.style.display = "none";
+  }
 }
