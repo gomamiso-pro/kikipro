@@ -1,0 +1,18 @@
+name: Run GAS Web App
+
+on:
+  push:
+    branches:
+      - main
+  # 定期実行したい場合は schedule を使う
+  # schedule:
+  #   - cron: '0 0 * * *' 
+
+jobs:
+  run-gas:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call GAS Web App
+        run: |
+          curl -L "${{ secrets.GAS_WEBAPP_URL }}" \
+          -X POST
