@@ -34,11 +34,41 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
 .zone-main-content { flex: 1; padding: 10px; }
 .has-selection { border: 2.5px solid var(--accent); }
 
-.zone-container-tile { padding: 5px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding-bottom: 160px; }
-.tile-card { min-height: 70px; padding: 6px; display: flex; flex-direction: column; justify-content: space-between; border-radius: 6px; position: relative; }
+.zone-container-tile {
+    padding: 8px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 4列だと狭いため3列を推奨しますが、適宜変更してください */
+    gap: 8px;
+    padding-bottom: 160px;
+}
+.tile-card {
+    min-height: 100px; /* 5段構成に合わせて高さを確保 */
+    padding: 8px 6px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-radius: 8px;
+    position: relative;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
 
-.progress-container { height: 8px; background: rgba(128,128,128,0.2); display: flex; gap: 1px; width: 100%; }
-.p-seg.active { background: var(--accent); }
+.tile-card .progress-container {
+    margin-top: 4px;
+}
+
+.f-oswald { font-family: 'Oswald', sans-serif; }
+
+/* 進捗バーの背景を少し暗くして黄色(accent)を引き立てる */
+.status-bar-bg {
+    background: rgba(0, 0, 0, 0.2) !important;
+    height: 10px !important; /* 少し太くして見やすく */
+    border-radius: 2px;
+}
+
+.p-seg.active {
+    background: #ffea00 !important; /* より鮮やかな黄色 */
+    box-shadow: 0 0 4px rgba(250, 204, 21, 0.6);
+}
 
 .expand-box { display: none; width: 100%; padding: 12px; background: #111; box-sizing: border-box; border-top: 2px solid var(--accent); }
 .expanded .expand-box { display: block; }
@@ -50,3 +80,11 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
 #work-date { position: absolute; inset: 0; opacity: 0; }
 .btn-exec { background: #5e81ac; color: #fff; border: none; padding: 15px; border-radius: 6px; font-weight: 900; width: 100%; font-size: 18px; }
 .btn-exec:disabled { opacity: 0.3; }
+
+/* 🚩のアニメーション（任意） */
+@keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+.flag-mark { animation: blink 1.5s infinite; }
