@@ -1,5 +1,5 @@
 const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwUAlllOM9Tncn732dvIc9j4si4d4PJDUgov8nT9tb9-U3kxaS5y8J8x8FjA8Lf-SxbNg/exec";
-
+const GAS_API_URL = "YOUR_GAS_WEBAPP_URL_HERE";
 
 let DATA = {};
 let activeType = "通常";
@@ -32,11 +32,11 @@ function showLoginUI() { document.getElementById('login-overlay').style.display 
 async function handleAuth() {
   if (isRegisterMode) {
     const d = { newNick: document.getElementById('reg-nick').value, newID: document.getElementById('reg-id').value, newPass: document.getElementById('reg-pass').value };
-    if (!d.newNick || !d.newID || !d.newPass) return alert("全項目入力してください");
+    if (!d.newNick || !d.newID || !d.newPass) return alert("全項目入力");
     document.getElementById('loading').style.display = 'flex';
     const res = await callGAS("registerUser", d);
     document.getElementById('loading').style.display = 'none';
-    if (res.status === "success") { alert(res.message); toggleAuthMode(); } else { alert(res.message); }
+    if (res.status === "success") { alert(res.message); toggleAuthMode(); } else alert(res.message);
   } else {
     authID = document.getElementById('login-id').value;
     authPass = document.getElementById('login-pass').value;
@@ -55,6 +55,7 @@ async function silentLogin() {
     document.getElementById('login-overlay').style.display = 'none';
     DATA = res;
     document.getElementById('user-display').innerText = DATA.user.toUpperCase();
+    document.getElementById('user-logo').innerText = DATA.user.charAt(0).toUpperCase();
     renderAll();
     return true;
   } catch (e) { return false; } finally { document.getElementById('loading').style.display = 'none'; }
@@ -85,7 +86,6 @@ function renderTile() {
   container.innerHTML = generateCardsHTML(false);
 }
 
-// 共通描画ロジック
 function generateCardsHTML(isList) {
   const tIdx = TYPE_MAP[activeType];
   const finalIdx = getFinalWorkZoneIndex();
@@ -97,7 +97,6 @@ function generateCardsHTML(isList) {
     const lastDateStr = formatLastDate(z);
 
     if (isList) {
-      // --- リスト表示（デカ文字仕様） ---
       return `
         <div id="zone-card-${i}" class="base-card ${sel>0?'has-selection':''} ${expandedZoneId===i?'expanded':''}" onclick="handleZoneAction(event, ${i})">
           <div class="card-top" style="background:${z.bg}; padding:12px;">
@@ -105,13 +104,13 @@ function generateCardsHTML(isList) {
               <div onclick="handleZoneCheck(event, ${z.s}, ${z.e})">
                 <input type="checkbox" ${sel===units.length?'checked':''} style="width:24px; height:24px; pointer-events:none;">
               </div>
-              <span style="font-weight:900; font-size:20px;">${i===finalIdx?'🚩':''}${z.name}</span>
+              <span style="font-weight:900; font-size:22px;">${i===finalIdx?'🚩':''}${z.name}</span>
             </div>
-            <span class="list-date-font">${lastDateStr}</span>
+            <span style="font-size:22px; font-weight:900;">${lastDateStr}</span>
           </div>
           <div class="card-mid" style="background:${z.bg}; padding: 0 12px 12px 12px;">
-            <span class="f-oswald" style="font-size:36px; font-weight:900;">No.${z.s}-${z.e}</span>
-            <span class="list-big-font">${sel} / ${units.length}</span>
+            <span class="f-oswald" style="font-size:40px; font-weight:900;">No.${z.s}-${z.e}</span>
+            <span class="f-oswald" style="font-size:26px; font-weight:900;">${sel} / ${units.length}</span>
           </div>
           <div class="progress-container">${units.map(m=>`<div class="p-seg ${selectedUnits.has(Number(m[0]))?'active':''}"></div>`).join('')}</div>
           <div class="expand-box" onclick="event.stopPropagation()">
@@ -121,18 +120,17 @@ function generateCardsHTML(isList) {
           </div>
         </div>`;
     } else {
-      // --- 全体表示（タイル：4段構成仕様） ---
+      // 全体表示（5段構成）
       return `
         <div id="zone-card-${i}" class="base-card ${sel>0?'has-selection':''} ${expandedZoneId===i?'expanded':''}" style="background:${z.bg};" onclick="handleZoneAction(event, ${i})">
-          <div class="tile-row tile-date">${lastDateStr}</div>
-          <div class="tile-row tile-zone">${i===finalIdx?'🚩':''}${z.name.replace('ゾーン','')}</div>
-          <div class="tile-row tile-no">No.${z.s}<br>${z.e}</div>
-          <div class="tile-row tile-count" style="display:flex; justify-content:center; align-items:center; gap:3px;">
-            <div onclick="handleZoneCheck(event, ${z.s}, ${z.e})"><input type="checkbox" ${sel===units.length?'checked':''} style="width:12px; height:12px; pointer-events:none;"></div>
-            ${sel}/${units.length}
+          <div class="tile-row" style="padding:4px 5px; justify-content:space-between; border-bottom:1px solid rgba(0,0,0,0.1);">
+            <div onclick="handleZoneCheck(event, ${z.s}, ${z.e})"><input type="checkbox" ${sel===units.length?'checked':''} style="width:14px; height:14px; pointer-events:none;"></div>
+            <span style="font-size:10px; font-weight:900;">${lastDateStr}</span>
           </div>
-          <div class="progress-container" style="height:8px;">${units.map(m=>`<div class="p-seg ${selectedUnits.has(Number(m[0]))?'active':''}"></div>`).join('')}</div>
-          
+          <div class="tile-row-center" style="font-size:11px; font-weight:900;">${i===finalIdx?'🚩':''}${z.name.replace('ゾーン','')}</div>
+          <div class="tile-row-center f-oswald" style="font-size:12px; font-weight:900;">No.${z.s}-${z.e}</div>
+          <div class="tile-row-center f-oswald" style="font-size:11px; font-weight:900;">${sel}/${units.length}</div>
+          <div class="progress-container" style="height:7px;">${units.map(m=>`<div class="p-seg ${selectedUnits.has(Number(m[0]))?'active':''}"></div>`).join('')}</div>
           <div class="expand-box" onclick="event.stopPropagation()">
             ${units.map(m=>`<div class="unit-chip ${selectedUnits.has(Number(m[0]))?'active':''}" onclick="toggleUnit(${m[0]})" style="padding:5px 0; font-size:10px;">${m[0]}</div>`).join('')}
           </div>
@@ -146,7 +144,7 @@ function formatLastDate(z) {
   const units = DATA.master.filter(m => Number(m[0])>=Math.min(z.s,z.e) && Number(m[0])<=Math.max(z.s,z.e));
   let last = null;
   units.forEach(m => { if(m[col]) { const d=new Date(m[col]); if(!last || d>last) last=d; } });
-  if(!last) return "未作業";
+  if(!last) return "未";
   const day = ["日","月","火","水","木","金","土"][last.getDay()];
   return `${last.getMonth()+1}/${last.getDate()}(${day})`;
 }
@@ -158,7 +156,7 @@ function getFinalWorkZoneIndex() {
   return DATA.cols.findIndex(z => maxId>=Math.min(z.s,z.e) && maxId<=Math.max(z.s,z.e));
 }
 
-function logout() { if(confirm("ログアウトしますか？")) { localStorage.clear(); location.reload(); } }
+function logout() { if(confirm("ログアウト？")) { localStorage.clear(); location.reload(); } }
 function showQR() {
   const url = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(window.location.href)}`;
   document.getElementById('qr-target').innerHTML = `<img src="${url}" style="width:200px; border:10px solid #fff;">`;
@@ -222,13 +220,13 @@ function renderLogs() {
 }
 function startEdit(row, ids, date) { editingLogRow=row; selectedUnits=new Set(ids.split(',').map(Number)); document.getElementById('work-date').value=date.replace(/\//g,'-'); switchView('work'); }
 function cancelEdit() { editingLogRow=null; selectedUnits.clear(); renderAll(); }
-async function handleDelete(row) { if(confirm("履歴を削除しますか？")) { document.getElementById('loading').style.display='flex'; await callGAS("deleteLog",{row}); await silentLogin(); renderLogs(); } }
+async function handleDelete(row) { if(confirm("削除？")) { document.getElementById('loading').style.display='flex'; await callGAS("deleteLog",{row}); await silentLogin(); renderLogs(); } }
 function toggleAuthMode() {
   isRegisterMode = !isRegisterMode;
   document.getElementById('auth-title').innerText = isRegisterMode ? "NEW REGISTER" : "KIKI LOGIN";
   document.getElementById('login-fields').style.display = isRegisterMode ? "none" : "block";
   document.getElementById('register-fields').style.display = isRegisterMode ? "block" : "none";
-  document.getElementById('auth-submit').innerText = isRegisterMode ? "新規登録を実行" : "ログイン";
-  document.getElementById('auth-toggle').innerText = isRegisterMode ? "ログインへ" : "新規登録";
+  document.getElementById('auth-submit').innerText = isRegisterMode ? "新規登録" : "ログイン";
+  document.getElementById('auth-toggle').innerText = isRegisterMode ? "戻る" : "こちら";
 }
 function closeAllDetails() { if(expandedZoneId!==null){expandedZoneId=null; renderAll();} }
