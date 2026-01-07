@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Login to GAS App</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+    <h1>ログインしてください</h1>
+    
+    <div id="g_id_onload"
+         data-client_id="あなたのGOOGLE_CLIENT_ID.apps.googleusercontent.com"
+         data-callback="handleCredentialResponse">
+    </div>
+    <div class="g_id_signin" data-type="standard"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
