@@ -14,8 +14,11 @@
 
 <div id="qr-overlay" class="overlay" onclick="hideQR()">
   <div style="background:#fff; padding:20px; border-radius:15px; text-align:center;" onclick="event.stopPropagation()">
-    <div id="qr-target"></div>
-    <button onclick="hideQR()" style="margin-top:15px; padding:8px 20px; border:none; border-radius:5px; background:#111; color:white; font-weight:bold;">閉じる</button>
+    <div id="qr-target" style="display: flex; justify-content: center; margin-bottom: 10px;"></div>
+    
+    <button type="button" onclick="hideQR()" style="margin-top:15px; padding:10px 25px; border:none; border-radius:8px; background:#111; color:white; font-weight:bold; cursor:pointer; width:100%;">
+      閉じる
+    </button>
   </div>
 </div>
 
