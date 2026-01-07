@@ -99,40 +99,41 @@ function generateCardsHTML(isList) {
     if (isList) {
       return `
         <div id="zone-card-${i}" class="base-card ${sel>0?'has-selection':''} ${expandedZoneId===i?'expanded':''}" onclick="handleZoneAction(event, ${i})">
-          <div class="card-top" style="background:${z.bg}; padding:12px;">
-            <div style="display:flex; align-items:center; gap:8px;">
+          <div class="card-top" style="background:${z.bg}; padding:15px;">
+            <div style="display:flex; align-items:center; gap:10px;">
               <div onclick="handleZoneCheck(event, ${z.s}, ${z.e})">
-                <input type="checkbox" ${sel===units.length?'checked':''} style="width:24px; height:24px; pointer-events:none;">
+                <input type="checkbox" ${sel===units.length?'checked':''} style="width:28px; height:28px; pointer-events:none;">
               </div>
-              <span style="font-weight:900; font-size:22px;">${i===finalIdx?'🚩':''}${z.name}</span>
+              <span style="font-weight:900; font-size:24px;">${i===finalIdx?'🚩':''}${z.name}</span>
             </div>
-            <span style="font-size:22px; font-weight:900;">${lastDateStr}</span>
+            <span style="font-size:24px; font-weight:900;">${lastDateStr}</span>
           </div>
-          <div class="card-mid" style="background:${z.bg}; padding: 0 12px 12px 12px;">
-            <span class="f-oswald" style="font-size:40px; font-weight:900;">No.${z.s}-${z.e}</span>
-            <span class="f-oswald" style="font-size:26px; font-weight:900;">${sel} / ${units.length}</span>
+          <div class="card-mid" style="background:${z.bg}; padding: 0 15px 15px 15px;">
+            <span class="f-oswald" style="font-size:42px; font-weight:900;">No.${z.s}-${z.e}</span>
+            <span class="f-oswald" style="font-size:28px; font-weight:900;">${sel} / ${units.length}</span>
           </div>
           <div class="progress-container">${units.map(m=>`<div class="p-seg ${selectedUnits.has(Number(m[0]))?'active':''}"></div>`).join('')}</div>
           <div class="expand-box" onclick="event.stopPropagation()">
-            <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(70px, 1fr)); gap:10px;">
+            <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(75px, 1fr)); gap:10px;">
               ${units.map(m=>`<div class="unit-chip ${selectedUnits.has(Number(m[0]))?'active':''}" onclick="toggleUnit(${m[0]})">${m[0]}</div>`).join('')}
             </div>
           </div>
         </div>`;
     } else {
-      // 全体表示（5段構成）
       return `
         <div id="zone-card-${i}" class="base-card ${sel>0?'has-selection':''} ${expandedZoneId===i?'expanded':''}" style="background:${z.bg};" onclick="handleZoneAction(event, ${i})">
-          <div class="tile-row" style="padding:4px 5px; justify-content:space-between; border-bottom:1px solid rgba(0,0,0,0.1);">
-            <div onclick="handleZoneCheck(event, ${z.s}, ${z.e})"><input type="checkbox" ${sel===units.length?'checked':''} style="width:14px; height:14px; pointer-events:none;"></div>
-            <span style="font-size:10px; font-weight:900;">${lastDateStr}</span>
+          <div class="tile-row" style="justify-content:space-between; border-bottom:1px solid rgba(0,0,0,0.05);">
+            <div onclick="handleZoneCheck(event, ${z.s}, ${z.e})">
+              <input type="checkbox" ${sel===units.length?'checked':''} style="width:14px; height:14px; pointer-events:none;">
+            </div>
+            <span style="font-size:9px; font-weight:900;">${lastDateStr}</span>
           </div>
-          <div class="tile-row-center" style="font-size:11px; font-weight:900;">${i===finalIdx?'🚩':''}${z.name.replace('ゾーン','')}</div>
-          <div class="tile-row-center f-oswald" style="font-size:12px; font-weight:900;">No.${z.s}-${z.e}</div>
-          <div class="tile-row-center f-oswald" style="font-size:11px; font-weight:900;">${sel}/${units.length}</div>
-          <div class="progress-container" style="height:7px;">${units.map(m=>`<div class="p-seg ${selectedUnits.has(Number(m[0]))?'active':''}"></div>`).join('')}</div>
+          <div class="tile-row"><span class="tile-line" style="font-size:10px; font-weight:900; padding-top:2px;">${i===finalIdx?'🚩':''}${z.name.replace('ゾーン','')}</span></div>
+          <div class="tile-row"><span class="tile-line f-oswald" style="font-size:12px; font-weight:900;">No.${z.s}-${z.e}</span></div>
+          <div class="tile-row"><span class="tile-line f-oswald" style="font-size:10px; font-weight:900;">${sel} / ${units.length}</span></div>
+          <div class="progress-container" style="height:8px;">${units.map(m=>`<div class="p-seg ${selectedUnits.has(Number(m[0]))?'active':''}"></div>`).join('')}</div>
           <div class="expand-box" onclick="event.stopPropagation()">
-            ${units.map(m=>`<div class="unit-chip ${selectedUnits.has(Number(m[0]))?'active':''}" onclick="toggleUnit(${m[0]})" style="padding:5px 0; font-size:10px;">${m[0]}</div>`).join('')}
+            ${units.map(m=>`<div class="unit-chip ${selectedUnits.has(Number(m[0]))?'active':''}" onclick="toggleUnit(${m[0]})" style="padding:4px 0; font-size:10px; margin-bottom:4px;">${m[0]}</div>`).join('')}
           </div>
         </div>`;
     }
@@ -156,7 +157,7 @@ function getFinalWorkZoneIndex() {
   return DATA.cols.findIndex(z => maxId>=Math.min(z.s,z.e) && maxId<=Math.max(z.s,z.e));
 }
 
-function logout() { if(confirm("ログアウト？")) { localStorage.clear(); location.reload(); } }
+function logout() { if(confirm("ログアウトしますか？")) { localStorage.clear(); location.reload(); } }
 function showQR() {
   const url = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(window.location.href)}`;
   document.getElementById('qr-target').innerHTML = `<img src="${url}" style="width:200px; border:10px solid #fff;">`;
@@ -220,13 +221,13 @@ function renderLogs() {
 }
 function startEdit(row, ids, date) { editingLogRow=row; selectedUnits=new Set(ids.split(',').map(Number)); document.getElementById('work-date').value=date.replace(/\//g,'-'); switchView('work'); }
 function cancelEdit() { editingLogRow=null; selectedUnits.clear(); renderAll(); }
-async function handleDelete(row) { if(confirm("削除？")) { document.getElementById('loading').style.display='flex'; await callGAS("deleteLog",{row}); await silentLogin(); renderLogs(); } }
+async function handleDelete(row) { if(confirm("履歴を削除しますか？")) { document.getElementById('loading').style.display='flex'; await callGAS("deleteLog",{row}); await silentLogin(); renderLogs(); } }
 function toggleAuthMode() {
   isRegisterMode = !isRegisterMode;
   document.getElementById('auth-title').innerText = isRegisterMode ? "NEW REGISTER" : "KIKI LOGIN";
   document.getElementById('login-fields').style.display = isRegisterMode ? "none" : "block";
   document.getElementById('register-fields').style.display = isRegisterMode ? "block" : "none";
-  document.getElementById('auth-submit').innerText = isRegisterMode ? "新規登録" : "ログイン";
-  document.getElementById('auth-toggle').innerText = isRegisterMode ? "戻る" : "こちら";
+  document.getElementById('auth-submit').innerText = isRegisterMode ? "新規登録を実行" : "ログイン";
+  document.getElementById('auth-toggle').innerText = isRegisterMode ? "ログインへ戻る" : "こちら";
 }
 function closeAllDetails() { if(expandedZoneId!==null){expandedZoneId=null; renderAll();} }
