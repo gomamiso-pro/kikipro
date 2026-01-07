@@ -121,15 +121,13 @@ function renderList() {
   const finalIdx = getFinalWorkZoneIndex();
 
   container.innerHTML = DATA.cols.map((z, i) => {
-    // ゾーン内の全台を取得
+    // そのゾーンに属する全台（マスタの状態に関わらず全て取得）
     const zoneUnits = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e));
     if (zoneUnits.length === 0) return "";
 
-    // ゾーン内の台IDリスト
     const zoneIds = zoneUnits.map(m => Number(m[0]));
-    // 現在選択されている台数
-    const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
-    // すべて選択されているか
+    // 選択状態の台数（マスタで1 or 今クリックして選択中）
+    const selCount = zoneUnits.filter(m => Number(m[tIdx]) === 1 || selectedUnits.has(Number(m[0]))).length;
     const isAllSelected = zoneIds.every(id => selectedUnits.has(id));
 
     return `
@@ -175,11 +173,12 @@ function renderTile() {
     if (zoneUnits.length === 0) return "";
 
     const zoneIds = zoneUnits.map(m => Number(m[0]));
-    const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
+    // 選択状態の計算
+    const selCount = zoneUnits.filter(m => Number(m[tIdx]) === 1 || selectedUnits.has(Number(m[0]))).length;
     const isAllSelected = zoneIds.every(id => selectedUnits.has(id));
 
     return `
-      <div id="zone-card-${i}" class="tile-card ${selCount > 0 ? 'has-selection' : ''}" style="background:${z.bg}; color:#000;" onclick="handleZoneAction(event, ${i})">
+      <div id="zone-card-${i}" class="tile-card ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === i ? 'expanded' : ''}" style="background:${z.bg}; color:#000;" onclick="handleZoneAction(event, ${i})">
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <div onclick="handleZoneCheck(event, ${z.s}, ${z.e})">
             <input type="checkbox" ${isAllSelected ? 'checked' : ''}>
@@ -189,11 +188,18 @@ function renderTile() {
         <div style="font-weight:900; font-size:11px;">${z.name.replace('ゾーン', '')}</div>
         <div style="text-align:left; font-family:'Oswald'; font-weight:700; font-size:15px;">No.${z.s}-${z.e}</div>
         <div style="text-align:right; font-family:'Oswald'; font-size:13px; font-weight:700;">${selCount}/${zoneUnits.length}台</div>
+        
         <div class="progress-container status-bar-bg">
           ${zoneUnits.map(m => {
             const isTarget = (Number(m[tIdx]) === 1 || selectedUnits.has(Number(m[0])));
             return `<div class="p-seg ${isTarget ? 'active' : ''}"></div>`;
           }).join('')}
+        </div>
+
+        <div class="expand-box" onclick="event.stopPropagation()">
+           <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(50px, 1fr)); gap:4px;">
+            ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" style="font-size:11px; padding:5px 0;" onclick="toggleUnit(${m[0]})">${m[0]}</div>`).join('')}
+          </div>
         </div>
       </div>`;
   }).join('');
