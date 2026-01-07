@@ -3,20 +3,17 @@
   --accent: #facc15; --text: #e5e9f0; --text-dim: #9ca3af; --danger: #bf616a;
 }
 body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-
 .f-oswald { font-family: 'Oswald', sans-serif; }
 
 /* 共通オーバーレイ */
 .overlay { position: fixed; inset:0; background:rgba(0,0,0,0.85); display:none; flex-direction:column; justify-content:center; align-items:center; z-index:5000; }
 .auth-box { text-align:center; padding:30px; background:var(--card); border-radius:15px; width:85%; max-width:320px; }
 .auth-input { width:100%; padding:12px; border-radius:6px; border:1px solid var(--panel); margin-bottom:10px; box-sizing:border-box; background:#1a1c23; color:#fff; }
-.auth-btn { width:100%; padding:12px; background:var(--accent); color:#000; border:none; border-radius:6px; font-weight:900; cursor:pointer; }
-.auth-toggle-msg { margin-top:20px; font-size:12px; color:var(--text-dim); }
-.auth-toggle-msg a { color:var(--accent); font-weight:bold; text-decoration:none; margin-left:5px; }
+.auth-btn { width:100%; padding:12px; background:var(--accent); color:#000; border:none; border-radius:6px; font-weight:900; }
 .auto-login-row { margin: 15px 0; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 12px; color: var(--text-dim); }
 
-/* ヘッダー・ナビ */
-.header { height: 55px; background: var(--header-bg); border-bottom: 1px solid var(--panel); display: flex; justify-content: space-between; align-items: center; padding: 0 15px; }
+/* ヘッダー */
+.header { height: 60px; background: var(--header-bg); border-bottom: 1px solid var(--panel); display: flex; justify-content: space-between; align-items: center; padding: 0 15px; }
 .nav-row { display: flex; background: var(--header-bg); border-bottom: 1px solid var(--panel); }
 .top-tab { flex: 1; padding: 14px; text-align: center; font-size: 14px; font-weight: 900; color: var(--text-dim); cursor: pointer; }
 .top-tab.active-work { background: #5e81ac; color: #fff; }
@@ -29,39 +26,24 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
 .view-mode-bar { display:flex; padding:8px 10px; gap:8px; background:var(--bg); }
 .view-mode-bar button { flex:1; padding:10px; border-radius:6px; border:none; background:var(--card); color:var(--text); font-weight:900; font-size:12px; }
 
-/* コンテナ設定 */
+/* カードベース */
 #view-work { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-.zone-container-list { padding: 10px; display: flex; flex-direction: column; gap: 10px; padding-bottom: 180px; }
+.zone-container-list { padding: 10px; display: flex; flex-direction: column; gap: 12px; padding-bottom: 180px; }
 .zone-container-tile { padding: 8px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding-bottom: 180px; }
 
-/* 文字サイズとステータスバーの強化 */
-.base-card { border-radius: 10px; overflow: hidden; background: #fff; border: 2.5px solid transparent; color: #000; display: flex; flex-direction: column; }
-.has-selection { border-color: var(--accent) !important; box-shadow: 0 0 12px rgba(250, 204, 21, 0.4); }
+.base-card { border-radius: 10px; overflow: hidden; background: #fff; border: 2.5px solid transparent; color: #000; display: flex; flex-direction: column; position: relative; }
+.has-selection { border-color: var(--accent) !important; box-shadow: 0 0 12px rgba(250, 204, 21, 0.5); }
 
-.card-top { display: flex; justify-content: space-between; align-items: flex-start; padding: 8px 10px 4px 10px; }
-.card-mid { padding: 0 10px 8px 10px; display: flex; justify-content: space-between; align-items: flex-end; }
+/* タイル用行レイアウト */
+.tile-row { width: 100%; display: flex; align-items: center; box-sizing: border-box; }
+.tile-row-center { width: 100%; text-align: center; line-height: 1.1; padding: 2px 4px; }
 
-/* リスト表示用：台数と日付を特大に */
-.list-big-font { font-size: 24px !important; font-weight: 900 !important; font-family: 'Oswald', sans-serif; }
-.list-date-font { font-size: 20px !important; font-weight: 900 !important; }
+/* ステータスバー（黄色統一） */
+.progress-container { height: 9px; background: rgba(0,0,0,0.1); display: flex; gap: 1px; width: 100%; border-top: 1px solid rgba(0,0,0,0.05); }
+.p-seg { flex: 1; height: 100%; }
+.p-seg.active { background: var(--accent) !important; }
 
-/* タイル表示：4段組み構造 */
-.tile-row { width: 100%; text-align: center; line-height: 1.2; padding: 2px 0; }
-.tile-date { font-size: 10px; font-weight: 900; border-bottom: 1px solid rgba(0,0,0,0.1); }
-.tile-zone { font-size: 11px; font-weight: 900; overflow: hidden; white-space: nowrap; }
-.tile-no { font-size: 13px; font-weight: 900; font-family: 'Oswald'; }
-.tile-count { font-size: 12px; font-weight: 900; font-family: 'Oswald'; }
-
-/* ステータスバー（より太く、はっきりと） */
-.progress-container { height: 10px; background: #ddd; display: flex; gap: 1px; width: 100%; border-top: 1px solid rgba(0,0,0,0.05); }
-.p-seg { flex: 1; height: 100%; background: #eee; }
-.p-seg.active { background: #222 !important; } /* 選択中は黒で強調 */
-
-/* ステータスバー（進捗バー） */
-.progress-container { height: 7px; background: rgba(0,0,0,0.12); display: flex; gap: 1px; width: 100%; margin-top: auto; }
-.p-seg.active { background: var(--accent); }
-
-/* 詳細エリア */
+/* 詳細展開 */
 .expand-box { display: none; padding: 12px; background: #111; border-top: 2px solid var(--accent); }
 .expanded .expand-box { display: block; }
 .unit-chip { background: #2d313d; color: #fff; border-radius: 4px; padding: 12px 0; text-align: center; font-size: 14px; font-weight: 900; font-family: 'Oswald'; }
@@ -71,5 +53,5 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
 .footer { background: var(--header-bg); border-top: 1px solid var(--panel); padding: 15px; position: fixed; bottom: 0; width: 100%; box-sizing: border-box; z-index: 1000; }
 .date-container { background: var(--panel); padding: 8px 15px; border-radius: 6px; position: relative; font-size: 14px; font-weight: 900; }
 #work-date { position: absolute; inset: 0; opacity: 0; }
-.btn-exec { background: #5e81ac; color: #fff; border: none; padding: 16px; border-radius: 8px; font-weight: 900; width: 100%; font-size: 20px; }
+.btn-exec { background: #5e81ac; color: #fff; border: none; padding: 18px; border-radius: 8px; font-weight: 900; width: 100%; font-size: 22px; }
 .btn-exec:disabled { opacity: 0.3; }
