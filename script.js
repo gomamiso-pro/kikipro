@@ -121,16 +121,21 @@ function renderList() {
   const finalIdx = getFinalWorkZoneIndex();
 
   container.innerHTML = DATA.cols.map((z, i) => {
-    const zoneUnits = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e));
+// 各関数の map ループ内で定義
+const zoneUnits = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e));
+
+// マスタですでに登録済みの台の数（黄色く表示する用）
+const registeredCount = zoneUnits.filter(m => Number(m[tIdx]) === 1).length;
     const targetUnits = zoneUnits.filter(m => Number(m[tIdx]) === 1 || selectedUnits.has(Number(m[0])));
-    const selCount = targetUnits.length;
+// 選択されている台の数
+const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
 
     if (zoneUnits.length === 0) return "";
 
     return `
       <div id="zone-card-${i}" class="zone-row ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === i ? 'expanded' : ''}" onclick="handleZoneAction(event, ${i})">
         <div class="zone-flex">
-          <div class="zone-check-area" onclick="handleZoneCheck(event, ${z.s}, ${z.e})"><input type="checkbox" ${selCount === zoneUnits.length ? 'checked' : ''} readonly></div>
+          <div class="zone-check-area" onclick="handleZoneCheck(event, ${z.s}, ${z.e})"><input type="checkbox" ${selectedUnits.size > 0 && zoneIds.every(id => selectedUnits.has(id)) ? 'checked' : ''}></div>
           <div class="zone-main-content" style="background:${z.bg}; color:#000;">
             <div style="display:flex; justify-content:space-between; font-family:'Oswald'; align-items: center;">
               <b>${z.name}</b>
@@ -165,24 +170,29 @@ function renderTile() {
 
   container.innerHTML = DATA.cols.map((z, i) => {
     const zoneUnits = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e));
-    const targetUnits = zoneUnits.filter(m => Number(m[tIdx]) === 1 || selectedUnits.has(Number(m[0])));
-    const selCount = targetUnits.length;
-
     if (zoneUnits.length === 0) return "";
+    
+    // 現在選択中の台数
+    const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
+    // 全台数
+    const totalCount = zoneUnits.length;
 
     return `
-      <div id="zone-card-${i}" class="tile-card ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === i ? 'expanded' : ''}" style="background:${z.bg}; color:#000;" onclick="handleZoneAction(event, ${i})">
+      <div id="zone-card-${i}" class="tile-card ${selCount > 0 ? 'has-selection' : ''}" style="background:${z.bg}; color:#000;" onclick="handleZoneAction(event, ${i})">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-          <div onclick="handleZoneCheck(event, ${z.s}, ${z.e})"><input type="checkbox" ${selCount === zoneUnits.length ? 'checked' : ''} style="pointer-events:none;"></div>
+          <div onclick="handleZoneCheck(event, ${z.s}, ${z.e})">
+            <input type="checkbox" ${selCount === totalCount ? 'checked' : ''}>
+          </div>
           <span style="font-size:14px; font-weight:900; font-family:'Oswald';">${i === finalIdx ? '🚩' : ''}${formatLastDate(z)}</span>
         </div>
         <div style="font-weight:900; font-size:11px;">${z.name.replace('ゾーン', '')}</div>
         <div style="text-align:left; font-family:'Oswald'; font-weight:700; font-size:15px;">No.${z.s}-${z.e}</div>
-        <div style="text-align:right; font-family:'Oswald'; font-size:13px; font-weight:700;">${selCount}/${zoneUnits.length}台</div>
+        <div style="text-align:right; font-family:'Oswald'; font-size:13px; font-weight:700;">${selCount}/${totalCount}台</div>
         <div class="progress-container status-bar-bg">
           ${zoneUnits.map(m => {
-            const isTarget = (Number(m[tIdx]) === 1 || selectedUnits.has(Number(m[0])));
-            return `<div class="p-seg ${isTarget ? 'active' : ''}"></div>`;
+            // マスタが1、または今選択している台を黄色にする
+            const isYellow = (Number(m[tIdx]) === 1 || selectedUnits.has(Number(m[0])));
+            return `<div class="p-seg ${isYellow ? 'active' : ''}"></div>`;
           }).join('')}
         </div>
       </div>`;
@@ -193,8 +203,23 @@ function handleZoneAction(e, idx) { e.stopPropagation(); expandedZoneId = (expan
 function handleZoneCheck(e, s, eNum) {
   e.stopPropagation();
   const tIdx = TYPE_MAP[activeType];
-  const zIds = DATA.master.filter(m => Number(m[0])>=Math.min(s,eNum) && Number(m[0])<=Math.max(s,eNum) && Number(m[tIdx])===1).map(m=>Number(m[0]));
-  zIds.every(id=>selectedUnits.has(id)) ? zIds.forEach(id=>selectedUnits.delete(id)) : zIds.forEach(id=>selectedUnits.add(id));
+  
+  // そのゾーンに属する「すべての台」のIDを取得（マスタの1の有無を問わない）
+  const zoneIds = DATA.master
+    .filter(m => Number(m[0]) >= Math.min(s, eNum) && Number(m[0]) <= Math.max(s, eNum))
+    .map(m => Number(m[0]));
+
+  // ゾーン内の台がすべて選択済みかチェック
+  const isAllSelected = zoneIds.every(id => selectedUnits.has(id));
+
+  if (isAllSelected) {
+    // すべて選択済みなら、そのゾーンの選択をすべて解除
+    zoneIds.forEach(id => selectedUnits.delete(id));
+  } else {
+    // 一つでも未選択があれば、すべて選択状態にする
+    zoneIds.forEach(id => selectedUnits.add(id));
+  }
+  
   renderAll();
 }
 function toggleUnit(id) { selectedUnits.has(id) ? selectedUnits.delete(id) : selectedUnits.add(id); renderAll(); }
