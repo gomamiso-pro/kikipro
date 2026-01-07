@@ -147,16 +147,22 @@ function renderList() {
             </div>
           </div>
         </div>
-        <div class="progress-container status-bar-bg">
-          ${zoneUnits.map(m => {
-            const isTarget = (Number(m[tIdx]) === 1 || selectedUnits.has(Number(m[0])));
-            return `<div class="p-seg ${isTarget ? 'active' : ''}"></div>`;
-          }).join('')}
-        </div>
-        <div class="expand-box" onclick="event.stopPropagation()">
-          <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(60px, 1fr)); gap:8px;">
-            ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${m[0]})">${m[0]}</div>`).join('')}
-          </div>
+// --- ステータスバーのループ部分 ---
+<div class="progress-container status-bar-bg">
+  ${zoneUnits.map(m => {
+    // 選択されている番号の箇所だけを黄色(active)にする
+    const isActive = selectedUnits.has(Number(m[0]));
+    return `<div class="p-seg ${isActive ? 'active' : ''}"></div>`;
+  }).join('')}
+</div>
+<div class="expand-box" onclick="event.stopPropagation()">
+  <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(50px, 1fr)); gap:4px;">
+    ${zoneUnits.map(m => {
+      const isActive = selectedUnits.has(Number(m[0]));
+      return `<div class="unit-chip ${isActive ? 'active' : ''}" style="font-size:11px; padding:5px 0;" onclick="toggleUnit(${m[0]})">${m[0]}</div>`;
+    }).join('')}
+  </div>
+</div>
         </div>
       </div>`;
   }).join('');
