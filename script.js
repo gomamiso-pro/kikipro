@@ -96,31 +96,48 @@ function generateCardsHTML(isList) {
     const sel = units.filter(m => selectedUnits.has(Number(m[0]))).length;
     const lastDateStr = formatLastDate(z);
 
-    return `
-      <div id="zone-card-${i}" class="base-card ${sel>0?'has-selection':''} ${expandedZoneId===i?'expanded':''}" onclick="handleZoneAction(event, ${i})">
-        <div class="card-top" style="background:${z.bg};">
-          <div style="display:flex; align-items:center; gap:5px;">
-            <div onclick="handleZoneCheck(event, ${z.s}, ${z.e})">
-              <input type="checkbox" ${sel===units.length?'checked':''} style="width:18px; height:18px; pointer-events:none;">
+    if (isList) {
+      // --- リスト表示（デカ文字仕様） ---
+      return `
+        <div id="zone-card-${i}" class="base-card ${sel>0?'has-selection':''} ${expandedZoneId===i?'expanded':''}" onclick="handleZoneAction(event, ${i})">
+          <div class="card-top" style="background:${z.bg}; padding:12px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <div onclick="handleZoneCheck(event, ${z.s}, ${z.e})">
+                <input type="checkbox" ${sel===units.length?'checked':''} style="width:24px; height:24px; pointer-events:none;">
+              </div>
+              <span style="font-weight:900; font-size:20px;">${i===finalIdx?'🚩':''}${z.name}</span>
             </div>
-            <span style="font-weight:900; font-size:${isList?16:11}px;">${i===finalIdx?'🚩':''}${isList?z.name:z.name.replace('ゾーン','')}</span>
+            <span class="list-date-font">${lastDateStr}</span>
           </div>
-          <span style="font-size:${isList?14:10}px; font-weight:900;">${lastDateStr}</span>
-        </div>
-        
-        <div class="card-mid" style="background:${z.bg};">
-          <span class="f-oswald" style="font-size:${isList?28:15}px; font-weight:900;">No.${z.s}${isList?'-'+z.e:''}</span>
-          <span class="f-oswald" style="font-size:${isList?18:11}px; font-weight:700;">${sel} / ${units.length}</span>
-        </div>
-        
-        <div class="progress-container">${units.map(m=>`<div class="p-seg ${selectedUnits.has(Number(m[0]))?'active':''}"></div>`).join('')}</div>
-        
-        <div class="expand-box" onclick="event.stopPropagation()">
-          <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(65px, 1fr)); gap:10px;">
-            ${units.map(m=>`<div class="unit-chip ${selectedUnits.has(Number(m[0]))?'active':''}" onclick="toggleUnit(${m[0]})">${m[0]}</div>`).join('')}
+          <div class="card-mid" style="background:${z.bg}; padding: 0 12px 12px 12px;">
+            <span class="f-oswald" style="font-size:36px; font-weight:900;">No.${z.s}-${z.e}</span>
+            <span class="list-big-font">${sel} / ${units.length}</span>
           </div>
-        </div>
-      </div>`;
+          <div class="progress-container">${units.map(m=>`<div class="p-seg ${selectedUnits.has(Number(m[0]))?'active':''}"></div>`).join('')}</div>
+          <div class="expand-box" onclick="event.stopPropagation()">
+            <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(70px, 1fr)); gap:10px;">
+              ${units.map(m=>`<div class="unit-chip ${selectedUnits.has(Number(m[0]))?'active':''}" onclick="toggleUnit(${m[0]})">${m[0]}</div>`).join('')}
+            </div>
+          </div>
+        </div>`;
+    } else {
+      // --- 全体表示（タイル：4段構成仕様） ---
+      return `
+        <div id="zone-card-${i}" class="base-card ${sel>0?'has-selection':''} ${expandedZoneId===i?'expanded':''}" style="background:${z.bg};" onclick="handleZoneAction(event, ${i})">
+          <div class="tile-row tile-date">${lastDateStr}</div>
+          <div class="tile-row tile-zone">${i===finalIdx?'🚩':''}${z.name.replace('ゾーン','')}</div>
+          <div class="tile-row tile-no">No.${z.s}<br>${z.e}</div>
+          <div class="tile-row tile-count" style="display:flex; justify-content:center; align-items:center; gap:3px;">
+            <div onclick="handleZoneCheck(event, ${z.s}, ${z.e})"><input type="checkbox" ${sel===units.length?'checked':''} style="width:12px; height:12px; pointer-events:none;"></div>
+            ${sel}/${units.length}
+          </div>
+          <div class="progress-container" style="height:8px;">${units.map(m=>`<div class="p-seg ${selectedUnits.has(Number(m[0]))?'active':''}"></div>`).join('')}</div>
+          
+          <div class="expand-box" onclick="event.stopPropagation()">
+            ${units.map(m=>`<div class="unit-chip ${selectedUnits.has(Number(m[0]))?'active':''}" onclick="toggleUnit(${m[0]})" style="padding:5px 0; font-size:10px;">${m[0]}</div>`).join('')}
+          </div>
+        </div>`;
+    }
   }).join('');
 }
 
