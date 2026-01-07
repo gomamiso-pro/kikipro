@@ -1,5 +1,5 @@
 // GASのWebアプリURL
-const GAS_URL = "https://script.google.com/macros/s/AKfycbyUa4Uip-rHPt_Jlus1jPaw2FF5fGYSA7t22l5W8d556qIO2hXDl8YgWvHS1OL6SluGtA/exec";
+const GAS_URL = "https://script.google.com/macros/s/AKfycby0ohoxUz-2rSI48w3VQF8WiJUkeb8Xrd4Vvec-9ylkIA-2YF_z5lA7AjY0VMNWjZgP3Q/exec";
 
 function callGasApp() {
     // GASに送りたいデータがあればクエリパラメータにする
