@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>KIKI PRO V2</title>
-  <ink rel="stylesheet" href="style.css">
+  <title>KIKI PRO V1</title>
+  <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
 </head>
 <body onclick="closeAllDetails(event)">
@@ -20,15 +20,15 @@
 
 <div id="login-overlay" class="overlay" style="display: none; background: var(--bg);">
   <div class="auth-box">
-    <h2 id="auth-title" style="font-family:'Oswald'; color:var(--accent);">KIKI LOGIN</h2>
+    <h2 id="auth-title">KIKI LOGIN</h2>
     <div id="login-fields">
       <input type="email" id="login-id" placeholder="メールアドレス" class="auth-input">
       <input type="password" id="login-pass" placeholder="パスワード" class="auth-input">
     </div>
     <div id="register-fields" style="display:none;">
       <input type="text" id="reg-nick" placeholder="ニックネーム" class="auth-input">
-      <input type="email" id="reg-id" placeholder="登録用アドレス" class="auth-input">
-      <input type="password" id="reg-pass" placeholder="登録用パスワード" class="auth-input">
+      <input type="email" id="reg-id" placeholder="メールアドレス" class="auth-input">
+      <input type="password" id="reg-pass" placeholder="パスワード" class="auth-input">
     </div>
     <div class="auto-login-row">
       <input type="checkbox" id="auto-login">
@@ -36,29 +36,26 @@
     </div>
     <button id="auth-submit" onclick="handleAuth()" class="auth-btn">ログイン</button>
     <div class="auth-toggle-msg">
-      <span id="auth-msg">新規登録は</span>
-      <a href="javascript:void(0)" onclick="toggleAuthMode()" id="auth-toggle">こちら</a>
+      <span id="auth-msg">アカウントをお持ちでない方は</span>
+      <a href="javascript:void(0)" onclick="toggleAuthMode()" id="auth-toggle">新規登録</a>
     </div>
   </div>
 </div>
 
 <div class="header">
-  <div class="header-logo" style="font-family:'Oswald'; color:var(--accent); font-size:22px;">KIKI PRO</div>
-  <div style="display:flex; align-items:center; gap:12px;">
-    <div onclick="showQR()" style="cursor:pointer; display:flex; color:var(--text);">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><path d="M7 7h.01M17 7h.01M7 17h.01"></path></svg>
-    </div>
-    <div style="display:flex; flex-direction:column; align-items:center;">
-      <div id="user-logo" style="width:26px; height:26px; background:var(--accent); border-radius:50%; display:flex; justify-content:center; align-items:center; color:#000; font-weight:900; font-size:14px; border:1.5px solid #fff;">U</div>
-      <div id="user-display" style="font-size:8px; font-weight:900; color:var(--text-dim); text-transform:uppercase; margin-top:2px;">---</div>
-    </div>
-    <button onclick="logout()" style="background:var(--danger); color:#fff; border:none; padding:6px 8px; border-radius:4px; font-size:10px; font-weight:900; cursor:pointer;">LOGOUT</button>
+  <div class="header-logo" style="font-family:'Oswald'; color:var(--accent); font-size:20px;">KIKI PRO</div>
+  <div style="display:flex; align-items:center; gap:8px;">
+    <div id="user-display" style="font-size:11px; background:var(--panel); padding:4px 10px; border-radius:4px; font-weight:900;">---</div>
+    <button onclick="logout()" style="background:var(--danger); color:#fff; border:none; padding:5px 10px; border-radius:4px; font-size:10px; font-weight:900;">LOGOUT</button>
   </div>
 </div>
 
 <div class="nav-row">
   <div class="top-tab active-work" id="tab-work" onclick="switchView('work')">入力</div>
   <div class="top-tab" id="tab-log" onclick="switchView('log')">履歴</div>
+  <div style="width:50px; display:flex; justify-content:center; align-items:center; cursor:pointer;" onclick="showQR()">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+  </div>
 </div>
 
 <div class="type-bar" id="type-tabs"></div>
