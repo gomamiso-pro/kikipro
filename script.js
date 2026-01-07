@@ -121,22 +121,24 @@ function renderList() {
   const finalIdx = getFinalWorkZoneIndex();
 
   container.innerHTML = DATA.cols.map((z, i) => {
-    // そのゾーンに属する全台（マスタの状態に関わらず全て取得）
+    // そのゾーンに属する全台を取得
     const zoneUnits = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e));
     if (zoneUnits.length === 0) return "";
 
     const zoneIds = zoneUnits.map(m => Number(m[0]));
-    // 選択状態の台数（マスタで1 or 今クリックして選択中）
-    const selCount = zoneUnits.filter(m => Number(m[tIdx]) === 1 || selectedUnits.has(Number(m[0]))).length;
-    const isAllSelected = zoneIds.every(id => selectedUnits.has(id));
+    // 選択状態の合計（ステータスバー用ではなく、カード全体のハイライト判定用）
+    const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
+    // 全選択チェック判定
+    const isAllSelected = zoneIds.length > 0 && zoneIds.every(id => selectedUnits.has(id));
 
     return `
       <div id="zone-card-${i}" class="zone-row ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === i ? 'expanded' : ''}" onclick="handleZoneAction(event, ${i})">
         <div class="zone-flex">
           <div class="zone-check-area" onclick="handleZoneCheck(event, ${z.s}, ${z.e})">
-            <input type="checkbox" ${isAllSelected ? 'checked' : ''}>
+            <input type="checkbox" ${isAllSelected ? 'checked' : ''} style="pointer-events:none;">
           </div>
-          <div class="zone-main-content" style="background:${z.bg}; color:#000;">
+          
+          <div class="zone-main-content" style="background:${z.bg}; color:#000; flex:1; padding:10px; border-radius:8px;">
             <div style="display:flex; justify-content:space-between; font-family:'Oswald'; align-items: center;">
               <b>${z.name}</b>
               <span style="font-size:16px; font-weight:900;">${i === finalIdx ? '🚩' : ''}${formatLastDate(z)}</span>
@@ -147,27 +149,26 @@ function renderList() {
             </div>
           </div>
         </div>
-      </div>
-// --- ステータスバーのループ部分 ---
-<div class="progress-container status-bar-bg">
-  ${zoneUnits.map(m => {
-    // 選択されている番号の箇所だけを黄色(active)にする
-    const isActive = selectedUnits.has(Number(m[0]));
-    return `<div class="p-seg ${isActive ? 'active' : ''}"></div>`;
-  }).join('')}
-</div>
-<div class="expand-box" onclick="event.stopPropagation()">
-  <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(50px, 1fr)); gap:4px;">
-    ${zoneUnits.map(m => {
-      const isActive = selectedUnits.has(Number(m[0]));
-      return `<div class="unit-chip ${isActive ? 'active' : ''}" style="font-size:11px; padding:5px 0;" onclick="toggleUnit(${m[0]})">${m[0]}</div>`;
-    }).join('')}
-  </div>
-</div>
+
+        <div class="progress-container status-bar-bg" style="margin-top:8px;">
+          ${zoneUnits.map(m => {
+            const isActive = selectedUnits.has(Number(m[0]));
+            return `<div class="p-seg ${isActive ? 'active' : ''}"></div>`;
+          }).join('')}
+        </div>
+
+        <div class="expand-box" onclick="event.stopPropagation()">
+          <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(50px, 1fr)); gap:4px; margin-top:10px;">
+            ${zoneUnits.map(m => {
+              const isActive = selectedUnits.has(Number(m[0]));
+              return `<div class="unit-chip ${isActive ? 'active' : ''}" style="font-size:11px; padding:5px 0; text-align:center;" onclick="toggleUnit(${m[0]})">${m[0]}</div>`;
+            }).join('')}
+          </div>
         </div>
       </div>`;
   }).join('');
 }
+
 
 function renderTile() {
   const container = document.getElementById('zone-display');
