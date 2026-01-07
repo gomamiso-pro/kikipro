@@ -1,4 +1,4 @@
-const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwvajBTbhXGsqViejlwkPWSrHer6iXevw1fgMaGrC4YCGSKSmz4i3-vQg1ug16EaVKo7A/exec";
+const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwUAlllOM9Tncn732dvIc9j4si4d4PJDUgov8nT9tb9-U3kxaS5y8J8x8FjA8Lf-SxbNg/exec";
 
 let DATA = {};
 let activeType = "通常";
