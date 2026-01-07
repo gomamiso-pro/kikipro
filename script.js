@@ -32,11 +32,11 @@ function showLoginUI() { document.getElementById('login-overlay').style.display 
 async function handleAuth() {
   if (isRegisterMode) {
     const d = { newNick: document.getElementById('reg-nick').value, newID: document.getElementById('reg-id').value, newPass: document.getElementById('reg-pass').value };
-    if (!d.newNick || !d.newID || !d.newPass) return alert("全項目入力");
+    if (!d.newNick || !d.newID || !d.newPass) return alert("全項目入力してください");
     document.getElementById('loading').style.display = 'flex';
     const res = await callGAS("registerUser", d);
     document.getElementById('loading').style.display = 'none';
-    if (res.status === "success") { alert(res.message); toggleAuthMode(); } else alert(res.message);
+    if (res.status === "success") { alert(res.message); toggleAuthMode(); } else { alert(res.message); }
   } else {
     authID = document.getElementById('login-id').value;
     authPass = document.getElementById('login-pass').value;
@@ -55,7 +55,6 @@ async function silentLogin() {
     document.getElementById('login-overlay').style.display = 'none';
     DATA = res;
     document.getElementById('user-display').innerText = DATA.user.toUpperCase();
-    document.getElementById('user-logo').innerText = DATA.user.charAt(0).toUpperCase();
     renderAll();
     return true;
   } catch (e) { return false; } finally { document.getElementById('loading').style.display = 'none'; }
@@ -86,6 +85,7 @@ function renderTile() {
   container.innerHTML = generateCardsHTML(false);
 }
 
+// 共通描画ロジック
 function generateCardsHTML(isList) {
   const tIdx = TYPE_MAP[activeType];
   const finalIdx = getFinalWorkZoneIndex();
@@ -96,47 +96,31 @@ function generateCardsHTML(isList) {
     const sel = units.filter(m => selectedUnits.has(Number(m[0]))).length;
     const lastDateStr = formatLastDate(z);
 
-    if (isList) {
-      return `
-        <div id="zone-card-${i}" class="base-card ${sel>0?'has-selection':''} ${expandedZoneId===i?'expanded':''}" onclick="handleZoneAction(event, ${i})">
-          <div class="card-top" style="background:${z.bg}; padding:15px;">
-            <div style="display:flex; align-items:center; gap:10px;">
-              <div onclick="handleZoneCheck(event, ${z.s}, ${z.e})">
-                <input type="checkbox" ${sel===units.length?'checked':''} style="width:28px; height:28px; pointer-events:none;">
-              </div>
-              <span style="font-weight:900; font-size:24px;">${i===finalIdx?'🚩':''}${z.name}</span>
-            </div>
-            <span style="font-size:24px; font-weight:900;">${lastDateStr}</span>
-          </div>
-          <div class="card-mid" style="background:${z.bg}; padding: 0 15px 15px 15px;">
-            <span class="f-oswald" style="font-size:42px; font-weight:900;">No.${z.s}-${z.e}</span>
-            <span class="f-oswald" style="font-size:28px; font-weight:900;">${sel} / ${units.length}</span>
-          </div>
-          <div class="progress-container">${units.map(m=>`<div class="p-seg ${selectedUnits.has(Number(m[0]))?'active':''}"></div>`).join('')}</div>
-          <div class="expand-box" onclick="event.stopPropagation()">
-            <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(75px, 1fr)); gap:10px;">
-              ${units.map(m=>`<div class="unit-chip ${selectedUnits.has(Number(m[0]))?'active':''}" onclick="toggleUnit(${m[0]})">${m[0]}</div>`).join('')}
-            </div>
-          </div>
-        </div>`;
-    } else {
-      return `
-        <div id="zone-card-${i}" class="base-card ${sel>0?'has-selection':''} ${expandedZoneId===i?'expanded':''}" style="background:${z.bg};" onclick="handleZoneAction(event, ${i})">
-          <div class="tile-row" style="justify-content:space-between; border-bottom:1px solid rgba(0,0,0,0.05);">
+    return `
+      <div id="zone-card-${i}" class="base-card ${sel>0?'has-selection':''} ${expandedZoneId===i?'expanded':''}" onclick="handleZoneAction(event, ${i})">
+        <div class="card-top" style="background:${z.bg};">
+          <div style="display:flex; align-items:center; gap:5px;">
             <div onclick="handleZoneCheck(event, ${z.s}, ${z.e})">
-              <input type="checkbox" ${sel===units.length?'checked':''} style="width:14px; height:14px; pointer-events:none;">
+              <input type="checkbox" ${sel===units.length?'checked':''} style="width:18px; height:18px; pointer-events:none;">
             </div>
-            <span style="font-size:9px; font-weight:900;">${lastDateStr}</span>
+            <span style="font-weight:900; font-size:${isList?16:11}px;">${i===finalIdx?'🚩':''}${isList?z.name:z.name.replace('ゾーン','')}</span>
           </div>
-          <div class="tile-row"><span class="tile-line" style="font-size:10px; font-weight:900; padding-top:2px;">${i===finalIdx?'🚩':''}${z.name.replace('ゾーン','')}</span></div>
-          <div class="tile-row"><span class="tile-line f-oswald" style="font-size:12px; font-weight:900;">No.${z.s}-${z.e}</span></div>
-          <div class="tile-row"><span class="tile-line f-oswald" style="font-size:10px; font-weight:900;">${sel} / ${units.length}</span></div>
-          <div class="progress-container" style="height:8px;">${units.map(m=>`<div class="p-seg ${selectedUnits.has(Number(m[0]))?'active':''}"></div>`).join('')}</div>
-          <div class="expand-box" onclick="event.stopPropagation()">
-            ${units.map(m=>`<div class="unit-chip ${selectedUnits.has(Number(m[0]))?'active':''}" onclick="toggleUnit(${m[0]})" style="padding:4px 0; font-size:10px; margin-bottom:4px;">${m[0]}</div>`).join('')}
+          <span style="font-size:${isList?14:10}px; font-weight:900;">${lastDateStr}</span>
+        </div>
+        
+        <div class="card-mid" style="background:${z.bg};">
+          <span class="f-oswald" style="font-size:${isList?28:15}px; font-weight:900;">No.${z.s}${isList?'-'+z.e:''}</span>
+          <span class="f-oswald" style="font-size:${isList?18:11}px; font-weight:700;">${sel} / ${units.length}</span>
+        </div>
+        
+        <div class="progress-container">${units.map(m=>`<div class="p-seg ${selectedUnits.has(Number(m[0]))?'active':''}"></div>`).join('')}</div>
+        
+        <div class="expand-box" onclick="event.stopPropagation()">
+          <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(65px, 1fr)); gap:10px;">
+            ${units.map(m=>`<div class="unit-chip ${selectedUnits.has(Number(m[0]))?'active':''}" onclick="toggleUnit(${m[0]})">${m[0]}</div>`).join('')}
           </div>
-        </div>`;
-    }
+        </div>
+      </div>`;
   }).join('');
 }
 
@@ -145,7 +129,7 @@ function formatLastDate(z) {
   const units = DATA.master.filter(m => Number(m[0])>=Math.min(z.s,z.e) && Number(m[0])<=Math.max(z.s,z.e));
   let last = null;
   units.forEach(m => { if(m[col]) { const d=new Date(m[col]); if(!last || d>last) last=d; } });
-  if(!last) return "未";
+  if(!last) return "未作業";
   const day = ["日","月","火","水","木","金","土"][last.getDay()];
   return `${last.getMonth()+1}/${last.getDate()}(${day})`;
 }
@@ -228,6 +212,6 @@ function toggleAuthMode() {
   document.getElementById('login-fields').style.display = isRegisterMode ? "none" : "block";
   document.getElementById('register-fields').style.display = isRegisterMode ? "block" : "none";
   document.getElementById('auth-submit').innerText = isRegisterMode ? "新規登録を実行" : "ログイン";
-  document.getElementById('auth-toggle').innerText = isRegisterMode ? "ログインへ戻る" : "こちら";
+  document.getElementById('auth-toggle').innerText = isRegisterMode ? "ログインへ" : "新規登録";
 }
 function closeAllDetails() { if(expandedZoneId!==null){expandedZoneId=null; renderAll();} }
