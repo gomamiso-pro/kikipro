@@ -109,8 +109,14 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
 
 .expand-box { display: none; width: 100%; padding: 12px; background: #111; box-sizing: border-box; border-top: 2px solid var(--accent); }
 .expanded .expand-box { display: block; }
-.unit-chip { background: #222; color: #fff; border-radius: 4px; padding: 10px 0; text-align: center; font-size: 14px; border: 1px solid #444; }
-.unit-chip.active { background: var(--accent) !important; color: #000 !important; }
+.unit-chip { background: #222; color: #888; border-radius: 4px; padding: 10px 0; text-align: center; font-size: 14px; border: 1px solid #444; }
+/* 選択されたチップ（黄色） */
+.unit-chip.active {
+  background: #ffff00 !important;
+  color: #000 !important;
+  font-weight: 900;
+  border: 1px solid #ffff00;
+}
 
 .footer { background: var(--header-bg); border-top: 1px solid var(--panel); padding: 10px 15px; position: fixed; bottom: 0; width: 100%; box-sizing: border-box; }
 .date-container { background: var(--panel); padding: 6px 15px; border-radius: 6px; position: relative; font-size: 14px; font-weight: 900; }
