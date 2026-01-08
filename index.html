@@ -26,12 +26,23 @@
 
 <div id="login-overlay" class="overlay" style="display: none; background: var(--bg);">
   <div class="auth-box">
-    <div style="font-family:'Oswald'; color:var(--accent); font-size:28px; font-weight:900; margin-bottom:20px; text-align:center; letter-spacing:2px;">KIKI LOGIN</div>
+    <div id="auth-title" style="font-family:'Oswald'; color:var(--accent); font-size:28px; font-weight:900; margin-bottom:20px; text-align:center; letter-spacing:2px;">KIKI LOGIN</div>
     <div id="login-fields">
       <input type="email" id="login-id" placeholder="ID (EMAIL)" class="auth-input">
       <input type="password" id="login-pass" placeholder="PASSWORD" class="auth-input">
+      <input type="text" id="login-nick" placeholder="NICKNAME" class="auth-input" style="display:none;">
+      
+      <div id="auto-login-wrapper" style="margin: 5px 0 15px; font-size: 12px; display: flex; align-items: center; gap: 8px; color: var(--text-dim);">
+        <input type="checkbox" id="auto-login" checked style="transform: scale(1.2);">
+        <label for="auto-login">次回から自動ログイン</label>
+      </div>
     </div>
     <button id="auth-submit" onclick="handleAuth()" class="auth-btn">LOGIN</button>
+    
+    <div id="auth-switch-area" style="margin-top: 20px; text-align: center; font-size: 13px; line-height: 1.6;">
+      <span id="auth-toggle-msg">アカウントをお持ちでない方</span><br>
+      <a href="javascript:void(0)" id="auth-toggle-btn" onclick="toggleAuthMode()" style="color:var(--accent); font-weight:bold; text-decoration:none;">新規登録はこちら</a>
+    </div>
   </div>
 </div>
 
