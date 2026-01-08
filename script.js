@@ -8,7 +8,6 @@ let expandedZoneId = null;
 let editingLogRow = null;
 let authID = "";
 let authPass = "";
-let isRegisterMode = false;
 
 const TYPE_MAP = { "通常":3, "セル盤":4, "計数機":5, "ユニット":6, "説明書":7 };
 const DATE_COL_MAP = { "通常":8, "セル盤":9, "計数機":10, "ユニット":11, "説明書":12 };
@@ -29,7 +28,6 @@ window.onload = () => {
 };
 
 async function silentLogin() {
-  // ローディングを中央表示するために flex を指定
   document.getElementById('loading').style.display = 'flex';
   try {
     const res = await callGAS("getInitialData");
@@ -40,7 +38,6 @@ async function silentLogin() {
     }
     document.getElementById('login-overlay').style.display = 'none';
     DATA = res;
-    // ユーザー名を大文字にしてセット
     document.getElementById('user-display').innerText = DATA.user.toUpperCase();
     renderAll();
     document.getElementById('loading').style.display = 'none';
@@ -68,6 +65,7 @@ function renderAll() {
 
 function changeType(t) { activeType = t; expandedZoneId = null; if(!editingLogRow) selectedUnits.clear(); renderAll(); }
 
+// --- 表示ロジック ---
 function renderList() {
   const container = document.getElementById('zone-display');
   container.className = "zone-container-list";
@@ -152,6 +150,7 @@ function renderTile() {
   }).join('');
 }
 
+// --- アクション ---
 function handleZoneAction(e, idx) { e.stopPropagation(); expandedZoneId = (expandedZoneId === idx) ? null : idx; renderAll(); }
 
 function handleZoneCheck(e, idx) {
@@ -164,15 +163,34 @@ function handleZoneCheck(e, idx) {
   renderAll();
 }
 
+function handleZoneCheckAll() {
+  const tIdx = TYPE_MAP[activeType];
+  const allIds = DATA.master.filter(m => Number(m[tIdx]) === 1).map(m => Number(m[0]));
+  const isEverythingSelected = allIds.every(id => selectedUnits.has(id));
+  if (isEverythingSelected) {
+    selectedUnits.clear();
+  } else {
+    allIds.forEach(id => selectedUnits.add(id));
+  }
+  renderAll();
+}
+
 function toggleUnit(id) { selectedUnits.has(id) ? selectedUnits.delete(id) : selectedUnits.add(id); renderAll(); }
 
+function scrollToLastWork() {
+  const finalIdx = getFinalWorkZoneIndex();
+  if (finalIdx === -1) return;
+  const target = document.getElementById(`zone-card-${finalIdx}`);
+  if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// --- ユーティリティ ---
 function updateCount() {
   const count = selectedUnits.size;
   document.getElementById('u-total').innerText = count;
   const sendBtn = document.getElementById('send-btn'), cancelBtn = document.getElementById('cancel-btn');
   sendBtn.disabled = (count === 0);
   sendBtn.innerText = editingLogRow ? "修正を保存" : "登録実行";
-  // 1台以上選択されているか、編集中の時のみキャンセルボタンを表示
   cancelBtn.style.display = (count > 0 || editingLogRow) ? "block" : "none";
 }
 
@@ -217,6 +235,7 @@ function getFinalWorkZoneIndex() {
   return DATA.cols.findIndex(z => maxId>=Math.min(z.s,z.e) && maxId<=Math.max(z.s,z.e));
 }
 
+// --- 通信 ---
 async function upload() {
   if (selectedUnits.size === 0) return;
   document.getElementById('loading').style.display = 'flex';
@@ -230,11 +249,7 @@ async function upload() {
     } else { 
       alert(res.message); 
     }
-  } catch(e) { 
-    alert("通信エラー"); 
-  } finally { 
-    document.getElementById('loading').style.display = 'none'; 
-  }
+  } catch(e) { alert("通信エラー"); } finally { document.getElementById('loading').style.display = 'none'; }
 }
 
 function cancelEdit() { editingLogRow = null; selectedUnits.clear(); expandedZoneId = null; renderAll(); }
@@ -263,24 +278,10 @@ function showQR() {
   const target = document.getElementById("qr-target");
   if (!target) return;
   target.innerHTML = "";
-  // QRコードの生成
-  new QRCode(target, { 
-    text: window.location.href, 
-    width: 200, 
-    height: 200, 
-    colorDark : "#000000", 
-    colorLight : "#ffffff", 
-    correctLevel : QRCode.CorrectLevel.H 
-  });
-  // 中央表示のため flex
+  new QRCode(target, { text: window.location.href, width: 200, height: 200, colorDark : "#000000", colorLight : "#ffffff", correctLevel : QRCode.Level.H });
   document.getElementById("qr-overlay").style.display = "flex";
 }
 
-function hideQR() { const overlay = document.getElementById("qr-overlay"); if (overlay) overlay.style.display = "none"; }
+function hideQR() { document.getElementById("qr-overlay").style.display = "none"; }
 
-function logout() {
-  if (confirm("ログアウトしますか？")) {
-    localStorage.clear();
-    location.reload(); 
-  }
-}
+function logout() { if (confirm("ログアウトしますか？")) { localStorage.clear(); location.reload(); } }
