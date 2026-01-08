@@ -76,12 +76,13 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
   font-weight: 900;
   display: flex;
   align-items: center;
+  color: #000 !important;
 }
 /* リスト内：右下の〇/〇台 */
 .zone-main-content span.f-oswald:last-child {
   font-size: 16px !important;
   font-weight: 700;
-  color: #c29b00; /* 黄色系で強調 */
+  color: #000 !important; /* 黄色から黒に変更 */
 }
 
 /* 共通パーツ */
