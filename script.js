@@ -29,6 +29,7 @@ window.onload = () => {
 };
 
 async function silentLogin() {
+  // ローディングを中央表示するために flex を指定
   document.getElementById('loading').style.display = 'flex';
   try {
     const res = await callGAS("getInitialData");
@@ -39,6 +40,7 @@ async function silentLogin() {
     }
     document.getElementById('login-overlay').style.display = 'none';
     DATA = res;
+    // ユーザー名を大文字にしてセット
     document.getElementById('user-display').innerText = DATA.user.toUpperCase();
     renderAll();
     document.getElementById('loading').style.display = 'none';
@@ -151,6 +153,7 @@ function renderTile() {
 }
 
 function handleZoneAction(e, idx) { e.stopPropagation(); expandedZoneId = (expandedZoneId === idx) ? null : idx; renderAll(); }
+
 function handleZoneCheck(e, idx) {
   e.stopPropagation();
   const z = DATA.cols[idx];
@@ -160,6 +163,7 @@ function handleZoneCheck(e, idx) {
   zoneUnits.forEach(id => isAllSelected ? selectedUnits.delete(id) : selectedUnits.add(id));
   renderAll();
 }
+
 function toggleUnit(id) { selectedUnits.has(id) ? selectedUnits.delete(id) : selectedUnits.add(id); renderAll(); }
 
 function updateCount() {
@@ -168,6 +172,7 @@ function updateCount() {
   const sendBtn = document.getElementById('send-btn'), cancelBtn = document.getElementById('cancel-btn');
   sendBtn.disabled = (count === 0);
   sendBtn.innerText = editingLogRow ? "修正を保存" : "登録実行";
+  // 1台以上選択されているか、編集中の時のみキャンセルボタンを表示
   cancelBtn.style.display = (count > 0 || editingLogRow) ? "block" : "none";
 }
 
@@ -217,8 +222,19 @@ async function upload() {
   document.getElementById('loading').style.display = 'flex';
   try {
     const res = await callGAS("addNewRecord", { date: document.getElementById('work-date').value, type: activeType, ids: Array.from(selectedUnits), editRow: editingLogRow });
-    if (res.status === "success") { selectedUnits.clear(); editingLogRow = null; await silentLogin(); switchView('log'); } else { alert(res.message); }
-  } catch(e) { alert("通信エラー"); } finally { document.getElementById('loading').style.display = 'none'; }
+    if (res.status === "success") { 
+      selectedUnits.clear(); 
+      editingLogRow = null; 
+      await silentLogin(); 
+      switchView('log'); 
+    } else { 
+      alert(res.message); 
+    }
+  } catch(e) { 
+    alert("通信エラー"); 
+  } finally { 
+    document.getElementById('loading').style.display = 'none'; 
+  }
 }
 
 function cancelEdit() { editingLogRow = null; selectedUnits.clear(); expandedZoneId = null; renderAll(); }
@@ -240,12 +256,31 @@ function renderLogs() {
 }
 
 function startEdit(row, ids, date) { editingLogRow = row; selectedUnits = new Set(ids.split(',').map(Number)); document.getElementById('work-date').value = date.replace(/\//g,'-'); updateDateDisplay(); switchView('work'); }
+
 async function handleDelete(row) { if(confirm("削除しますか？")) { document.getElementById('loading').style.display='flex'; await callGAS("deleteLog",{row}); await silentLogin(); } }
+
 function showQR() {
   const target = document.getElementById("qr-target");
   if (!target) return;
   target.innerHTML = "";
-  new QRCode(target, { text: window.location.href, width: 180, height: 180, colorDark : "#000000", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.H });
+  // QRコードの生成
+  new QRCode(target, { 
+    text: window.location.href, 
+    width: 200, 
+    height: 200, 
+    colorDark : "#000000", 
+    colorLight : "#ffffff", 
+    correctLevel : QRCode.CorrectLevel.H 
+  });
+  // 中央表示のため flex
   document.getElementById("qr-overlay").style.display = "flex";
 }
+
 function hideQR() { const overlay = document.getElementById("qr-overlay"); if (overlay) overlay.style.display = "none"; }
+
+function logout() {
+  if (confirm("ログアウトしますか？")) {
+    localStorage.clear();
+    location.reload(); 
+  }
+}
