@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>KIKI PRO V12</title>
+  <title>KIKI PRO V11</title>
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
-<body onclick="closeAllDetails(event)">
+<body>
 
 <div id="loading" class="overlay" style="display:none;">
   <div class="spinner-box">
@@ -26,30 +26,12 @@
 
 <div id="login-overlay" class="overlay" style="display: none; background: var(--bg);">
   <div class="auth-box">
-    <h2 id="auth-title" style="font-family:'Oswald'; color:var(--accent); font-size:28px; font-weight:900; margin-bottom:20px; text-align:center; letter-spacing:2px;">KIKI LOGIN</h2>
-    
+    <div style="font-family:'Oswald'; color:var(--accent); font-size:28px; font-weight:900; margin-bottom:20px; text-align:center; letter-spacing:2px;">KIKI LOGIN</div>
     <div id="login-fields">
       <input type="email" id="login-id" placeholder="ID (EMAIL)" class="auth-input">
       <input type="password" id="login-pass" placeholder="PASSWORD" class="auth-input">
     </div>
-
-    <div id="register-fields" style="display:none;">
-      <input type="text" id="reg-nick" placeholder="NICKNAME" class="auth-input" style="border-left: 4px solid var(--accent);">
-      <input type="email" id="reg-id" placeholder="NEW EMAIL" class="auth-input">
-      <input type="password" id="reg-pass" placeholder="NEW PASSWORD" class="auth-input">
-    </div>
-
-    <div class="auto-login-row">
-      <input type="checkbox" id="auto-login" checked>
-      <label for="auto-login">自動ログインを有効にする</label>
-    </div>
-
     <button id="auth-submit" onclick="handleAuth()" class="auth-btn">LOGIN</button>
-
-    <div class="auth-toggle-msg">
-      <span id="auth-msg">アカウントをお持ちでない方は</span>
-      <a href="javascript:void(0)" onclick="toggleAuthMode()" id="auth-toggle">新規登録</a>
-    </div>
   </div>
 </div>
 
@@ -89,7 +71,7 @@
 <div class="footer">
   <div class="footer-main-row">
     <div style="font-family:Oswald; font-size:32px; color:var(--accent);">
-      <span id="u-total">0</span> <small style="font-size:12px;">UNITS</small>
+      <span id="u-total">0</span> <small style="font-size:12px;">台</small>
     </div>
     <div class="date-container" onclick="document.getElementById('work-date').showPicker()">
       <span id="date-label">---</span>
