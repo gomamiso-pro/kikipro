@@ -4,12 +4,13 @@
   --card: #2d313d; 
   --header-bg: #111318; 
   --panel: #3a3f4d;
-  --accent: #facc15; /* 元の黄色 */
+  --accent: #facc15; 
   --text: #e5e9f0; 
   --text-dim: #9ca3af; 
-  --danger: #bf616a; /* 元の赤色 */
+  --danger: #bf616a; 
 }
 
+/* --- 全体レイアウト固定 --- */
 body { 
   font-family: 'Noto Sans JP', sans-serif; 
   background: var(--bg); 
@@ -17,8 +18,8 @@ body {
   margin: 0; 
   display: flex; 
   flex-direction: column; 
-  height: 100vh; 
-  overflow: hidden; 
+  height: 100dvh; /* モバイルのバーを考慮した高さ */
+  overflow: hidden; /* body自体のスクロールを禁止 */
 }
 
 /* --- 認証 & オーバーレイ --- */
@@ -28,39 +29,45 @@ body {
 .auth-input { width:100%; padding:12px; border-radius:6px; border:1px solid var(--panel); margin-bottom:10px; box-sizing:border-box; background:#1a1c23; color:#fff; }
 .auth-btn { width:100%; padding:12px; background:var(--accent); color:#000; border:none; border-radius:6px; font-weight:900; cursor:pointer; }
 #login-overlay { position: fixed; inset: 0; background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 9999; }
-#loading { z-index: 10000; }
 
-/* --- ヘッダー領域 --- */
-.header { height: 50px; background: var(--header-bg); border-bottom: 1px solid var(--panel); display: flex; justify-content: space-between; align-items: center; padding: 0 15px; }
+/* --- 固定ヘッダー領域 --- */
+.header { 
+  flex-shrink: 0; /* 潰れないように固定 */
+  height: 50px; 
+  background: var(--header-bg); 
+  border-bottom: 1px solid var(--panel); 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  padding: 0 15px; 
+  z-index: 1000;
+}
 .qr-btn { color: #ffffff !important; cursor: pointer; display: flex; align-items: center; }
 .user-profile { display: flex; flex-direction: column; align-items: center; line-height: 1; gap: 2px; }
-#user-display { font-size: 10px !important; font-weight: 700; color: #fff; }
+#user-display { font-size: 10px !important; font-weight: 700; color: #fff; text-transform: uppercase; }
 .logout-btn { background: var(--danger); color: #fff; border: none; padding: 5px 10px; border-radius: 4px; font-size: 10px; font-weight: 900; }
 
-/* --- ナビゲーション & タブ --- */
-.nav-row { display: flex; background: var(--header-bg); border-bottom: 1px solid var(--panel); }
+/* --- 固定ナビゲーション & タブ --- */
+.nav-row { flex-shrink: 0; display: flex; background: var(--header-bg); border-bottom: 1px solid var(--panel); }
 .top-tab { flex: 1; padding: 12px; text-align: center; font-size: 13px; font-weight: 700; cursor: pointer; color: var(--text-dim); transition: 0.2s; }
-
-/* 入力・履歴の切替時、どっちにいるか明確にする */
 .top-tab.active-work { background: #5e81ac !important; color: #fff !important; }
 .top-tab.active-log { background: #d08770 !important; color: #fff !important; }
 
-.type-bar { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; background: var(--panel); }
+.type-bar { flex-shrink: 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; background: var(--panel); }
 .type-btn { background: var(--header-bg); border: none; color: var(--text-dim); padding: 10px 0; font-size: 10px; font-weight: 700; }
 .type-btn.active { background: var(--accent) !important; color: #000 !important; }
 
-/* --- メインコンテンツ領域 --- */
-#view-work, #view-log { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-
 /* モード切替バー（リスト/全体） */
-.view-mode-bar { display:flex; background:var(--bg); padding:8px 10px; gap:8px; border-bottom: 1px solid var(--panel); }
+.view-mode-bar { flex-shrink: 0; display:flex; background:var(--bg); padding:8px 10px; gap:8px; border-bottom: 1px solid var(--panel); }
 .view-mode-bar button { flex:1; padding:10px; border-radius:6px; border:none; background:var(--card); color:var(--text-dim); font-weight:900; font-size:12px; transition: 0.2s; }
+.view-mode-bar button.active { background: var(--accent) !important; color: #000 !important; box-shadow: 0 0 8px rgba(250, 204, 21, 0.3); }
 
-/* 選択されているモードボタンを強調 */
-.view-mode-bar button.active { 
-  background: var(--accent) !important; 
-  color: #000 !important; 
-  box-shadow: 0 0 8px rgba(250, 204, 21, 0.3);
+/* --- スクロール可能なメインコンテンツ --- */
+#view-work, #view-log { 
+  flex: 1; 
+  overflow-y: auto; 
+  -webkit-overflow-scrolling: touch; 
+  background: var(--bg);
 }
 
 /* --- リスト表示スタイル --- */
@@ -69,102 +76,62 @@ body {
 .zone-flex { display: flex; }
 .zone-check-area { width: 50px; background: rgba(0,0,0,0.05); display: flex; justify-content: center; align-items: center; }
 .zone-main-content { flex: 1; padding: 10px; }
-
-/* 台が選択されているゾーンの枠線を光らせる */
 .has-selection { border-color: var(--accent) !important; }
 
 /* --- 4列タイル表示スタイル --- */
-.zone-container-tile {
-    padding: 8px 5px 180px 5px;
-    display: grid;
-    grid-template-columns: repeat(4, 1fr); 
-    gap: 5px;
-}
-.tile-card {
-    min-height: 85px;
-    padding: 6px 4px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    border-radius: 6px;
-    position: relative;
-    border: 2px solid transparent;
-}
-.tile-card.has-selection { border-color: var(--accent) !important; }
+.zone-container-tile { padding: 8px 5px 180px 5px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+.tile-card { min-height: 85px; padding: 6px 4px; display: flex; flex-direction: column; justify-content: space-between; border-radius: 6px; position: relative; border: 2px solid transparent; }
 .tile-card div { font-size: 9px; line-height: 1.1; }
 
 /* --- ステータスバー --- */
-.status-bar-bg {
-  background: rgba(0, 0, 0, 0.15) !important;
-  height: 6px !important;
-  margin-top: 4px;
-  border-radius: 3px;
-  display: flex;
-  gap: 1px;
-  overflow: hidden;
-}
+.status-bar-bg { background: rgba(0, 0, 0, 0.15) !important; height: 6px !important; margin-top: 4px; border-radius: 3px; display: flex; gap: 1px; overflow: hidden; }
 .p-seg { flex: 1; height: 100%; }
 .p-seg.active { background-color: var(--accent) !important; }
 
 /* 詳細展開エリア */
 .expand-box { display: none; width: 100%; padding: 10px; background: #111; box-sizing: border-box; }
 .expanded .expand-box { display: block; border-top: 1px solid var(--accent); }
+.unit-chip { background: #222; color: #888; border-radius: 4px; padding: 10px 0; text-align: center; font-size: 12px; border: 1px solid #444; }
+.unit-chip.active { background-color: var(--accent) !important; color: #000 !important; font-weight: 900; border-color: var(--accent); }
 
-.unit-chip { 
-  background: #222; 
-  color: #888; 
-  border-radius: 4px; 
-  padding: 10px 0; 
-  text-align: center; 
-  font-size: 12px; 
-  border: 1px solid #444; 
+/* --- 固定フッター領域 --- */
+.footer { 
+  flex-shrink: 0;
+  background: var(--header-bg); 
+  border-top: 1px solid var(--panel); 
+  padding: 12px 15px; 
+  position: fixed; 
+  bottom: 0; 
+  width: 100%; 
+  box-sizing: border-box; 
+  z-index: 1000; 
 }
-.unit-chip.active {
-  background-color: var(--accent) !important;
-  color: #000 !important;
-  font-weight: 900;
-  border-color: var(--accent);
-}
-
-/* --- フッター領域 --- */
-.footer { background: var(--header-bg); border-top: 1px solid var(--panel); padding: 12px 15px; position: fixed; bottom: 0; width: 100%; box-sizing: border-box; z-index: 1000; }
 .footer-main-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-
 #u-total { font-family: 'Oswald'; font-size: 32px; color: var(--accent); font-weight: 700; }
-
-.date-container { background: var(--panel); padding: 5px 15px; border-radius: 6px; text-align: center; }
+.date-container { background: var(--panel); padding: 5px 15px; border-radius: 6px; text-align: center; cursor: pointer; }
 #date-label { font-family: 'Oswald'; font-size: 24px; font-weight: 900; color: var(--accent); }
 
-.btn-exec { background: #5e81ac; color: #fff; border: none; padding: 15px; border-radius: 8px; font-weight: 900; width: 100%; font-size: 18px; box-shadow: 0 4px 0 #4c6a8d; }
+.btn-exec { background: #5e81ac; color: #fff; border: none; padding: 15px; border-radius: 8px; font-weight: 900; width: 100%; font-size: 18px; box-shadow: 0 4px 0 #4c6a8d; cursor: pointer; }
 .btn-exec:active { transform: translateY(2px); box-shadow: none; }
-.btn-exec:disabled { background: #444; color: #888; box-shadow: none; opacity: 0.5; }
+.btn-exec:disabled { background: #444; color: #888; box-shadow: none; opacity: 0.5; cursor: default; }
 
-/* キャンセルボタン：0以上の時表示される */
-.btn-cancel-custom {
-  background: #444;
-  color: #fff;
-  border: 1px solid #666;
-  padding: 10px;
-  border-radius: 8px;
-  font-weight: 900;
-  width: 100%;
-  margin-bottom: 10px;
-  cursor: pointer;
+.btn-cancel { 
+  background: #444; 
+  color: #fff; 
+  border: 1px solid #666; 
+  padding: 10px; 
+  border-radius: 8px; 
+  font-weight: 900; 
+  width: 100%; 
+  margin-bottom: 10px; 
+  cursor: pointer; 
   text-align: center;
 }
 
-/* --- その他アニメーション --- */
+/* --- 履歴 --- */
+.log-unit-badge { background: var(--accent); color: #000; padding: 2px 10px; border-radius: 4px; font-family: 'Oswald'; font-weight: 700; font-size: 16px; }
+
+/* --- ユーティリティ --- */
 .f-oswald { font-family: 'Oswald', sans-serif; }
 @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
 .flag-mark { animation: blink 1.5s infinite; color: #ff4444; }
-
-/* 履歴画面のバッジ */
-.log-unit-badge {
-  background: var(--accent);
-  color: #000;
-  padding: 2px 10px;
-  border-radius: 4px;
-  font-family: 'Oswald';
-  font-weight: 700;
-  font-size: 16px;
-}
