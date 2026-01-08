@@ -237,7 +237,6 @@ async function upload() {
 
 function cancelEdit() { editingLogRow = null; selectedUnits.clear(); expandedZoneId = null; renderAll(); }
 
-/* 履歴表示の修正箇所 */
 function renderLogs() {
   const filtered = DATA.logs.filter(l => l.type === activeType);
   document.getElementById('log-list').innerHTML = filtered.map(l => `
@@ -254,7 +253,6 @@ function renderLogs() {
     </div>`).join('') + `<div style="height:200px;"></div>`;
 }
 
-/* QR表示の出し方を初期に戻す */
 function showQR() {
   const target = document.getElementById("qr-target");
   target.innerHTML = "";
@@ -271,15 +269,6 @@ function hideQR() {
   document.getElementById("qr-overlay").style.display = "none";
 }
 
-/* 他の関数（renderTile, logout, auth等）はそのまま維持 */
-
 function startEdit(row, ids, date) { editingLogRow = row; selectedUnits = new Set(ids.split(',').map(Number)); document.getElementById('work-date').value = date.replace(/\//g,'-'); updateDateDisplay(); switchView('work'); }
 async function handleDelete(row) { if(confirm("削除？")) { document.getElementById('loading').style.display='flex'; await callGAS("deleteLog",{row}); await silentLogin(); } }
-function showQR() {
-  const target = document.getElementById("qr-target");
-  target.innerHTML = "";
-  new QRCode(target, { text: window.location.href, width: 200, height: 200 });
-  document.getElementById("qr-overlay").style.display = "flex";
-}
-function hideQR() { document.getElementById("qr-overlay").style.display = "none"; }
 function logout() { localStorage.clear(); location.reload(); }
