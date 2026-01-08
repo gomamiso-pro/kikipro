@@ -84,10 +84,10 @@ function renderTile() {
     const zoneUnits = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s,z.e) && Number(m[0]) <= Math.max(z.s,z.e));
     const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
     const originalIdx = DATA.cols.indexOf(z);
-    const isAll = zoneUnits.every(m => selectedUnits.has(Number(m[0])));
+    const isAll = zoneUnits.length > 0 && zoneUnits.every(m => selectedUnits.has(Number(m[0])));
 
     return `
-      <div id="zone-card-${originalIdx}" class="tile-card ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" style="background:${z.bg}; color:#000;" onclick="handleZoneAction(event, ${originalIdx})">
+      <div id="zone-card-${originalIdx}" class="tile-card ${selCount > 0 ? 'has-selection' : ''}" style="background:${z.bg}; color:#000;" onclick="handleZoneAction(event, ${originalIdx})">
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <div onclick="handleZoneCheck(event, ${z.s}, ${z.e})"><input type="checkbox" ${isAll ? 'checked' : ''} style="pointer-events:none;"></div>
           <span style="font-size:11px; font-weight:900; font-family:'Oswald';">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z)}</span>
@@ -95,7 +95,7 @@ function renderTile() {
         <div style="font-weight:900; font-size:9px;">${z.name.replace('ゾーン', '')}</div>
         <div class="f-oswald" style="text-align:left; font-weight:700;">${z.s}-${z.e}</div>
         <div style="text-align:right; font-family:'Oswald'; font-size:10px;">${selCount}/${zoneUnits.length}台</div>
-        <div class="progress-container status-bar-bg">${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}</div>
+        <div class="status-bar-bg">${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}</div>
       </div>`;
   }).join('');
 }
@@ -166,6 +166,13 @@ function getFinalWorkZoneIndex() {
   DATA.master.forEach(m => { if(m[tCol]) { const d=new Date(m[tCol]); if(!last || d>last) { last=d; maxId=Number(m[0]); } } });
   return DATA.cols.findIndex(z => maxId>=Math.min(z.s,z.e) && maxId<=Math.max(z.s,z.e));
 }
+function logout() { if(confirm("ログアウトしますか？")) { localStorage.clear(); location.reload(); } }
+function showQR() {
+  const target = document.getElementById("qr-target"); target.innerHTML = "";
+  new QRCode(target, { text: window.location.href, width: 180, height: 180 });
+  document.getElementById("qr-overlay").style.display = "flex";
+}
+function hideQR() { document.getElementById("qr-overlay").style.display = "none"; }
 function setMode(m) { displayMode = m; renderAll(); }
 function cancelEdit() { editingLogRow = null; selectedUnits.clear(); renderAll(); }
 function renderLogs() {
