@@ -58,12 +58,12 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
 .zone-container-tile { padding: 8px 8px 220px 8px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
 .tile-card { min-height: 95px; padding: 4px; border-radius: 6px; border: 2px solid transparent; background: #fff; color: #000; display: flex; flex-direction: column; justify-content: space-between; }
 .tile-row { width: 100%; overflow: hidden; white-space: nowrap; display: flex; align-items: center; line-height: 1.1; }
-.tile-row-top { justify-content: space-between; font-size: 12px !important; font-family: 'Oswald'; font-weight: 900; } /* 12pxに固定 */
+.tile-row-top { justify-content: space-between; font-size: 12px !important; font-family: 'Oswald'; font-weight: 900; }
 .tile-row-name { font-size: 10px; font-weight: 900; transform: scaleX(0.9); transform-origin: left; }
 .tile-row-no { font-family: 'Oswald'; font-size: 13px; font-weight: 700; transform: scaleX(0.9); transform-origin: left; }
 .tile-row-count { justify-content: flex-end; font-family: 'Oswald'; font-size: 11px; font-weight: 700; }
 
-/* リスト表示の日付と台数のサイズアップ */
+/* リスト表示の日付と台数（黒色指定） */
 .zone-container-list { padding: 10px 10px 220px 10px; display: flex; flex-direction: column; gap: 10px; }
 .zone-row { border-radius: 8px; overflow: hidden; background: #fff; border: 2px solid transparent; color: #000; }
 .has-selection { border-color: var(--accent) !important; }
@@ -76,13 +76,25 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
   font-weight: 900;
   display: flex;
   align-items: center;
-  color: #000 !important;
+  color: #000 !important; /* 黒に戻しました */
 }
 /* リスト内：右下の〇/〇台 */
 .zone-main-content span.f-oswald:last-child {
   font-size: 16px !important;
   font-weight: 700;
-  color: #000 !important; /* 黄色から黒に変更 */
+  color: #000 !important; /* 黒に戻しました */
+}
+
+/* ★赤色点滅アニメーションの追加 */
+@keyframes flash-red {
+  0% { outline: 4px solid var(--danger); }
+  50% { outline: 4px solid transparent; }
+  100% { outline: 4px solid var(--danger); }
+}
+.last-work-highlight {
+  outline: 4px solid var(--danger) !important;
+  outline-offset: -4px;
+  animation: flash-red 0.5s ease infinite; /* JSで時間を制御するためここではinfinite */
 }
 
 /* 共通パーツ */
