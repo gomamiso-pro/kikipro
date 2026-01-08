@@ -88,7 +88,7 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
 .log-unit-badge { 
   font-family: 'Oswald'; 
   color: var(--accent) !important; 
-  font-size: 20px; 
+  font-size: 24px; 
   font-weight: 700; 
   display: flex;
   align-items: baseline;
@@ -98,6 +98,25 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
   content: "台";
   font-size: 10px;
   color: var(--text-dim);
+}
+/* 履歴の編集・削除ボタンの装飾 */
+.log-action-btn {
+  padding: 6px 14px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+  text-decoration: none;
+  border: 1px solid transparent;
+  display: inline-block;
+}
+.btn-edit {
+  color: var(--accent);
+  border-color: var(--accent);
+  margin-right: 15px; /* ボタン間の間隔 */
+}
+.btn-delete {
+  color: var(--danger);
+  border-color: var(--danger);
 }
 /* QRオーバーレイの初期スタイル */
 .qr-content-wrapper {
