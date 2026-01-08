@@ -8,17 +8,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
-<body onclick="closeAllDetails(event)">
+<body>
 
-<div id="loading" class="overlay"><div style="color:var(--accent); font-weight:900;">処理中...</div></div>
+<div id="loading" class="overlay" style="display:none;"><div style="color:var(--accent); font-weight:900;">処理中...</div></div>
 
 <div id="qr-overlay" class="overlay" onclick="hideQR()">
   <div style="background:#fff; padding:20px; border-radius:15px; text-align:center;" onclick="event.stopPropagation()">
     <div id="qr-target" style="display: flex; justify-content: center; margin-bottom: 10px;"></div>
-    
-    <button type="button" onclick="hideQR()" style="margin-top:15px; padding:10px 25px; border:none; border-radius:8px; background:#111; color:white; font-weight:bold; cursor:pointer; width:100%;">
-      閉じる
-    </button>
+    <button type="button" onclick="hideQR()" style="margin-top:15px; padding:10px 25px; border:none; border-radius:8px; background:#111; color:white; font-weight:bold; cursor:pointer; width:100%;">閉じる</button>
   </div>
 </div>
 
@@ -35,7 +32,7 @@
       <input type="password" id="reg-pass" placeholder="パスワード" class="auth-input">
     </div>
     <div class="auto-login-row">
-      <input type="checkbox" id="auto-login">
+      <input type="checkbox" id="auto-login" checked>
       <label for="auto-login">自動ログインを有効にする</label>
     </div>
     <button id="auth-submit" onclick="handleAuth()" class="auth-btn">ログイン</button>
@@ -46,23 +43,19 @@
   </div>
 </div>
 
-<div class="header" style="display:flex; justify-content:space-between; align-items:center; padding:10px;">
+<div class="header">
   <div class="header-logo" style="font-family:'Oswald'; color:var(--accent); font-size:24px; font-weight:900;">KIKI PRO</div>
-  
   <div style="display:flex; align-items:center; gap:15px;">
     <div class="qr-btn" onclick="showQR()" style="cursor:pointer; color:var(--accent);">
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
     </div>
-
-    <div class="user-profile" style="display:flex; flex-direction:column; align-items:center;">
-      <div class="user-logo" style="font-size:18px;">👤</div>
-      <div id="user-display" style="font-size:10px; font-weight:700; color:#fff; margin-top:2px;">---</div>
+    <div class="user-profile">
+      <div class="user-logo">👤</div>
+      <div id="user-display">---</div>
     </div>
-
     <button onclick="logout()" class="logout-btn">LOGOUT</button>
   </div>
 </div>
-
 
 <div class="nav-row">
   <div class="top-tab active-work" id="tab-work" onclick="switchView('work')">入力</div>
@@ -75,20 +68,22 @@
   <div class="view-mode-bar">
     <button id="mode-list-btn" onclick="setMode('list')">リスト</button>
     <button id="mode-tile-btn" onclick="setMode('tile')">全体</button>
-    <button onclick="scrollToLastWork()">最終🚩</button>
-    <button onclick="toggleAllSelection()">全選択/全解除</button>
+    <button onclick="scrollToLastWork()" style="color:var(--accent)">最終🚩</button>
+    <button id="toggle-all-btn" onclick="toggleAllSelection()">全選択</button>
   </div>
 </div>
 
-<div id="view-work"><div id="zone-display"></div></div>
-<div id="view-log" style="display:none;"><div id="log-list" style="padding:10px;"></div></div>
+<main id="view-work"><div id="zone-display"></div></main>
+<main id="view-log" style="display:none;"><div id="log-list" style="padding:10px;"></div></main>
 
 <div class="footer">
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-    <div style="font-family:Oswald; font-size:32px; color:var(--accent);"><span id="u-total">0</span> <small style="font-size:12px;">台</small></div>
-    <div class="date-container">
+    <div style="font-family:Oswald; font-size:32px; color:var(--accent);">
+      <span id="u-total">0</span> <small style="font-size:12px;">台</small>
+    </div>
+    <div class="date-container" onclick="document.getElementById('work-date').showPicker()">
       <span id="date-label">---</span>
-      <input type="date" id="work-date" onchange="updateDateDisplay()">
+      <input type="date" id="work-date" onchange="updateDateDisplay()" style="position:absolute; opacity:0; pointer-events:none;">
     </div>
   </div>
   <div class="footer-btns">
