@@ -8,6 +8,7 @@ let expandedZoneId = null;
 let editingLogRow = null;
 let authID = "";
 let authPass = "";
+let isRegisterMode = false;
 
 const TYPE_MAP = { "通常":3, "セル盤":4, "計数機":5, "ユニット":6, "説明書":7 };
 const DATE_COL_MAP = { "通常":8, "セル盤":9, "計数機":10, "ユニット":11, "説明書":12 };
@@ -26,13 +27,65 @@ window.onload = () => {
   updateDateDisplay();
 };
 
+/**
+ * 認証・新規登録処理
+ */
+function toggleAuthMode() {
+  isRegisterMode = !isRegisterMode;
+  const title = document.getElementById('auth-title');
+  const loginFields = document.getElementById('login-fields');
+  const regFields = document.getElementById('register-fields');
+  const submitBtn = document.getElementById('auth-submit');
+  const toggleBtn = document.getElementById('auth-toggle');
+  const msg = document.getElementById('auth-msg');
+
+  if (isRegisterMode) {
+    title.innerText = "NEW REGISTER";
+    loginFields.style.display = "none";
+    regFields.style.display = "block";
+    submitBtn.innerText = "新規登録を実行";
+    toggleBtn.innerText = "ログイン";
+    msg.innerText = "既にアカウントをお持ちの方は";
+  } else {
+    title.innerText = "KIKI LOGIN";
+    loginFields.style.display = "block";
+    regFields.style.display = "none";
+    submitBtn.innerText = "LOGIN";
+    toggleBtn.innerText = "新規登録";
+    msg.innerText = "アカウントをお持ちでない方は";
+  }
+}
+
 async function handleAuth() {
-  authID = document.getElementById('login-id').value;
-  authPass = document.getElementById('login-pass').value;
-  if (!authID || !authPass) return alert("入力してください");
-  localStorage.setItem('kiki_authID', authID);
-  localStorage.setItem('kiki_authPass', authPass);
-  silentLogin();
+  if (isRegisterMode) {
+    const newNick = document.getElementById('reg-nick').value;
+    const newID = document.getElementById('reg-id').value;
+    const newPass = document.getElementById('reg-pass').value;
+    if (!newNick || !newID || !newPass) return alert("全項目入力してください");
+
+    document.getElementById('loading').style.display = 'flex';
+    const res = await callGAS("registerUser", { newNick, newID, newPass, authID: "guest", authPass: "guest" });
+    document.getElementById('loading').style.display = 'none';
+
+    if (res.status === "success") {
+      alert(res.message);
+      toggleAuthMode();
+    } else {
+      alert(res.message);
+    }
+  } else {
+    authID = document.getElementById('login-id').value;
+    authPass = document.getElementById('login-pass').value;
+    if (!authID || !authPass) return alert("入力してください");
+
+    const success = await silentLogin();
+    if (success && document.getElementById('auto-login').checked) {
+      localStorage.setItem('kiki_authID', authID);
+      localStorage.setItem('kiki_authPass', authPass);
+    } else if (success) {
+      localStorage.clear();
+    }
+  }
 }
 
 async function silentLogin() {
@@ -40,29 +93,51 @@ async function silentLogin() {
   try {
     const res = await callGAS("getInitialData");
     if (res.status === "error") {
-      alert(res.message); localStorage.clear();
-      location.reload(); return;
+      alert(res.message); 
+      localStorage.clear();
+      document.getElementById('login-overlay').style.display = 'flex';
+      return false;
     }
     document.getElementById('login-overlay').style.display = 'none';
     DATA = res;
     document.getElementById('user-display').innerText = DATA.user.toUpperCase();
     renderAll();
-  } catch (e) { alert("ログイン失敗"); }
-  finally { document.getElementById('loading').style.display = 'none'; }
+    return true;
+  } catch (e) { 
+    alert("ログイン失敗"); 
+    return false;
+  } finally { 
+    document.getElementById('loading').style.display = 'none'; 
+  }
 }
 
 async function callGAS(method, data = {}) {
-  data.authID = authID; data.authPass = authPass;
+  data.authID = data.authID || authID; 
+  data.authPass = data.authPass || authPass;
   const res = await fetch(GAS_API_URL, { method: "POST", body: JSON.stringify({ method, data }) });
   return await res.json();
 }
 
+function logout() { 
+  if(confirm("ログアウトしますか？")) {
+    localStorage.clear(); 
+    location.reload(); 
+  }
+}
+
+/**
+ * 描画ロジック
+ */
 function renderAll() {
   const types = ["通常", "セル盤", "計数機", "ユニット", "説明書"];
-  document.getElementById('type-tabs').innerHTML = types.map(t => `<button class="type-btn ${t===activeType?'active':''}" onclick="changeType('${t}')">${t}</button>`).join('');
+  document.getElementById('type-tabs').innerHTML = types.map(t => 
+    `<button class="type-btn ${t===activeType?'active':''}" onclick="changeType('${t}')">${t}</button>`
+  ).join('');
   if(document.getElementById('view-work').style.display !== 'none') {
     displayMode === 'list' ? renderList() : renderTile();
-  } else { renderLogs(); }
+  } else { 
+    renderLogs(); 
+  }
   updateCount();
 }
 
@@ -168,6 +243,7 @@ function renderTile() {
 }
 
 function handleZoneAction(e, idx) { e.stopPropagation(); expandedZoneId = (expandedZoneId === idx) ? null : idx; renderAll(); }
+
 function handleZoneCheck(e, idx) {
   e.stopPropagation();
   const z = DATA.cols[idx];
@@ -177,6 +253,7 @@ function handleZoneCheck(e, idx) {
   ids.forEach(id => isAll ? selectedUnits.delete(id) : selectedUnits.add(id));
   renderAll();
 }
+
 function toggleUnit(id) { selectedUnits.has(id) ? selectedUnits.delete(id) : selectedUnits.add(id); renderAll(); }
 
 function updateCount() {
@@ -291,4 +368,4 @@ function showQR() {
 }
 
 function hideQR() { document.getElementById("qr-overlay").style.display = "none"; }
-function logout() { localStorage.clear(); location.reload(); }
+function closeAllDetails(e) { if(!e.target.closest('.zone-row') && !e.target.closest('.tile-card')) { expandedZoneId = null; renderAll(); } }
