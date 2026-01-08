@@ -107,3 +107,28 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
 @keyframes qrPop {
   to { transform: scale(1); }
 }
+/* 共通のアイコンスタイル */
+.icon-png {
+  width: 24px;
+  height: 24px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* 各箇所のアイコン指定 */
+.user-logo { 
+  background-image: url('https://raw.githubusercontent.com/.../icon.png');
+  width: 30px; 
+  height: 30px;
+  border-radius: 50%; /* 必要に応じて丸くする */
+}
+
+.qr-btn {
+  background-image: url('https://raw.githubusercontent.com/.../icon.png');
+  width: 28px;
+  height: 28px;
+  filter: brightness(0) invert(1); /* 黒いアイコンを白く光らせる場合 */
+}
