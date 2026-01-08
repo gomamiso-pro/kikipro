@@ -8,6 +8,7 @@ let expandedZoneId = null;
 let editingLogRow = null;
 let authID = "";
 let authPass = "";
+let isSignUpMode = false;
 
 const TYPE_MAP = { "通常":3, "セル盤":4, "計数機":5, "ユニット":6, "説明書":7 };
 const DATE_COL_MAP = { "通常":8, "セル盤":9, "計数機":10, "ユニット":11, "説明書":12 };
@@ -26,13 +27,72 @@ window.onload = () => {
   updateDateDisplay();
 };
 
+// ログイン・新規登録切り替えUI
+function toggleAuthMode() {
+  isSignUpMode = !isSignUpMode;
+  const title = document.getElementById('auth-title');
+  const nickField = document.getElementById('login-nick');
+  const submitBtn = document.getElementById('auth-submit');
+  const toggleBtn = document.getElementById('auth-toggle-btn');
+  const toggleMsg = document.getElementById('auth-toggle-msg');
+  const autoLoginWrap = document.getElementById('auto-login-wrapper');
+
+  if (isSignUpMode) {
+    title.innerText = "KIKI SIGN UP";
+    nickField.style.display = "block";
+    submitBtn.innerText = "REGISTER & LOGIN";
+    toggleMsg.innerText = "既にアカウントをお持ちの方";
+    toggleBtn.innerText = "ログインはこちら";
+    autoLoginWrap.style.visibility = "hidden";
+  } else {
+    title.innerText = "KIKI LOGIN";
+    nickField.style.display = "none";
+    submitBtn.innerText = "LOGIN";
+    toggleMsg.innerText = "アカウントをお持ちでない方";
+    toggleBtn.innerText = "新規登録はこちら";
+    autoLoginWrap.style.visibility = "visible";
+  }
+}
+
 async function handleAuth() {
-  authID = document.getElementById('login-id').value;
-  authPass = document.getElementById('login-pass').value;
-  if (!authID || !authPass) return alert("入力してください");
-  localStorage.setItem('kiki_authID', authID);
-  localStorage.setItem('kiki_authPass', authPass);
-  silentLogin();
+  const id = document.getElementById('login-id').value;
+  const pass = document.getElementById('login-pass').value;
+  const nick = document.getElementById('login-nick').value;
+  const autoLogin = document.getElementById('auto-login').checked;
+
+  if (!id || !pass || (isSignUpMode && !nick)) return alert("全ての項目を入力してください");
+
+  document.getElementById('loading').style.display = 'flex';
+  try {
+    const method = isSignUpMode ? "signUp" : "getInitialData";
+    const res = await callGAS(method, { authID: id, authPass: pass, nickname: nick });
+    
+    if (res.status === "error") {
+      alert(res.message);
+      return;
+    }
+
+    authID = id;
+    authPass = pass;
+
+    // 自動ログイン保存の判定
+    if (autoLogin || isSignUpMode) {
+      localStorage.setItem('kiki_authID', authID);
+      localStorage.setItem('kiki_authPass', authPass);
+    } else {
+      localStorage.removeItem('kiki_authID');
+      localStorage.removeItem('kiki_authPass');
+    }
+
+    document.getElementById('login-overlay').style.display = 'none';
+    DATA = res;
+    document.getElementById('user-display').innerText = DATA.user.toUpperCase();
+    renderAll();
+  } catch (e) { 
+    alert("接続に失敗しました"); 
+  } finally { 
+    document.getElementById('loading').style.display = 'none'; 
+  }
 }
 
 async function silentLogin() {
@@ -40,20 +100,29 @@ async function silentLogin() {
   try {
     const res = await callGAS("getInitialData");
     if (res.status === "error") {
-      alert(res.message); localStorage.clear();
+      localStorage.clear();
       location.reload(); return;
     }
     document.getElementById('login-overlay').style.display = 'none';
     DATA = res;
     document.getElementById('user-display').innerText = DATA.user.toUpperCase();
     renderAll();
-  } catch (e) { alert("ログイン失敗"); }
-  finally { document.getElementById('loading').style.display = 'none'; }
+  } catch (e) { 
+    document.getElementById('login-overlay').style.display = 'flex';
+  } finally { 
+    document.getElementById('loading').style.display = 'none'; 
+  }
 }
 
 async function callGAS(method, data = {}) {
-  data.authID = authID; data.authPass = authPass;
-  const res = await fetch(GAS_API_URL, { method: "POST", body: JSON.stringify({ method, data }) });
+  // dataにauth情報がなければ現在の変数をセット
+  if(!data.authID) data.authID = authID;
+  if(!data.authPass) data.authPass = authPass;
+  
+  const res = await fetch(GAS_API_URL, { 
+    method: "POST", 
+    body: JSON.stringify({ method, data }) 
+  });
   return await res.json();
 }
 
