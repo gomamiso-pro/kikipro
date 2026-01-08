@@ -1,100 +1,90 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>KIKI PRO V11</title>
-  <link rel="stylesheet" href="style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>KIKI System</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
-<body onclick="closeAllDetails(event)">
+<body>
 
-<div id="loading" class="overlay"><div style="color:var(--accent); font-weight:900;">処理中...</div></div>
-
-<div id="qr-overlay" class="overlay" onclick="hideQR()">
-  <div style="background:#fff; padding:20px; border-radius:15px; text-align:center;" onclick="event.stopPropagation()">
-    <div id="qr-target" style="display: flex; justify-content: center; margin-bottom: 10px;"></div>
-    
-    <button type="button" onclick="hideQR()" style="margin-top:15px; padding:10px 25px; border:none; border-radius:8px; background:#111; color:white; font-weight:bold; cursor:pointer; width:100%;">
-      閉じる
-    </button>
-  </div>
+<div id="loading" style="display: none;">
+    <div style="color: #fff; font-weight: 900;">LOADING...</div>
 </div>
 
-<div id="login-overlay" class="overlay" style="display: none; background: var(--bg);">
-  <div class="auth-box">
-    <h2 id="auth-title">KIKI LOGIN</h2>
-    <div id="login-fields">
-      <input type="email" id="login-id" placeholder="メールアドレス" class="auth-input">
-      <input type="password" id="login-pass" placeholder="パスワード" class="auth-input">
+<div id="login-overlay">
+    <div class="auth-box">
+        <h2 id="auth-title">KIKI LOGIN</h2>
+        <div id="login-fields">
+            <input type="text" id="login-id" class="auth-input" placeholder="ID">
+            <input type="password" id="login-pass" class="auth-input" placeholder="PASSWORD">
+            <div class="auto-login-row">
+                <input type="checkbox" id="auto-login" checked> <label for="auto-login">次回から自動ログイン</label>
+            </div>
+        </div>
+        <div id="register-fields" style="display:none;">
+            <input type="text" id="reg-nick" class="auth-input" placeholder="NICKNAME">
+            <input type="text" id="reg-id" class="auth-input" placeholder="NEW ID">
+            <input type="password" id="reg-pass" class="auth-input" placeholder="NEW PASSWORD">
+        </div>
+        <button id="auth-submit" class="auth-btn" onclick="handleAuth()">ログイン</button>
+        <div class="auth-toggle-msg">
+            <span id="auth-toggle-text">アカウントをお持ちでない方</span>
+            <a href="javascript:void(0)" id="auth-toggle" onclick="toggleAuthMode()">新規登録</a>
+        </div>
     </div>
-    <div id="register-fields" style="display:none;">
-      <input type="text" id="reg-nick" placeholder="ニックネーム" class="auth-input">
-      <input type="email" id="reg-id" placeholder="メールアドレス" class="auth-input">
-      <input type="password" id="reg-pass" placeholder="パスワード" class="auth-input">
-    </div>
-    <div class="auto-login-row">
-      <input type="checkbox" id="auto-login">
-      <label for="auto-login">自動ログインを有効にする</label>
-    </div>
-    <button id="auth-submit" onclick="handleAuth()" class="auth-btn">ログイン</button>
-    <div class="auth-toggle-msg">
-      <span id="auth-msg">アカウントをお持ちでない方は</span>
-      <a href="javascript:void(0)" onclick="toggleAuthMode()" id="auth-toggle">新規登録</a>
-    </div>
-  </div>
 </div>
 
-<div class="header" style="display:flex; justify-content:space-between; align-items:center; padding:10px;">
-  <div class="header-logo" style="font-family:'Oswald'; color:var(--accent); font-size:24px; font-weight:900;">KIKI PRO</div>
-  
-  <div style="display:flex; align-items:center; gap:15px;">
-    <div class="qr-btn" onclick="showQR()" style="cursor:pointer; color:var(--accent);">
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+<div class="header">
+    <div class="qr-btn" onclick="showQR()">
+        <span style="font-size:24px;">🔳</span>
     </div>
-
-    <div class="user-profile" style="display:flex; flex-direction:column; align-items:center;">
-      <div class="user-logo" style="font-size:18px;">👤</div>
-      <div id="user-display" style="font-size:10px; font-weight:700; color:#fff; margin-top:2px;">---</div>
+    <div class="user-profile">
+        <span class="user-icon">👤</span>
+        <span id="user-display">---</span>
     </div>
-
-    <button onclick="logout()" class="logout-btn">LOGOUT</button>
-  </div>
+    <button class="logout-btn" onclick="logout()">LOGOUT</button>
 </div>
-
 
 <div class="nav-row">
-  <div class="top-tab active-work" id="tab-work" onclick="switchView('work')">入力</div>
-  <div class="top-tab" id="tab-log" onclick="switchView('log')">履歴</div>
+    <div id="tab-work" class="top-tab active-work" onclick="switchView('work')">WORK</div>
+    <div id="tab-log" class="top-tab" onclick="switchView('log')">LOG</div>
 </div>
 
-<div class="type-bar" id="type-tabs"></div>
+<div id="type-tabs" class="type-bar">
+    </div>
 
-<div id="view-mode-controls">
-  <div class="view-mode-bar">
-    <button id="mode-list-btn" onclick="setMode('list')">リスト</button>
-    <button id="mode-tile-btn" onclick="setMode('tile')">全体</button>
-    <button onclick="scrollToLastWork()">最終🚩</button>
-    <button onclick="toggleAllSelection()">全選択/全解除</button>
-  </div>
+<div id="view-mode-controls" class="view-mode-bar">
+    <button id="toggle-all-btn" onclick="toggleAllSelection()">全選択</button>
+    <button onclick="setMode('list')">リスト</button>
+    <button onclick="setMode('tile')">タイル</button>
 </div>
 
-<div id="view-work"><div id="zone-display"></div></div>
-<div id="view-log" style="display:none;"><div id="log-list" style="padding:10px;"></div></div>
+<main id="view-work">
+    <div id="zone-display"></div>
+</main>
+
+<main id="view-log" style="display:none;">
+    <div id="log-list" style="padding: 10px;"></div>
+</main>
 
 <div class="footer">
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-    <div style="font-family:Oswald; font-size:32px; color:var(--accent);"><span id="u-total">0</span> <small style="font-size:12px;">台</small></div>
-    <div class="date-container">
-      <span id="date-label">---</span>
-      <input type="date" id="work-date" onchange="updateDateDisplay()">
+    <div class="date-container" onclick="document.getElementById('work-date').showPicker()">
+        <span id="date-label">--/--(ー)</span>
+        <span style="font-family:'Oswald'; margin-left:10px;"><span id="u-total">0</span>台</span>
+        <input type="date" id="work-date" style="position:absolute; opacity:0; pointer-events:none;">
     </div>
-  </div>
-  <div class="footer-btns">
-    <button class="btn-cancel" id="cancel-btn" onclick="cancelEdit()" style="display:none;">キャンセル</button>
-    <button class="btn-exec" id="send-btn" onclick="upload()" disabled>登録実行</button>
-  </div>
+    <button id="cancel-btn" class="btn-cancel-custom" onclick="cancelEdit()" style="display:none;">選択を解除</button>
+    <button id="send-btn" class="btn-exec" onclick="upload()" disabled>登録実行</button>
+</div>
+
+<div id="qr-overlay" class="overlay" onclick="hideQR()">
+    <div class="auth-box" onclick="event.stopPropagation()">
+        <div id="qr-target" style="display: flex; justify-content: center; margin-bottom: 20px;"></div>
+        <button class="auth-btn" onclick="hideQR()">閉じる</button>
+    </div>
 </div>
 
 <script src="script.js"></script>
