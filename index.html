@@ -77,7 +77,7 @@
 <main id="view-log" style="display:none;"><div id="log-list" style="padding:10px;"></div></main>
 
 <div class="footer">
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+  <div class="footer-main-row">
     <div style="font-family:Oswald; font-size:32px; color:var(--accent);">
       <span id="u-total">0</span> <small style="font-size:12px;">台</small>
     </div>
@@ -87,10 +87,11 @@
     </div>
   </div>
   <div class="footer-btns">
-    <button class="btn-cancel" id="cancel-btn" onclick="cancelEdit()" style="display:none;">キャンセル</button>
+    <button class="btn-cancel" id="cancel-btn" onclick="cancelEdit()" style="display:none;">選択をキャンセル</button>
     <button class="btn-exec" id="send-btn" onclick="upload()" disabled>登録実行</button>
   </div>
 </div>
+
 
 <script src="script.js"></script>
 </body>
