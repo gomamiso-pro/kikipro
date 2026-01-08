@@ -1,13 +1,13 @@
-/* --- 変数定義 & 基本設定 --- */
+/* --- 変数定義（元の配色に戻しました） --- */
 :root { 
   --bg: #1a1c23; 
   --card: #2d313d; 
   --header-bg: #111318; 
   --panel: #3a3f4d;
-  --accent: #ffff00; /* ロゴの黄色に統一 */
+  --accent: #facc15; /* 元の黄色 */
   --text: #e5e9f0; 
   --text-dim: #9ca3af; 
-  --danger: #ff4444; 
+  --danger: #bf616a; /* 元の赤色 */
 }
 
 body { 
@@ -44,12 +44,9 @@ body {
 .nav-row { display: flex; background: var(--header-bg); border-bottom: 1px solid var(--panel); }
 .top-tab { flex: 1; padding: 12px; text-align: center; font-size: 13px; font-weight: 700; cursor: pointer; color: var(--text-dim); }
 
-/* アクティブなタブの強調 */
-.top-tab.active-work, .top-tab.active-log { 
-  background: var(--accent) !important; 
-  color: #000 !important; 
-  font-weight: 900;
-}
+/* アクティブなタグの強調表示（選択中がわかるように） */
+.top-tab.active-work { background: #5e81ac !important; color: #fff !important; }
+.top-tab.active-log { background: #d08770 !important; color: #fff !important; }
 
 .type-bar { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; background: var(--panel); }
 .type-btn { background: var(--header-bg); border: none; color: var(--text-dim); padding: 10px 0; font-size: 10px; font-weight: 700; }
@@ -63,7 +60,7 @@ body {
 #view-work, #view-log { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 .view-mode-bar { display:flex; background:var(--bg); padding:8px 10px; gap:8px; }
 .view-mode-bar button { flex:1; padding:8px; border-radius:6px; border:none; background:var(--card); color:var(--text-dim); font-weight:900; font-size:12px; }
-.view-mode-bar button.active { background: var(--accent); color: #000; }
+.view-mode-bar button.active { background: var(--accent); color: #000; border: 1px solid #fff; }
 
 /* --- リスト表示スタイル --- */
 .zone-container-list { padding: 10px 10px 160px 10px; display: flex; flex-direction: column; gap: 10px; }
@@ -71,13 +68,13 @@ body {
 .zone-flex { display: flex; }
 .zone-check-area { width: 50px; background: rgba(0,0,0,0.05); display: flex; justify-content: center; align-items: center; }
 .zone-main-content { flex: 1; padding: 10px; }
-.has-selection { border: 3px solid var(--accent) !important; box-shadow: 0 0 10px rgba(255,255,0,0.3); }
+.has-selection { border: 3px solid var(--accent) !important; }
 
 /* --- 4列タイル表示スタイル --- */
 .zone-container-tile {
     padding: 5px;
     display: grid;
-    grid-template-columns: repeat(4, 1fr); /* 4列固定 */
+    grid-template-columns: repeat(4, 1fr); 
     gap: 5px;
     padding-bottom: 160px;
 }
@@ -97,7 +94,7 @@ body {
 /* --- ステータスバー & 個別選択 --- */
 .status-bar-bg {
   background: rgba(0, 0, 0, 0.2) !important;
-  height: 6px !important;
+  height: 8px !important;
   margin-top: 4px;
   border-radius: 2px;
   display: flex;
@@ -136,31 +133,41 @@ body {
 .btn-edit, .btn-delete {
   padding: 8px 16px;
   border-radius: 6px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: bold;
   cursor: pointer;
-  margin-left: 12px;
+  margin-left: 10px;
   display: inline-block;
 }
-.btn-edit { background: #444; color: var(--accent); }
-.btn-delete { background: #444; color: var(--danger); }
+.btn-edit { background: #3a3f4d; color: var(--accent); border: 1px solid #555; }
+.btn-delete { background: #3a3f4d; color: var(--danger); border: 1px solid #555; }
 
-/* --- フッター & 登録パネル --- */
+/* --- フッター領域（登録日付の拡大） --- */
 .footer { background: var(--header-bg); border-top: 1px solid var(--panel); padding: 10px 15px; position: fixed; bottom: 0; width: 100%; box-sizing: border-box; z-index: 1000; }
-.date-container { background: var(--panel); padding: 8px 15px; border-radius: 6px; position: relative; }
+.date-container { background: var(--panel); padding: 8px 15px; border-radius: 6px; position: relative; text-align: center; }
 
-/* 日付表示を大きく強調 */
-#current-date-display {
+#date-label {
   font-family: 'Oswald', sans-serif;
-  font-size: 24px;
+  font-size: 26px; /* 登録日付を大きく */
   font-weight: 900;
   color: var(--accent);
 }
 
 .btn-exec { background: #5e81ac; color: #fff; border: none; padding: 15px; border-radius: 6px; font-weight: 900; width: 100%; font-size: 18px; }
-.btn-cancel { background: #666; color: #fff; border: none; padding: 15px; border-radius: 6px; font-weight: 900; margin-right: 10px; }
+
+/* キャンセルボタン */
+.btn-cancel-custom {
+  background: #666;
+  color: #fff;
+  border: none;
+  padding: 10px;
+  border-radius: 6px;
+  font-weight: 900;
+  width: 100%;
+  margin-bottom: 8px;
+}
 
 /* --- その他 --- */
 .f-oswald { font-family: 'Oswald', sans-serif; }
 @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-.flag-mark { animation: blink 1.5s infinite; font-weight: 900; }
+.flag-mark { animation: blink 1.5s infinite; }
