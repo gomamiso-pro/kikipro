@@ -39,16 +39,16 @@
       <input type="password" id="reg-pass" placeholder="NEW PASSWORD" class="auth-input">
     </div>
 
-    <div class="auto-login-row" style="margin: 15px 0; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 12px; color: var(--text-dim);">
+    <div class="auto-login-row">
       <input type="checkbox" id="auto-login" checked>
       <label for="auto-login">自動ログインを有効にする</label>
     </div>
 
     <button id="auth-submit" onclick="handleAuth()" class="auth-btn">LOGIN</button>
 
-    <div class="auth-toggle-msg" style="margin-top:20px; font-size:12px; color: var(--text-dim);">
+    <div class="auth-toggle-msg">
       <span id="auth-msg">アカウントをお持ちでない方は</span>
-      <a href="javascript:void(0)" onclick="toggleAuthMode()" id="auth-toggle" style="color:var(--accent); font-weight:bold; margin-left:5px; text-decoration:none;">新規登録</a>
+      <a href="javascript:void(0)" onclick="toggleAuthMode()" id="auth-toggle">新規登録</a>
     </div>
   </div>
 </div>
@@ -79,7 +79,7 @@
     <button id="mode-list-btn" class="active" onclick="setMode('list')">リスト</button>
     <button id="mode-tile-btn" onclick="setMode('tile')">全体</button>
     <button onclick="scrollToLastWork()" style="color:var(--accent)">最終🚩</button>
-    <button id="toggle-all-btn" onclick="toggleAllSelection()">全選択/解除</button>
+    <button id="toggle-all-btn" onclick="handleZoneCheckAll()">全選択/解除</button>
   </div>
 </div>
 
@@ -87,13 +87,13 @@
 <main id="view-log" style="display:none;"><div id="log-list" style="padding:10px;"></div></main>
 
 <div class="footer">
-  <div class="footer-main-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+  <div class="footer-main-row">
     <div style="font-family:Oswald; font-size:32px; color:var(--accent);">
       <span id="u-total">0</span> <small style="font-size:12px;">UNITS</small>
     </div>
-    <div class="date-container" onclick="document.getElementById('work-date').showPicker()" style="position:relative;">
+    <div class="date-container" onclick="document.getElementById('work-date').showPicker()">
       <span id="date-label">---</span>
-      <input type="date" id="work-date" onchange="updateDateDisplay()" style="position:absolute; inset:0; opacity:0; cursor:pointer;">
+      <input type="date" id="work-date" onchange="updateDateDisplay()" style="position:absolute; opacity:0; pointer-events:none;">
     </div>
   </div>
   <div class="footer-btns">
