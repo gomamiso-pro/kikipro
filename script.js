@@ -238,10 +238,7 @@ async function upload() {
 function cancelEdit() { editingLogRow = null; selectedUnits.clear(); expandedZoneId = null; renderAll(); }
 
 function renderLogs() {
-  // 履歴一覧では全種別を表示（またはactiveTypeでフィルタするかは運用によりますが、
-  // 今回は種別を表示するためフィルタを外すか、activeTypeを明示します）
-  const filtered = DATA.logs; // 全種別を見せる設定
-  
+  const filtered = DATA.logs;
   document.getElementById('log-list').innerHTML = filtered.map(l => `
     <div style="background:var(--card); padding:15px; margin:10px; border-radius:10px; border-left:5px solid var(--accent);">
       <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
@@ -262,6 +259,25 @@ function renderLogs() {
     </div>`).join('') + `<div style="height:200px;"></div>`;
 }
 
+function startEdit(row, ids, date, type) {
+  editingLogRow = row;
+  selectedUnits = new Set(ids.split(',').map(Number));
+  document.getElementById('work-date').value = date.replace(/\//g, '-');
+  updateDateDisplay();
+  activeType = type;
+  displayMode = 'tile';
+  document.getElementById('mode-list-btn').classList.remove('active');
+  document.getElementById('mode-tile-btn').classList.add('active');
+  document.getElementById('view-work').style.display = 'block';
+  document.getElementById('view-log').style.display = 'none';
+  document.getElementById('view-mode-controls').style.display = 'block';
+  document.getElementById('tab-work').className = 'top-tab active-work';
+  document.getElementById('tab-log').className = 'top-tab';
+  renderAll();
+}
+
+async function handleDelete(row) { if(confirm("削除？")) { document.getElementById('loading').style.display='flex'; await callGAS("deleteLog",{row}); await silentLogin(); } }
+
 function showQR() {
   const target = document.getElementById("qr-target");
   target.innerHTML = "";
@@ -274,36 +290,5 @@ function showQR() {
   document.getElementById("qr-overlay").style.display = "flex";
 }
 
-function hideQR() {
-  document.getElementById("qr-overlay").style.display = "none";
-}
-
-// 編集開始処理の強化
-function startEdit(row, ids, date, type) {
-  editingLogRow = row;
-  selectedUnits = new Set(ids.split(',').map(Number));
-  
-  // 1. 日付をセット
-  document.getElementById('work-date').value = date.replace(/\//g, '-');
-  updateDateDisplay();
-  
-  // 2. 清掃種別（タブ）を切り替え
-  activeType = type;
-  
-  // 3. 表示モードを「全体（タイル）」に強制
-  displayMode = 'tile';
-  document.getElementById('mode-list-btn').classList.remove('active');
-  document.getElementById('mode-tile-btn').classList.add('active');
-  
-  // 4. 入力画面に切り替えて再描画
-  // switchViewを通さず直接制御（switchView内のクリア処理を避けるため）
-  document.getElementById('view-work').style.display = 'block';
-  document.getElementById('view-log').style.display = 'none';
-  document.getElementById('view-mode-controls').style.display = 'block';
-  document.getElementById('tab-work').className = 'top-tab active-work';
-  document.getElementById('tab-log').className = 'top-tab';
-  
-  renderAll();
-}
-async function handleDelete(row) { if(confirm("削除？")) { document.getElementById('loading').style.display='flex'; await callGAS("deleteLog",{row}); await silentLogin(); } }
+function hideQR() { document.getElementById("qr-overlay").style.display = "none"; }
 function logout() { localStorage.clear(); location.reload(); }
