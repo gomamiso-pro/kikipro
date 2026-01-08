@@ -57,10 +57,11 @@
     KIKI PRO
   </div>
   <div style="display:flex; align-items:center; gap:12px;">
-    <div class="qr-btn" onclick="showQR()" style="cursor:pointer; width:26px; height:26px; background-image:url('https://raw.githubusercontent.com/gomamiso-pro/kikipro/main/Ki.png'); background-size:contain;"></div>
-    
+    <div class="qr-btn" onclick="showQR()" style="cursor:pointer; color:#fff; display:flex; align-items:center;">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+    </div>
     <div class="user-profile">
-      <img src="https://raw.githubusercontent.com/gomamiso-pro/kikipro/main/Ki.png" class="user-logo" style="width:24px; height:24px;">
+      <div class="user-logo">👤</div>
       <div id="user-display">---</div>
     </div>
     <button onclick="logout()" class="logout-btn">LOGOUT</button>
