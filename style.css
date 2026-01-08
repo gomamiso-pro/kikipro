@@ -10,7 +10,7 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
 #user-display { font-size: 10px; font-weight: 700; color: #fff !important; }
 .logout-btn { background: var(--danger); color: #fff; border: none; padding: 6px 10px; border-radius: 4px; font-size: 10px; font-weight: 900; }
 
-/* ログイン画面（以前のレイアウトに戻し） */
+/* ログイン画面 */
 .auth-box { 
   width: 85%; max-width: 320px; background: var(--header-bg); padding: 30px; 
   border-radius: 12px; border: 1px solid var(--panel); box-shadow: 0 10px 30px rgba(0,0,0,0.5);
@@ -39,54 +39,62 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
 .type-bar { display: grid; grid-template-columns: repeat(5, 1fr); background: var(--panel); }
 .type-btn { background: var(--header-bg); border: none; color: var(--text-dim); padding: 10px 0; font-size: 10px; font-weight: 700; }
 .type-btn.active { background: var(--accent) !important; color: #000 !important; }
+
+/* 表示切替ボタン（枠線のみ黄色） */
 .view-mode-bar { display:flex; background:var(--bg); padding:8px 10px; gap:8px; border-bottom: 1px solid var(--panel); }
 .view-mode-bar button {
-  flex: 1;
-  padding: 10px;
-  border-radius: 6px;
-  border: 2px solid transparent; /* 通常時は透明な枠線を持たせておく */
-  background: var(--card);
-  color: var(--text-dim);
-  font-weight: 900;
-  font-size: 12px;
-  transition: all 0.2s ease; /* 変化をスムーズに */
+  flex: 1; padding: 10px; border-radius: 6px; border: 2px solid transparent; 
+  background: var(--card); color: var(--text-dim); font-weight: 900; font-size: 12px; transition: all 0.2s ease;
 }
 .view-mode-bar button.active {
-  background: transparent !important; /* 背景を透明（または元の色）に */
-  border: 2px solid var(--accent) !important; /* 枠線だけを黄色にする */
-  color: var(--accent) !important; /* 文字色も黄色にして強調 */
-  font-weight: 900;
+  background: transparent !important; 
+  border: 2px solid var(--accent) !important; 
+  color: var(--accent) !important; 
 }
+
 #view-work, #view-log { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 
-/* タイル表示（4段構成） */
+/* 全体表示（タイル）の日付サイズアップ */
 .zone-container-tile { padding: 8px 8px 220px 8px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
-.tile-card { 
-  min-height: 95px; padding: 4px; border-radius: 6px; border: 2px solid transparent; 
-  background: #fff; color: #000; display: flex; flex-direction: column; justify-content: space-between;
-}
+.tile-card { min-height: 95px; padding: 4px; border-radius: 6px; border: 2px solid transparent; background: #fff; color: #000; display: flex; flex-direction: column; justify-content: space-between; }
 .tile-row { width: 100%; overflow: hidden; white-space: nowrap; display: flex; align-items: center; line-height: 1.1; }
-.tile-row-top { justify-content: space-between; font-size: 12px; font-family: 'Oswald'; font-weight: 900; }
+.tile-row-top { justify-content: space-between; font-size: 12px !important; font-family: 'Oswald'; font-weight: 900; } /* 12pxに固定 */
 .tile-row-name { font-size: 10px; font-weight: 900; transform: scaleX(0.9); transform-origin: left; }
 .tile-row-no { font-family: 'Oswald'; font-size: 13px; font-weight: 700; transform: scaleX(0.9); transform-origin: left; }
 .tile-row-count { justify-content: flex-end; font-family: 'Oswald'; font-size: 11px; font-weight: 700; }
 
-.status-bar-bg { background: rgba(0,0,0,0.1); height: 5px; margin-top: 2px; display: flex; gap: 1px; width: 100%; }
-.p-seg { flex: 1; height: 100%; }
-.p-seg.active { background: var(--accent) !important; }
-
-/* 個別台チップ */
-.expand-box { display: none; width: 100%; padding: 10px 0; background: #111; grid-column: 1 / -1; }
-.expanded .expand-box { display: block; }
-.unit-chip { background: #222; color: #888; border-radius: 4px; padding: 10px 0; text-align: center; font-size: 12px; border: 1px solid #444; font-family: 'Oswald'; }
-.unit-chip.active { background: var(--accent) !important; color: #000 !important; font-weight: 900; }
-
+/* リスト表示の日付と台数のサイズアップ */
 .zone-container-list { padding: 10px 10px 220px 10px; display: flex; flex-direction: column; gap: 10px; }
 .zone-row { border-radius: 8px; overflow: hidden; background: #fff; border: 2px solid transparent; color: #000; }
 .has-selection { border-color: var(--accent) !important; }
 .zone-check-area { width: 60px; background: rgba(0,0,0,0.05); display: flex; justify-content: center; align-items: center; }
 .zone-main-content { flex: 1; padding: 12px; }
 
+/* リスト内：右上の日付 */
+.zone-main-content b + span {
+  font-size: 15px !important;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+}
+/* リスト内：右下の〇/〇台 */
+.zone-main-content span.f-oswald:last-child {
+  font-size: 16px !important;
+  font-weight: 700;
+  color: #c29b00; /* 黄色系で強調 */
+}
+
+/* 共通パーツ */
+.status-bar-bg { background: rgba(0,0,0,0.1); height: 5px; margin-top: 2px; display: flex; gap: 1px; width: 100%; }
+.p-seg { flex: 1; height: 100%; }
+.p-seg.active { background: var(--accent) !important; }
+
+.expand-box { display: none; width: 100%; padding: 10px 0; background: #111; grid-column: 1 / -1; }
+.expanded .expand-box { display: block; }
+.unit-chip { background: #222; color: #888; border-radius: 4px; padding: 10px 0; text-align: center; font-size: 12px; border: 1px solid #444; font-family: 'Oswald'; }
+.unit-chip.active { background: var(--accent) !important; color: #000 !important; font-weight: 900; }
+
+/* フッター */
 .footer { background: var(--header-bg); padding: 12px 15px 30px; position: fixed; bottom: 0; width: 100%; z-index: 2000; }
 .footer-main-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 #u-total { font-family: 'Oswald'; font-size: 32px; color: var(--accent); font-weight: 700; }
@@ -99,50 +107,15 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
 .btn-cancel { background: #4b5263; color: #eceff4; }
 .f-oswald { font-family: 'Oswald', sans-serif; }
 
+/* ログ表示 */
 .log-unit-badge { 
-  font-family: 'Oswald'; 
-  color: var(--accent) !important; 
-  font-size: 20px; 
-  font-weight: 700; 
-  display: flex;
-  align-items: baseline;
-  gap: 2px;
+  font-family: 'Oswald'; color: var(--accent) !important; font-size: 20px; font-weight: 700; 
+  display: flex; align-items: baseline; gap: 2px;
 }
-.log-unit-badge::after {
-  content: "台";
-  font-size: 10px;
-  color: var(--text-dim);
-}
-/* QRオーバーレイの初期スタイル */
+.log-unit-badge::after { content: "台"; font-size: 10px; color: var(--text-dim); }
+
 .qr-content-wrapper {
   transform: scale(0.9);
   animation: qrPop 0.3s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
-@keyframes qrPop {
-  to { transform: scale(1); }
-}
-/* 共通のアイコンスタイル */
-.icon-png {
-  width: 24px;
-  height: 24px;
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-  display: inline-block;
-  vertical-align: middle;
-}
-
-/* 各箇所のアイコン指定 */
-.user-logo { 
-  background-image: url('https://raw.githubusercontent.com/.../icon.png');
-  width: 30px; 
-  height: 30px;
-  border-radius: 50%; /* 必要に応じて丸くする */
-}
-
-.qr-btn {
-  background-image: url('https://raw.githubusercontent.com/.../icon.png');
-  width: 28px;
-  height: 28px;
-  filter: brightness(0) invert(1); /* 黒いアイコンを白く光らせる場合 */
-}
+@keyframes qrPop { to { transform: scale(1); } }
