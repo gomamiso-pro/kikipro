@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/ユーザー名/リポジトリ名/main/icon.png">
+　<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/ユーザー名/リポジトリ名/main/icon.png">
+　<meta name="mobile-web-app-capable" content="yes">
   <title>KIKI PRO V12</title>
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
@@ -49,13 +52,15 @@
 </div>
 
 <div class="header">
-  <div class="header-logo" style="font-family:'Oswald'; color:var(--accent); font-size:24px; font-weight:900;">KIKI PRO</div>
+  <div class="header-logo" style="font-family:'Oswald'; color:var(--accent); font-size:24px; font-weight:900;">
+    <img src="https://raw.githubusercontent.com/.../icon.png" style="height:24px; vertical-align:middle; margin-right:5px;">
+    KIKI PRO
+  </div>
   <div style="display:flex; align-items:center; gap:12px;">
-    <div class="qr-btn" onclick="showQR()" style="cursor:pointer; color:#fff; display:flex; align-items:center;">
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-    </div>
+    <div class="qr-btn" onclick="showQR()" style="cursor:pointer; width:26px; height:26px; background-image:url('https://raw.githubusercontent.com/.../icon.png'); background-size:contain;"></div>
+    
     <div class="user-profile">
-      <div class="user-logo">👤</div>
+      <img src="https://raw.githubusercontent.com/.../icon.png" class="user-logo" style="width:24px; height:24px;">
       <div id="user-display">---</div>
     </div>
     <button onclick="logout()" class="logout-btn">LOGOUT</button>
