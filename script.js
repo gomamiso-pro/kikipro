@@ -309,16 +309,17 @@ function renderLogs() {
   document.getElementById('log-list').innerHTML = filtered.map(l => `
     <div style="background:var(--card); padding:15px; margin-bottom:10px; border-radius:10px; border-left:5px solid var(--accent);">
       <div style="font-size:11px; color:var(--text-dim);">${l.date} (${l.day}) - ${l.user}</div>
-      <div style="display:flex; justify-content:space-between; margin-top:5px;">
+      <div style="display:flex; justify-content:space-between; margin-top:5px; align-items: center;">
         <div style="font-weight:900;">${l.zone} (No.${l.s}-${l.e})</div>
-        <div style="color:var(--accent); font-weight:900;">${l.count} units</div>
+        <div class="log-unit-badge">${l.count}台</div>
       </div>
       <div style="text-align:right; margin-top:10px; font-size:12px;">
-        <span onclick="startEdit(${l.row},'${l.ids}','${l.date}')" style="color:var(--accent); margin-right:15px;">編集</span>
-        <span onclick="handleDelete(${l.row})" style="color:var(--danger);">削除</span>
+        <span onclick="startEdit(${l.row},'${l.ids}','${l.date}')" style="color:var(--accent); margin-right:15px; cursor:pointer;">編集</span>
+        <span onclick="handleDelete(${l.row})" style="color:var(--danger); cursor:pointer;">削除</span>
       </div>
     </div>`).join('');
 }
+
 function startEdit(row, ids, date) { editingLogRow=row; selectedUnits=new Set(ids.split(',').map(Number)); document.getElementById('work-date').value=date.replace(/\//g,'-'); switchView('work'); }
 function cancelEdit() { editingLogRow=null; selectedUnits.clear(); renderAll(); }
 async function handleDelete(row) { if(confirm("削除しますか？")) { document.getElementById('loading').style.display='flex'; await callGAS("deleteLog",{row}); await silentLogin(); } }
