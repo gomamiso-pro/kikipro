@@ -116,10 +116,17 @@ function scrollToLastWork() {
   const target = document.getElementById(`zone-card-${finalIdx}`);
   if (target) {
     target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    target.style.outline = "4px solid var(--accent)";
-    setTimeout(() => { target.style.outline = "none"; }, 2000);
+    
+    // 赤色点滅クラスを付与
+    target.classList.add('last-work-highlight');
+    
+    // 2.5秒後に点滅を終了させる
+    setTimeout(() => { 
+      target.classList.remove('last-work-highlight'); 
+    }, 2500);
   }
 }
+
 
 function renderList() {
   const container = document.getElementById('zone-display');
