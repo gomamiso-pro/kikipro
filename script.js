@@ -150,7 +150,7 @@ function renderTile() {
           ${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}
         </div>
         <div class="expand-box" onclick="event.stopPropagation()">
-           <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(48px, 1fr)); gap:4px; padding:10px 0;">
+           <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(48px, 1fr)); gap:4px; padding:10px 4px;">
             ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${m[0]})">${m[0]}</div>`).join('')}
           </div>
         </div>
@@ -205,7 +205,9 @@ function formatLastDate(z) {
   const units = DATA.master.filter(m => Number(m[0])>=Math.min(z.s,z.e) && Number(m[0])<=Math.max(z.s,z.e));
   let last = null;
   units.forEach(m => { if(m[tCol]) { const d = new Date(m[tCol]); if(!last || d > last) last = d; } });
-  return last ? `${last.getMonth()+1}/${last.getDate()}` : "未";
+  if(!last) return "未";
+  const days = ["日","月","火","水","木","金","土"];
+  return `${last.getMonth()+1}/${last.getDate()}(${days[last.getDay()]})`;
 }
 
 function getFinalWorkZoneIndex() {
