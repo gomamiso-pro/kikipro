@@ -144,7 +144,7 @@ function renderList() {
             <div style="display:flex; justify-content:space-between;">
               <b>${z.name}</b>
               <span class="f-oswald" style="font-size:14px; font-weight:900;">
-                ${originalIdx === finalIdx ? `<img src="${ICON_URL}" style="width:14px; height:14px; vertical-align:middle; margin-right:2px;">` : ''}
+                ${originalIdx === finalIdx ? '🚩' : ''}
                 ${formatLastDate(z)}
               </span>
             </div>
@@ -184,7 +184,7 @@ function renderTile() {
         <div class="tile-row tile-row-top">
           <div onclick="handleZoneCheck(event, ${originalIdx})"><input type="checkbox" ${isAllSelected ? 'checked' : ''} style="pointer-events:none; transform:scale(0.8);"></div>
           <span>
-            ${originalIdx === finalIdx ? `<img src="${ICON_URL}" style="width:14px; height:14px; vertical-align:middle; margin-right:2px;">` : ''}
+            ${originalIdx === finalIdx ? '🚩' : ''}
             ${formatLastDate(z)}
           </span>
         </div>
