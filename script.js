@@ -8,7 +8,6 @@ let expandedZoneId = null;
 let editingLogRow = null;
 let authID = "";
 let authPass = "";
-let isRegisterMode = false;
 
 const TYPE_MAP = { "通常":3, "セル盤":4, "計数機":5, "ユニット":6, "説明書":7 };
 const DATE_COL_MAP = { "通常":8, "セル盤":9, "計数機":10, "ユニット":11, "説明書":12 };
@@ -27,65 +26,13 @@ window.onload = () => {
   updateDateDisplay();
 };
 
-/**
- * 認証・新規登録処理
- */
-function toggleAuthMode() {
-  isRegisterMode = !isRegisterMode;
-  const title = document.getElementById('auth-title');
-  const loginFields = document.getElementById('login-fields');
-  const regFields = document.getElementById('register-fields');
-  const submitBtn = document.getElementById('auth-submit');
-  const toggleBtn = document.getElementById('auth-toggle');
-  const msg = document.getElementById('auth-msg');
-
-  if (isRegisterMode) {
-    title.innerText = "NEW REGISTER";
-    loginFields.style.display = "none";
-    regFields.style.display = "block";
-    submitBtn.innerText = "新規登録を実行";
-    toggleBtn.innerText = "ログイン";
-    msg.innerText = "既にアカウントをお持ちの方は";
-  } else {
-    title.innerText = "KIKI LOGIN";
-    loginFields.style.display = "block";
-    regFields.style.display = "none";
-    submitBtn.innerText = "LOGIN";
-    toggleBtn.innerText = "新規登録";
-    msg.innerText = "アカウントをお持ちでない方は";
-  }
-}
-
 async function handleAuth() {
-  if (isRegisterMode) {
-    const newNick = document.getElementById('reg-nick').value;
-    const newID = document.getElementById('reg-id').value;
-    const newPass = document.getElementById('reg-pass').value;
-    if (!newNick || !newID || !newPass) return alert("全項目入力してください");
-
-    document.getElementById('loading').style.display = 'flex';
-    const res = await callGAS("registerUser", { newNick, newID, newPass, authID: "guest", authPass: "guest" });
-    document.getElementById('loading').style.display = 'none';
-
-    if (res.status === "success") {
-      alert(res.message);
-      toggleAuthMode();
-    } else {
-      alert(res.message);
-    }
-  } else {
-    authID = document.getElementById('login-id').value;
-    authPass = document.getElementById('login-pass').value;
-    if (!authID || !authPass) return alert("入力してください");
-
-    const success = await silentLogin();
-    if (success && document.getElementById('auto-login').checked) {
-      localStorage.setItem('kiki_authID', authID);
-      localStorage.setItem('kiki_authPass', authPass);
-    } else if (success) {
-      localStorage.clear();
-    }
-  }
+  authID = document.getElementById('login-id').value;
+  authPass = document.getElementById('login-pass').value;
+  if (!authID || !authPass) return alert("入力してください");
+  localStorage.setItem('kiki_authID', authID);
+  localStorage.setItem('kiki_authPass', authPass);
+  silentLogin();
 }
 
 async function silentLogin() {
@@ -93,51 +40,29 @@ async function silentLogin() {
   try {
     const res = await callGAS("getInitialData");
     if (res.status === "error") {
-      alert(res.message); 
-      localStorage.clear();
-      document.getElementById('login-overlay').style.display = 'flex';
-      return false;
+      alert(res.message); localStorage.clear();
+      location.reload(); return;
     }
     document.getElementById('login-overlay').style.display = 'none';
     DATA = res;
     document.getElementById('user-display').innerText = DATA.user.toUpperCase();
     renderAll();
-    return true;
-  } catch (e) { 
-    alert("ログイン失敗"); 
-    return false;
-  } finally { 
-    document.getElementById('loading').style.display = 'none'; 
-  }
+  } catch (e) { alert("ログイン失敗"); }
+  finally { document.getElementById('loading').style.display = 'none'; }
 }
 
 async function callGAS(method, data = {}) {
-  data.authID = data.authID || authID; 
-  data.authPass = data.authPass || authPass;
+  data.authID = authID; data.authPass = authPass;
   const res = await fetch(GAS_API_URL, { method: "POST", body: JSON.stringify({ method, data }) });
   return await res.json();
 }
 
-function logout() { 
-  if(confirm("ログアウトしますか？")) {
-    localStorage.clear(); 
-    location.reload(); 
-  }
-}
-
-/**
- * 描画ロジック
- */
 function renderAll() {
   const types = ["通常", "セル盤", "計数機", "ユニット", "説明書"];
-  document.getElementById('type-tabs').innerHTML = types.map(t => 
-    `<button class="type-btn ${t===activeType?'active':''}" onclick="changeType('${t}')">${t}</button>`
-  ).join('');
+  document.getElementById('type-tabs').innerHTML = types.map(t => `<button class="type-btn ${t===activeType?'active':''}" onclick="changeType('${t}')">${t}</button>`).join('');
   if(document.getElementById('view-work').style.display !== 'none') {
     displayMode === 'list' ? renderList() : renderTile();
-  } else { 
-    renderLogs(); 
-  }
+  } else { renderLogs(); }
   updateCount();
 }
 
@@ -243,7 +168,6 @@ function renderTile() {
 }
 
 function handleZoneAction(e, idx) { e.stopPropagation(); expandedZoneId = (expandedZoneId === idx) ? null : idx; renderAll(); }
-
 function handleZoneCheck(e, idx) {
   e.stopPropagation();
   const z = DATA.cols[idx];
@@ -253,7 +177,6 @@ function handleZoneCheck(e, idx) {
   ids.forEach(id => isAll ? selectedUnits.delete(id) : selectedUnits.add(id));
   renderAll();
 }
-
 function toggleUnit(id) { selectedUnits.has(id) ? selectedUnits.delete(id) : selectedUnits.add(id); renderAll(); }
 
 function updateCount() {
@@ -315,57 +238,28 @@ async function upload() {
 function cancelEdit() { editingLogRow = null; selectedUnits.clear(); expandedZoneId = null; renderAll(); }
 
 function renderLogs() {
-  const filtered = DATA.logs;
+  const filtered = DATA.logs.filter(l => l.type === activeType);
   document.getElementById('log-list').innerHTML = filtered.map(l => `
     <div style="background:var(--card); padding:15px; margin:10px; border-radius:10px; border-left:5px solid var(--accent);">
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
-        <div>
-          <div style="font-size:11px; color:var(--text-dim);">${l.date} (${l.day})</div>
-          <div style="font-size:12px; color:var(--accent); font-weight:bold; margin-top:2px;">[ ${l.type} ]</div>
-        </div>
-        <div class="log-unit-badge">${l.count}<span style="font-size:12px; margin-left:2px;">台</span></div>
+      <div style="font-size:11px; color:var(--text-dim);">${l.date} (${l.day}) - ${l.user}</div>
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div style="font-weight:900; font-size:15px;">${l.zone} (No.${l.s}-${l.e})</div>
+        <div class="log-unit-badge">${l.count}</div>
       </div>
-      <div style="font-weight:900; font-size:16px; margin-bottom:12px; color:#fff;">
-        ${l.zone} <span style="font-family:'Oswald'; font-size:14px; font-weight:400; color:var(--text-dim);">(No.${l.s}-${l.e})</span>
-      </div>
-      <div style="font-size:11px; color:var(--text-dim); margin-bottom:10px;">担当: ${l.user}</div>
-      <div style="text-align:right; border-top:1px solid rgba(255,255,255,0.1); padding-top:12px;">
-        <span class="log-action-btn btn-edit" onclick="startEdit(${l.row},'${l.ids}','${l.date}','${l.type}')">編集</span>
-        <span class="log-action-btn btn-delete" onclick="handleDelete(${l.row})">削除</span>
+      <div style="text-align:right; margin-top:10px; font-size:12px;">
+        <span onclick="startEdit(${l.row},'${l.ids}','${l.date}')" style="color:var(--accent); margin-right:15px; font-weight:bold;">編集</span>
+        <span onclick="handleDelete(${l.row})" style="color:var(--danger); font-weight:bold;">削除</span>
       </div>
     </div>`).join('') + `<div style="height:200px;"></div>`;
 }
 
-function startEdit(row, ids, date, type) {
-  editingLogRow = row;
-  selectedUnits = new Set(ids.split(',').map(Number));
-  document.getElementById('work-date').value = date.replace(/\//g, '-');
-  updateDateDisplay();
-  activeType = type;
-  displayMode = 'tile';
-  document.getElementById('mode-list-btn').classList.remove('active');
-  document.getElementById('mode-tile-btn').classList.add('active');
-  document.getElementById('view-work').style.display = 'block';
-  document.getElementById('view-log').style.display = 'none';
-  document.getElementById('view-mode-controls').style.display = 'block';
-  document.getElementById('tab-work').className = 'top-tab active-work';
-  document.getElementById('tab-log').className = 'top-tab';
-  renderAll();
-}
-
+function startEdit(row, ids, date) { editingLogRow = row; selectedUnits = new Set(ids.split(',').map(Number)); document.getElementById('work-date').value = date.replace(/\//g,'-'); updateDateDisplay(); switchView('work'); }
 async function handleDelete(row) { if(confirm("削除？")) { document.getElementById('loading').style.display='flex'; await callGAS("deleteLog",{row}); await silentLogin(); } }
-
 function showQR() {
   const target = document.getElementById("qr-target");
   target.innerHTML = "";
-  new QRCode(target, { 
-    text: window.location.href, 
-    width: 200, 
-    height: 200,
-    correctLevel: QRCode.CorrectLevel.H 
-  });
+  new QRCode(target, { text: window.location.href, width: 200, height: 200 });
   document.getElementById("qr-overlay").style.display = "flex";
 }
-
 function hideQR() { document.getElementById("qr-overlay").style.display = "none"; }
-function closeAllDetails(e) { if(!e.target.closest('.zone-row') && !e.target.closest('.tile-card')) { expandedZoneId = null; renderAll(); } }
+function logout() { localStorage.clear(); location.reload(); }
