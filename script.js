@@ -238,17 +238,26 @@ async function upload() {
 function cancelEdit() { editingLogRow = null; selectedUnits.clear(); expandedZoneId = null; renderAll(); }
 
 function renderLogs() {
-  const filtered = DATA.logs.filter(l => l.type === activeType);
+  // 履歴一覧では全種別を表示（またはactiveTypeでフィルタするかは運用によりますが、
+  // 今回は種別を表示するためフィルタを外すか、activeTypeを明示します）
+  const filtered = DATA.logs; // 全種別を見せる設定
+  
   document.getElementById('log-list').innerHTML = filtered.map(l => `
     <div style="background:var(--card); padding:15px; margin:10px; border-radius:10px; border-left:5px solid var(--accent);">
       <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
-        <div style="font-size:11px; color:var(--text-dim);">${l.date} (${l.day}) - ${l.user}</div>
-        <div class="log-unit-badge">${l.count}</div>
+        <div>
+          <div style="font-size:11px; color:var(--text-dim);">${l.date} (${l.day})</div>
+          <div style="font-size:12px; color:var(--accent); font-weight:bold; margin-top:2px;">[ ${l.type} ]</div>
+        </div>
+        <div class="log-unit-badge">${l.count}<span style="font-size:12px; margin-left:2px;">台</span></div>
       </div>
-      <div style="font-weight:900; font-size:16px; margin-bottom:10px;">${l.zone} <span style="font-family:'Oswald'; font-size:14px; font-weight:400;">(No.${l.s}-${l.e})</span></div>
-      <div style="text-align:right; border-top:1px solid rgba(255,255,255,0.05); padding-top:10px; font-size:12px;">
-        <span onclick="startEdit(${l.row},'${l.ids}','${l.date}')" style="color:var(--accent); margin-right:20px; font-weight:bold; cursor:pointer;">編集</span>
-        <span onclick="handleDelete(${l.row})" style="color:var(--danger); font-weight:bold; cursor:pointer;">削除</span>
+      <div style="font-weight:900; font-size:16px; margin-bottom:12px; color:#fff;">
+        ${l.zone} <span style="font-family:'Oswald'; font-size:14px; font-weight:400; color:var(--text-dim);">(No.${l.s}-${l.e})</span>
+      </div>
+      <div style="font-size:11px; color:var(--text-dim); margin-bottom:10px;">担当: ${l.user}</div>
+      <div style="text-align:right; border-top:1px solid rgba(255,255,255,0.1); padding-top:12px;">
+        <span class="log-action-btn btn-edit" onclick="startEdit(${l.row},'${l.ids}','${l.date}','${l.type}')">編集</span>
+        <span class="log-action-btn btn-delete" onclick="handleDelete(${l.row})">削除</span>
       </div>
     </div>`).join('') + `<div style="height:200px;"></div>`;
 }
@@ -269,6 +278,32 @@ function hideQR() {
   document.getElementById("qr-overlay").style.display = "none";
 }
 
-function startEdit(row, ids, date) { editingLogRow = row; selectedUnits = new Set(ids.split(',').map(Number)); document.getElementById('work-date').value = date.replace(/\//g,'-'); updateDateDisplay(); switchView('work'); }
+// 編集開始処理の強化
+function startEdit(row, ids, date, type) {
+  editingLogRow = row;
+  selectedUnits = new Set(ids.split(',').map(Number));
+  
+  // 1. 日付をセット
+  document.getElementById('work-date').value = date.replace(/\//g, '-');
+  updateDateDisplay();
+  
+  // 2. 清掃種別（タブ）を切り替え
+  activeType = type;
+  
+  // 3. 表示モードを「全体（タイル）」に強制
+  displayMode = 'tile';
+  document.getElementById('mode-list-btn').classList.remove('active');
+  document.getElementById('mode-tile-btn').classList.add('active');
+  
+  // 4. 入力画面に切り替えて再描画
+  // switchViewを通さず直接制御（switchView内のクリア処理を避けるため）
+  document.getElementById('view-work').style.display = 'block';
+  document.getElementById('view-log').style.display = 'none';
+  document.getElementById('view-mode-controls').style.display = 'block';
+  document.getElementById('tab-work').className = 'top-tab active-work';
+  document.getElementById('tab-log').className = 'top-tab';
+  
+  renderAll();
+}
 async function handleDelete(row) { if(confirm("削除？")) { document.getElementById('loading').style.display='flex'; await callGAS("deleteLog",{row}); await silentLogin(); } }
 function logout() { localStorage.clear(); location.reload(); }
