@@ -10,7 +10,7 @@ let editingLogRow = null;
 let isSignUpMode = false;
 
 // ★アイコンURL（適宜、自分専用のURLに書き換えてください）
-const ICON_URL = "https://raw.githubusercontent.com/あなたのパス/icon.png";
+const ICON_URL = "https://raw.githubusercontent.com/gomamiso-pro/kikipro/icon.png";
 
 const TYPE_MAP = { "通常":3, "セル盤":4, "計数機":5, "ユニット":6, "説明書":7 };
 const DATE_COL_MAP = { "通常":8, "セル盤":9, "計数機":10, "ユニット":11, "説明書":12 };
