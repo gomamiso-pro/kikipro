@@ -120,28 +120,34 @@ function renderList() {
   const tIdx = TYPE_MAP[activeType];
   const finalIdx = getFinalWorkZoneIndex();
 
-  container.innerHTML = DATA.cols.map((z, i) => {
-    // そのゾーンに属する全台を取得
-    const zoneUnits = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e));
-    if (zoneUnits.length === 0) return "";
+  // フラグが立っている台があるゾーンだけに絞り込む
+  const activeZones = DATA.cols.filter(z => {
+    return DATA.master.some(m => 
+      Number(m[0]) >= Math.min(z.s, z.e) && 
+      Number(m[0]) <= Math.max(z.s, z.e) && 
+      Number(m[tIdx]) === 1
+    );
+  });
 
+  container.innerHTML = activeZones.map((z, i) => {
+    const zoneUnits = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e));
     const zoneIds = zoneUnits.map(m => Number(m[0]));
-    // 選択状態の合計（ステータスバー用ではなく、カード全体のハイライト判定用）
     const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
-    // 全選択チェック判定
     const isAllSelected = zoneIds.length > 0 && zoneIds.every(id => selectedUnits.has(id));
 
+    // 元のインデックス（🚩判定用）を維持するため、全体でのインデックスを探す
+    const originalIdx = DATA.cols.indexOf(z);
+
     return `
-      <div id="zone-card-${i}" class="zone-row ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === i ? 'expanded' : ''}" onclick="handleZoneAction(event, ${i})">
+      <div id="zone-card-${originalIdx}" class="zone-row ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" onclick="handleZoneAction(event, ${originalIdx})">
         <div class="zone-flex">
           <div class="zone-check-area" onclick="handleZoneCheck(event, ${z.s}, ${z.e})">
             <input type="checkbox" ${isAllSelected ? 'checked' : ''} style="pointer-events:none;">
           </div>
-          
           <div class="zone-main-content" style="background:${z.bg}; color:#000; flex:1; padding:10px; border-radius:8px;">
             <div style="display:flex; justify-content:space-between; font-family:'Oswald'; align-items: center;">
               <b>${z.name}</b>
-              <span style="font-size:16px; font-weight:900;">${i === finalIdx ? '🚩' : ''}${formatLastDate(z)}</span>
+              <span style="font-size:16px; font-weight:900;">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z)}</span>
             </div>
             <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:5px;">
               <span class="f-oswald" style="font-size:20px;">No.${z.s}-${z.e}</span>
@@ -149,14 +155,12 @@ function renderList() {
             </div>
           </div>
         </div>
-
         <div class="progress-container status-bar-bg" style="margin-top:8px;">
           ${zoneUnits.map(m => {
             const isActive = selectedUnits.has(Number(m[0]));
             return `<div class="p-seg ${isActive ? 'active' : ''}"></div>`;
           }).join('')}
         </div>
-
         <div class="expand-box" onclick="event.stopPropagation()">
           <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(50px, 1fr)); gap:4px; margin-top:10px;">
             ${zoneUnits.map(m => {
@@ -170,48 +174,58 @@ function renderList() {
 }
 
 
+
 function renderTile() {
   const container = document.getElementById('zone-display');
   container.className = "zone-container-tile";
   const tIdx = TYPE_MAP[activeType];
   const finalIdx = getFinalWorkZoneIndex();
 
-  container.innerHTML = DATA.cols.map((z, i) => {
-    const zoneUnits = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e));
-    if (zoneUnits.length === 0) return "";
+  // フラグが立っている台があるゾーンだけに絞り込む
+  const activeZones = DATA.cols.filter(z => {
+    return DATA.master.some(m => 
+      Number(m[0]) >= Math.min(z.s, z.e) && 
+      Number(m[0]) <= Math.max(z.s, z.e) && 
+      Number(m[tIdx]) === 1
+    );
+  });
 
+  container.innerHTML = activeZones.map((z, i) => {
+    const zoneUnits = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e));
     const zoneIds = zoneUnits.map(m => Number(m[0]));
-    // 選択状態の計算
-    const selCount = zoneUnits.filter(m => Number(m[tIdx]) === 1 || selectedUnits.has(Number(m[0]))).length;
-    const isAllSelected = zoneIds.every(id => selectedUnits.has(id));
+    const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
+    const isAllSelected = zoneIds.length > 0 && zoneIds.every(id => selectedUnits.has(id));
+    const originalIdx = DATA.cols.indexOf(z);
 
     return `
-      <div id="zone-card-${i}" class="tile-card ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === i ? 'expanded' : ''}" style="background:${z.bg}; color:#000;" onclick="handleZoneAction(event, ${i})">
+      <div id="zone-card-${originalIdx}" class="tile-card ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" style="background:${z.bg}; color:#000;" onclick="handleZoneAction(event, ${originalIdx})">
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <div onclick="handleZoneCheck(event, ${z.s}, ${z.e})">
-            <input type="checkbox" ${isAllSelected ? 'checked' : ''}>
+            <input type="checkbox" ${isAllSelected ? 'checked' : ''} style="pointer-events:none;">
           </div>
-          <span style="font-size:14px; font-weight:900; font-family:'Oswald';">${i === finalIdx ? '🚩' : ''}${formatLastDate(z)}</span>
+          <span style="font-size:14px; font-weight:900; font-family:'Oswald';">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z)}</span>
         </div>
         <div style="font-weight:900; font-size:11px;">${z.name.replace('ゾーン', '')}</div>
         <div style="text-align:left; font-family:'Oswald'; font-weight:700; font-size:15px;">No.${z.s}-${z.e}</div>
         <div style="text-align:right; font-family:'Oswald'; font-size:13px; font-weight:700;">${selCount}/${zoneUnits.length}台</div>
-        
-        <div class="progress-container status-bar-bg">
+        <div class="progress-container status-bar-bg" style="margin-top:4px;">
           ${zoneUnits.map(m => {
-            const isTarget = (Number(m[tIdx]) === 1 || selectedUnits.has(Number(m[0])));
-            return `<div class="p-seg ${isTarget ? 'active' : ''}"></div>`;
+            const isActive = selectedUnits.has(Number(m[0]));
+            return `<div class="p-seg ${isActive ? 'active' : ''}"></div>`;
           }).join('')}
         </div>
-
         <div class="expand-box" onclick="event.stopPropagation()">
-           <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(50px, 1fr)); gap:4px;">
-            ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" style="font-size:11px; padding:5px 0;" onclick="toggleUnit(${m[0]})">${m[0]}</div>`).join('')}
+           <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(50px, 1fr)); gap:4px; margin-top:8px;">
+            ${zoneUnits.map(m => {
+              const isActive = selectedUnits.has(Number(m[0]));
+              return `<div class="unit-chip ${isActive ? 'active' : ''}" style="font-size:11px; padding:5px 0; text-align:center;" onclick="toggleUnit(${m[0]})">${m[0]}</div>`;
+            }).join('')}
           </div>
         </div>
       </div>`;
   }).join('');
 }
+
 // 補助ロジック
 function handleZoneAction(e, idx) { e.stopPropagation(); expandedZoneId = (expandedZoneId === idx) ? null : idx; renderAll(); }
 function handleZoneCheck(e, s, eNum) {
