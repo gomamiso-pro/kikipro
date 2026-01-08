@@ -237,21 +237,41 @@ async function upload() {
 
 function cancelEdit() { editingLogRow = null; selectedUnits.clear(); expandedZoneId = null; renderAll(); }
 
+/* 履歴表示の修正箇所 */
 function renderLogs() {
   const filtered = DATA.logs.filter(l => l.type === activeType);
   document.getElementById('log-list').innerHTML = filtered.map(l => `
     <div style="background:var(--card); padding:15px; margin:10px; border-radius:10px; border-left:5px solid var(--accent);">
-      <div style="font-size:11px; color:var(--text-dim);">${l.date} (${l.day}) - ${l.user}</div>
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <div style="font-weight:900; font-size:15px;">${l.zone} (No.${l.s}-${l.e})</div>
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+        <div style="font-size:11px; color:var(--text-dim);">${l.date} (${l.day}) - ${l.user}</div>
         <div class="log-unit-badge">${l.count}</div>
       </div>
-      <div style="text-align:right; margin-top:10px; font-size:12px;">
-        <span onclick="startEdit(${l.row},'${l.ids}','${l.date}')" style="color:var(--accent); margin-right:15px; font-weight:bold;">編集</span>
-        <span onclick="handleDelete(${l.row})" style="color:var(--danger); font-weight:bold;">削除</span>
+      <div style="font-weight:900; font-size:16px; margin-bottom:10px;">${l.zone} <span style="font-family:'Oswald'; font-size:14px; font-weight:400;">(No.${l.s}-${l.e})</span></div>
+      <div style="text-align:right; border-top:1px solid rgba(255,255,255,0.05); padding-top:10px; font-size:12px;">
+        <span onclick="startEdit(${l.row},'${l.ids}','${l.date}')" style="color:var(--accent); margin-right:20px; font-weight:bold; cursor:pointer;">編集</span>
+        <span onclick="handleDelete(${l.row})" style="color:var(--danger); font-weight:bold; cursor:pointer;">削除</span>
       </div>
     </div>`).join('') + `<div style="height:200px;"></div>`;
 }
+
+/* QR表示の出し方を初期に戻す */
+function showQR() {
+  const target = document.getElementById("qr-target");
+  target.innerHTML = "";
+  new QRCode(target, { 
+    text: window.location.href, 
+    width: 200, 
+    height: 200,
+    correctLevel: QRCode.CorrectLevel.H 
+  });
+  document.getElementById("qr-overlay").style.display = "flex";
+}
+
+function hideQR() {
+  document.getElementById("qr-overlay").style.display = "none";
+}
+
+/* 他の関数（renderTile, logout, auth等）はそのまま維持 */
 
 function startEdit(row, ids, date) { editingLogRow = row; selectedUnits = new Set(ids.split(',').map(Number)); document.getElementById('work-date').value = date.replace(/\//g,'-'); updateDateDisplay(); switchView('work'); }
 async function handleDelete(row) { if(confirm("削除？")) { document.getElementById('loading').style.display='flex'; await callGAS("deleteLog",{row}); await silentLogin(); } }
