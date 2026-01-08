@@ -77,7 +77,6 @@ function scrollToLastWork() {
   const target = document.getElementById(`zone-card-${finalIdx}`);
   if (target) {
     target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    target.style.transition = "outline 0.3s";
     target.style.outline = "4px solid var(--accent)";
     setTimeout(() => { target.style.outline = "none"; }, 2000);
   }
@@ -140,18 +139,18 @@ function renderTile() {
 
     return `
       <div id="zone-card-${originalIdx}" class="tile-card ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" style="background:${z.bg};" onclick="handleZoneAction(event, ${originalIdx})">
-        <div style="display:flex; justify-content:space-between; align-items:center; padding: 4px;">
-          <div onclick="handleZoneCheck(event, ${originalIdx})"><input type="checkbox" ${isAllSelected ? 'checked' : ''} style="pointer-events:none;"></div>
-          <span style="font-size:10px; font-weight:900; font-family:'Oswald';">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z)}</span>
+        <div class="tile-row tile-row-top">
+          <div onclick="handleZoneCheck(event, ${originalIdx})"><input type="checkbox" ${isAllSelected ? 'checked' : ''} style="pointer-events:none; transform:scale(0.8);"></div>
+          <span>${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z)}</span>
         </div>
-        <div style="font-weight:900; font-size:10px; text-align:center;">${z.name.replace('ゾーン', '')}</div>
-        <div style="text-align:center; font-family:'Oswald'; font-weight:700;">No.${z.s}-${z.e}</div>
-        <div style="text-align:right; font-family:'Oswald'; font-size:12px; padding: 0 4px;">${selCount}/${zoneUnits.length}</div>
-        <div class="status-bar-bg" style="height:4px !important;">
+        <div class="tile-row tile-row-name">${z.name.replace('ゾーン', '')}</div>
+        <div class="tile-row tile-row-no">No.${z.s}-${z.e}</div>
+        <div class="tile-row tile-row-count">${selCount}/${zoneUnits.length}</div>
+        <div class="status-bar-bg">
           ${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}
         </div>
         <div class="expand-box" onclick="event.stopPropagation()">
-           <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(48px, 1fr)); gap:4px;">
+           <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(48px, 1fr)); gap:4px; padding:10px 0;">
             ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${m[0]})">${m[0]}</div>`).join('')}
           </div>
         </div>
@@ -175,7 +174,6 @@ function updateCount() {
   const count = selectedUnits.size;
   document.getElementById('u-total').innerText = count;
   document.getElementById('send-btn').disabled = (count === 0);
-  document.getElementById('send-btn').innerText = editingLogRow ? "修正を保存" : "登録実行";
   document.getElementById('cancel-btn').style.display = (count > 0 || editingLogRow) ? "block" : "none";
 }
 
@@ -221,8 +219,8 @@ async function upload() {
   if (selectedUnits.size === 0) return;
   document.getElementById('loading').style.display = 'flex';
   try {
-    const res = await callGAS("addNewRecord", { date: document.getElementById('work-date').value, type: activeType, ids: Array.from(selectedUnits), editRow: editingLogRow });
-    if (res.status === "success") { cancelEdit(); await silentLogin(); switchView('log'); }
+    await callGAS("addNewRecord", { date: document.getElementById('work-date').value, type: activeType, ids: Array.from(selectedUnits), editRow: editingLogRow });
+    cancelEdit(); await silentLogin(); switchView('log');
   } catch(e) { alert("エラー"); } finally { document.getElementById('loading').style.display = 'none'; }
 }
 
