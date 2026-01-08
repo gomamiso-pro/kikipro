@@ -26,6 +26,15 @@ window.onload = () => {
   updateDateDisplay();
 };
 
+async function handleAuth() {
+  authID = document.getElementById('login-id').value;
+  authPass = document.getElementById('login-pass').value;
+  if (!authID || !authPass) return alert("入力してください");
+  localStorage.setItem('kiki_authID', authID);
+  localStorage.setItem('kiki_authPass', authPass);
+  silentLogin();
+}
+
 async function silentLogin() {
   document.getElementById('loading').style.display = 'flex';
   try {
