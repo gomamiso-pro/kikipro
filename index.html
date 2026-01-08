@@ -17,11 +17,10 @@
   </div>
 </div>
 
-<div id="qr-overlay" class="overlay" onclick="hideQR()">
-  <div class="qr-content-wrapper" onclick="event.stopPropagation()">
-    <button type="button" class="qr-close-btn" onclick="hideQR()">×</button>
-    <div id="qr-target"></div>
-    <div style="color:#111; margin-top:15px; font-weight:bold; font-size:12px; font-family:'Oswald'; letter-spacing:1px;">SCAN TO SHARE</div>
+<div id="qr-overlay" class="overlay" onclick="hideQR()" style="display:none; background:rgba(0,0,0,0.85); backdrop-filter:blur(4px);">
+  <div class="qr-content-wrapper" onclick="event.stopPropagation()" style="background:#fff; padding:25px; border-radius:12px; text-align:center;">
+    <div id="qr-target" style="border:10px solid #fff;"></div>
+    <div style="color:#000; font-family:'Oswald'; font-weight:900; margin-top:10px; font-size:14px; letter-spacing:1px;">SCAN TO SHARE</div>
   </div>
 </div>
 
