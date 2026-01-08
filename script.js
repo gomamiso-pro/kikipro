@@ -16,51 +16,17 @@ const DATE_COL_MAP = { "通常":8, "セル盤":9, "計数機":10, "ユニット"
 window.onload = () => {
   const savedID = localStorage.getItem('kiki_authID');
   const savedPass = localStorage.getItem('kiki_authPass');
-
   if (savedID && savedPass) {
-    authID = savedID;
-    authPass = savedPass;
+    authID = savedID; authPass = savedPass;
     silentLogin();
   } else {
     document.getElementById('login-overlay').style.display = 'flex';
     document.getElementById('loading').style.display = 'none';
   }
-
   const d = new Date();
   document.getElementById('work-date').value = d.toISOString().split('T')[0];
   updateDateDisplay();
 };
-
-// --- 認証・ログイン ---
-function toggleAuthMode() {
-  isRegisterMode = !isRegisterMode;
-  document.getElementById('auth-title').innerText = isRegisterMode ? "NEW REGISTER" : "KIKI LOGIN";
-  document.getElementById('login-fields').style.display = isRegisterMode ? "none" : "block";
-  document.getElementById('register-fields').style.display = isRegisterMode ? "block" : "none";
-  document.getElementById('auth-submit').innerText = isRegisterMode ? "新規登録を実行" : "ログイン";
-  document.getElementById('auth-toggle').innerText = isRegisterMode ? "ログインへ" : "新規登録";
-}
-
-async function handleAuth() {
-  if (isRegisterMode) {
-    const newNick = document.getElementById('reg-nick').value;
-    const newID = document.getElementById('reg-id').value;
-    const newPass = document.getElementById('reg-pass').value;
-    if (!newNick || !newID || !newPass) return alert("全項目入力してください");
-    document.getElementById('loading').style.display = 'flex';
-    const res = await callGAS("registerUser", { newNick, newID, newPass, authID: "guest", authPass: "guest" });
-    document.getElementById('loading').style.display = 'none';
-    if (res.status === "success") { alert(res.message); toggleAuthMode(); } else { alert(res.message); }
-  } else {
-    authID = document.getElementById('login-id').value;
-    authPass = document.getElementById('login-pass').value;
-    const success = await silentLogin();
-    if (success && document.getElementById('auto-login').checked) {
-      localStorage.setItem('kiki_authID', authID);
-      localStorage.setItem('kiki_authPass', authPass);
-    }
-  }
-}
 
 async function silentLogin() {
   document.getElementById('loading').style.display = 'flex';
@@ -83,37 +49,22 @@ async function silentLogin() {
   }
 }
 
-function logout() {
-  if (confirm("ログアウトしますか？")) {
-    localStorage.clear();
-    authID = ""; authPass = "";
-    location.reload(); 
-  }
-}
-
 async function callGAS(method, data = {}) {
   data.authID = authID; data.authPass = authPass;
   const res = await fetch(GAS_API_URL, { method: "POST", body: JSON.stringify({ method, data }) });
   return await res.json();
 }
 
-// --- メイン描画 ---
 function renderAll() {
   const types = ["通常", "セル盤", "計数機", "ユニット", "説明書"];
   document.getElementById('type-tabs').innerHTML = types.map(t => `<button class="type-btn ${t===activeType?'active':''}" onclick="changeType('${t}')">${t}</button>`).join('');
-  
   if(document.getElementById('view-work').style.display !== 'none') {
     displayMode === 'list' ? renderList() : renderTile();
   } else { renderLogs(); }
   updateCount();
 }
 
-function changeType(t) { 
-  activeType = t; 
-  expandedZoneId = null; 
-  if(!editingLogRow) selectedUnits.clear(); 
-  renderAll(); 
-}
+function changeType(t) { activeType = t; expandedZoneId = null; if(!editingLogRow) selectedUnits.clear(); renderAll(); }
 
 function renderList() {
   const container = document.getElementById('zone-display');
@@ -135,24 +86,24 @@ function renderList() {
       <div id="zone-card-${originalIdx}" class="zone-row ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" onclick="handleZoneAction(event, ${originalIdx})">
         <div style="display:flex; align-items:stretch; width:100%;">
           <div class="zone-check-area" onclick="handleZoneCheck(event, ${originalIdx})">
-            <input type="checkbox" ${isAllSelected ? 'checked' : ''} style="transform:scale(1.5); pointer-events:none;">
+            <input type="checkbox" ${isAllSelected ? 'checked' : ''} style="transform:scale(1.6); pointer-events:none;">
           </div>
-          <div class="zone-main-content" style="background:${z.bg}; color:#000; flex:1;">
-            <div style="display:flex; justify-content:space-between; font-family:'Oswald'; align-items: center;">
+          <div class="zone-main-content" style="background:${z.bg};">
+            <div style="display:flex; justify-content:space-between; align-items: center;">
               <b>${z.name}</b>
-              <span style="font-size:16px; font-weight:900;">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z)}</span>
+              <span class="f-oswald" style="font-size:14px; font-weight:900;">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z)}</span>
             </div>
             <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:5px;">
-              <span class="f-oswald" style="font-size:20px;">No.${z.s}-${z.e}</span>
-              <span class="f-oswald" style="font-weight:700;">${selCount}/${zoneUnits.length}台</span>
+              <span class="f-oswald" style="font-size:18px;">No.${z.s}-${z.e}</span>
+              <span class="f-oswald" style="font-weight:700; font-size:14px;">${selCount}/${zoneUnits.length}台</span>
             </div>
           </div>
         </div>
-        <div class="status-bar-bg" style="margin:8px 10px 10px 10px;">
+        <div class="status-bar-bg" style="margin:8px 12px 12px 12px;">
           ${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}
         </div>
         <div class="expand-box" onclick="event.stopPropagation()">
-          <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(55px, 1fr)); gap:6px; padding:5px;">
+          <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(60px, 1fr)); gap:8px; padding:10px;">
             ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${m[0]})">${m[0]}</div>`).join('')}
           </div>
         </div>
@@ -192,45 +143,32 @@ function renderTile() {
         </div>
         <div class="expand-box" onclick="event.stopPropagation()">
            <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(48px, 1fr)); gap:4px; margin-top:8px;">
-            ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" style="font-size:10px;" onclick="toggleUnit(${m[0]})">${m[0]}</div>`).join('')}
+            ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${m[0]})">${m[0]}</div>`).join('')}
           </div>
         </div>
       </div>`;
   }).join('');
 }
 
-// --- 操作・ロジック ---
 function handleZoneAction(e, idx) { e.stopPropagation(); expandedZoneId = (expandedZoneId === idx) ? null : idx; renderAll(); }
-
 function handleZoneCheck(e, idx) {
   e.stopPropagation();
   const z = DATA.cols[idx];
   const tIdx = TYPE_MAP[activeType];
-  const zoneUnits = DATA.master
-    .filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1)
-    .map(m => Number(m[0]));
-
+  const zoneUnits = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1).map(m => Number(m[0]));
   const isAllSelected = zoneUnits.every(id => selectedUnits.has(id));
   zoneUnits.forEach(id => isAllSelected ? selectedUnits.delete(id) : selectedUnits.add(id));
   renderAll();
 }
-
 function toggleUnit(id) { selectedUnits.has(id) ? selectedUnits.delete(id) : selectedUnits.add(id); renderAll(); }
 
 function updateCount() {
   const count = selectedUnits.size;
   document.getElementById('u-total').innerText = count;
-  
-  const sendBtn = document.getElementById('send-btn');
-  const cancelBtn = document.getElementById('cancel-btn');
-
+  const sendBtn = document.getElementById('send-btn'), cancelBtn = document.getElementById('cancel-btn');
   sendBtn.disabled = (count === 0);
   sendBtn.innerText = editingLogRow ? "修正を保存" : "登録実行";
-  
-  // キャンセルボタンは台が選ばれているか、編集モードの時に表示
-  if (cancelBtn) {
-    cancelBtn.style.display = (count > 0 || editingLogRow) ? "block" : "none";
-  }
+  cancelBtn.style.display = (count > 0 || editingLogRow) ? "block" : "none";
 }
 
 function updateDateDisplay() {
@@ -249,12 +187,7 @@ function setMode(m) {
 
 function switchView(v) {
   const isWork = (v === 'work');
-  
-  // 画面切り替え時に未登録の選択があればリセット
-  if (selectedUnits.size > 0 || editingLogRow) {
-    cancelEdit();
-  }
-
+  if (selectedUnits.size > 0 || editingLogRow) cancelEdit();
   document.getElementById('view-work').style.display = isWork ? 'block' : 'none';
   document.getElementById('view-log').style.display = isWork ? 'none' : 'block';
   document.getElementById('view-mode-controls').style.display = isWork ? 'block' : 'none';
@@ -279,99 +212,40 @@ function getFinalWorkZoneIndex() {
   return DATA.cols.findIndex(z => maxId>=Math.min(z.s,z.e) && maxId<=Math.max(z.s,z.e));
 }
 
-function scrollToLastWork() {
-  const idx = getFinalWorkZoneIndex();
-  if(idx !== -1) {
-    const target = document.getElementById(`zone-card-${idx}`);
-    if (target) {
-      target.scrollIntoView({behavior:'smooth', block:'center'});
-      target.style.outline = "3px solid white";
-      target.style.outlineOffset = "-3px";
-      setTimeout(() => target.style.outline = "none", 2000);
-    }
-  }
-}
-
 async function upload() {
   if (selectedUnits.size === 0) return;
   document.getElementById('loading').style.display = 'flex';
   try {
-    const res = await callGAS("addNewRecord", { 
-      date: document.getElementById('work-date').value, 
-      type: activeType, 
-      ids: Array.from(selectedUnits), 
-      editRow: editingLogRow 
-    });
-    if (res.status === "success") {
-      selectedUnits.clear(); 
-      editingLogRow = null; 
-      await silentLogin(); 
-      switchView('log');
-    } else {
-      alert(res.message);
-    }
-  } catch(e) { 
-    alert("通信エラーが発生しました"); 
-  } finally { 
-    document.getElementById('loading').style.display = 'none'; 
-  }
+    const res = await callGAS("addNewRecord", { date: document.getElementById('work-date').value, type: activeType, ids: Array.from(selectedUnits), editRow: editingLogRow });
+    if (res.status === "success") { selectedUnits.clear(); editingLogRow = null; await silentLogin(); switchView('log'); } else { alert(res.message); }
+  } catch(e) { alert("通信エラー"); } finally { document.getElementById('loading').style.display = 'none'; }
 }
 
-function cancelEdit() {
-  editingLogRow = null;
-  selectedUnits.clear();
-  expandedZoneId = null;
-  renderAll();
-}
+function cancelEdit() { editingLogRow = null; selectedUnits.clear(); expandedZoneId = null; renderAll(); }
 
 function renderLogs() {
   const filtered = DATA.logs.filter(l => l.type === activeType);
-  const container = document.getElementById('log-list');
-  container.innerHTML = filtered.map(l => `
+  document.getElementById('log-list').innerHTML = filtered.map(l => `
     <div style="background:var(--card); padding:15px; margin:10px; border-radius:10px; border-left:5px solid var(--accent);">
       <div style="font-size:11px; color:var(--text-dim);">${l.date} (${l.day}) - ${l.user}</div>
       <div style="display:flex; justify-content:space-between; margin-top:5px; align-items: center;">
-        <div style="font-weight:900;">${l.zone} (No.${l.s}-${l.e})</div>
-        <div class="log-unit-badge">${l.count}台</div>
+        <div style="font-weight:900; font-size:15px;">${l.zone} (No.${l.s}-${l.e})</div>
+        <div class="log-unit-badge">${l.count}</div>
       </div>
       <div style="text-align:right; margin-top:10px; font-size:12px;">
         <span onclick="startEdit(${l.row},'${l.ids}','${l.date}')" style="color:var(--accent); margin-right:15px; cursor:pointer; font-weight:bold;">編集</span>
         <span onclick="handleDelete(${l.row})" style="color:var(--danger); cursor:pointer; font-weight:bold;">削除</span>
       </div>
-    </div>`).join('') + `<div style="height:200px;"></div>`; // 履歴の下も余白追加
+    </div>`).join('') + `<div style="height:200px;"></div>`;
 }
 
-function startEdit(row, ids, date) { 
-  editingLogRow = row; 
-  selectedUnits = new Set(ids.split(',').map(Number)); 
-  document.getElementById('work-date').value = date.replace(/\//g,'-'); 
-  updateDateDisplay();
-  switchView('work'); 
-}
-
-async function handleDelete(row) { 
-  if(confirm("この履歴を削除しますか？")) { 
-    document.getElementById('loading').style.display='flex'; 
-    await callGAS("deleteLog",{row}); 
-    await silentLogin(); 
-  } 
-}
-
-// QR表示
+function startEdit(row, ids, date) { editingLogRow = row; selectedUnits = new Set(ids.split(',').map(Number)); document.getElementById('work-date').value = date.replace(/\//g,'-'); updateDateDisplay(); switchView('work'); }
+async function handleDelete(row) { if(confirm("削除しますか？")) { document.getElementById('loading').style.display='flex'; await callGAS("deleteLog",{row}); await silentLogin(); } }
 function showQR() {
   const target = document.getElementById("qr-target");
   if (!target) return;
   target.innerHTML = "";
-  new QRCode(target, { 
-    text: window.location.href, 
-    width: 180, height: 180, 
-    colorDark : "#000000", colorLight : "#ffffff", 
-    correctLevel : QRCode.CorrectLevel.H 
-  });
+  new QRCode(target, { text: window.location.href, width: 180, height: 180, colorDark : "#000000", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.H });
   document.getElementById("qr-overlay").style.display = "flex";
 }
-
-function hideQR() {
-  const overlay = document.getElementById("qr-overlay");
-  if (overlay) overlay.style.display = "none";
-}
+function hideQR() { const overlay = document.getElementById("qr-overlay"); if (overlay) overlay.style.display = "none"; }
