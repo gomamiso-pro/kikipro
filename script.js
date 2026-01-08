@@ -20,7 +20,6 @@ window.onload = () => {
     silentLogin();
   } else {
     document.getElementById('login-overlay').style.display = 'flex';
-    document.getElementById('loading').style.display = 'none';
   }
   const d = new Date();
   document.getElementById('work-date').value = d.toISOString().split('T')[0];
@@ -33,19 +32,14 @@ async function silentLogin() {
     const res = await callGAS("getInitialData");
     if (res.status === "error") {
       alert(res.message); localStorage.clear();
-      document.getElementById('loading').style.display = 'none';
-      return false;
+      location.reload(); return;
     }
     document.getElementById('login-overlay').style.display = 'none';
     DATA = res;
     document.getElementById('user-display').innerText = DATA.user.toUpperCase();
     renderAll();
-    document.getElementById('loading').style.display = 'none';
-    return true;
-  } catch (e) {
-    document.getElementById('loading').style.display = 'none';
-    return false;
-  }
+  } catch (e) { alert("ログイン失敗"); }
+  finally { document.getElementById('loading').style.display = 'none'; }
 }
 
 async function callGAS(method, data = {}) {
@@ -65,22 +59,42 @@ function renderAll() {
 
 function changeType(t) { activeType = t; expandedZoneId = null; if(!editingLogRow) selectedUnits.clear(); renderAll(); }
 
-// --- 表示ロジック ---
+function handleZoneCheckAll() {
+  const tIdx = TYPE_MAP[activeType];
+  const allIds = DATA.master.filter(m => Number(m[tIdx]) === 1).map(m => Number(m[0]));
+  const isEverythingSelected = allIds.every(id => selectedUnits.has(id));
+  if (isEverythingSelected) {
+    allIds.forEach(id => selectedUnits.delete(id));
+  } else {
+    allIds.forEach(id => selectedUnits.add(id));
+  }
+  renderAll();
+}
+
+function scrollToLastWork() {
+  const finalIdx = getFinalWorkZoneIndex();
+  if (finalIdx === -1) return;
+  const target = document.getElementById(`zone-card-${finalIdx}`);
+  if (target) {
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    target.style.transition = "outline 0.3s";
+    target.style.outline = "4px solid var(--accent)";
+    setTimeout(() => { target.style.outline = "none"; }, 2000);
+  }
+}
+
 function renderList() {
   const container = document.getElementById('zone-display');
   container.className = "zone-container-list";
   const tIdx = TYPE_MAP[activeType];
   const finalIdx = getFinalWorkZoneIndex();
-
-  const activeZones = DATA.cols.filter(z => {
-    return DATA.master.some(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1);
-  });
+  const activeZones = DATA.cols.filter(z => DATA.master.some(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1));
 
   container.innerHTML = activeZones.map((z) => {
+    const originalIdx = DATA.cols.indexOf(z);
     const zoneUnits = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1);
     const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
     const isAllSelected = zoneUnits.length > 0 && zoneUnits.every(m => selectedUnits.has(Number(m[0])));
-    const originalIdx = DATA.cols.indexOf(z);
 
     return `
       <div id="zone-card-${originalIdx}" class="zone-row ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" onclick="handleZoneAction(event, ${originalIdx})">
@@ -89,11 +103,11 @@ function renderList() {
             <input type="checkbox" ${isAllSelected ? 'checked' : ''} style="transform:scale(1.6); pointer-events:none;">
           </div>
           <div class="zone-main-content" style="background:${z.bg};">
-            <div style="display:flex; justify-content:space-between; align-items: center;">
+            <div style="display:flex; justify-content:space-between;">
               <b>${z.name}</b>
               <span class="f-oswald" style="font-size:14px; font-weight:900;">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z)}</span>
             </div>
-            <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:5px;">
+            <div style="display:flex; justify-content:space-between; margin-top:5px;">
               <span class="f-oswald" style="font-size:18px;">No.${z.s}-${z.e}</span>
               <span class="f-oswald" style="font-weight:700; font-size:14px;">${selCount}/${zoneUnits.length}台</span>
             </div>
@@ -116,33 +130,28 @@ function renderTile() {
   container.className = "zone-container-tile";
   const tIdx = TYPE_MAP[activeType];
   const finalIdx = getFinalWorkZoneIndex();
-
-  const activeZones = DATA.cols.filter(z => {
-    return DATA.master.some(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1);
-  });
+  const activeZones = DATA.cols.filter(z => DATA.master.some(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1));
 
   container.innerHTML = activeZones.map((z) => {
+    const originalIdx = DATA.cols.indexOf(z);
     const zoneUnits = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1);
     const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
     const isAllSelected = zoneUnits.length > 0 && zoneUnits.every(m => selectedUnits.has(Number(m[0])));
-    const originalIdx = DATA.cols.indexOf(z);
 
     return `
-      <div id="zone-card-${originalIdx}" class="tile-card ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" style="background:${z.bg}; color:#000;" onclick="handleZoneAction(event, ${originalIdx})">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <div onclick="handleZoneCheck(event, ${originalIdx})">
-            <input type="checkbox" ${isAllSelected ? 'checked' : ''} style="transform:scale(1.1); pointer-events:none;">
-          </div>
-          <span style="font-size:12px; font-weight:900; font-family:'Oswald';">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z)}</span>
+      <div id="zone-card-${originalIdx}" class="tile-card ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" style="background:${z.bg};" onclick="handleZoneAction(event, ${originalIdx})">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding: 4px;">
+          <div onclick="handleZoneCheck(event, ${originalIdx})"><input type="checkbox" ${isAllSelected ? 'checked' : ''} style="pointer-events:none;"></div>
+          <span style="font-size:10px; font-weight:900; font-family:'Oswald';">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z)}</span>
         </div>
-        <div style="font-weight:900; font-size:10px; margin-top:2px;">${z.name.replace('ゾーン', '')}</div>
-        <div style="text-align:left; font-family:'Oswald'; font-weight:700; font-size:14px;">No.${z.s}-${z.e}</div>
-        <div style="text-align:right; font-family:'Oswald'; font-size:12px; font-weight:700;">${selCount}/${zoneUnits.length}台</div>
-        <div class="status-bar-bg" style="margin-top:4px; height:4px !important;">
+        <div style="font-weight:900; font-size:10px; text-align:center;">${z.name.replace('ゾーン', '')}</div>
+        <div style="text-align:center; font-family:'Oswald'; font-weight:700;">No.${z.s}-${z.e}</div>
+        <div style="text-align:right; font-family:'Oswald'; font-size:12px; padding: 0 4px;">${selCount}/${zoneUnits.length}</div>
+        <div class="status-bar-bg" style="height:4px !important;">
           ${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}
         </div>
         <div class="expand-box" onclick="event.stopPropagation()">
-           <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(48px, 1fr)); gap:4px; margin-top:8px;">
+           <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(48px, 1fr)); gap:4px;">
             ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${m[0]})">${m[0]}</div>`).join('')}
           </div>
         </div>
@@ -150,54 +159,28 @@ function renderTile() {
   }).join('');
 }
 
-// --- アクション ---
 function handleZoneAction(e, idx) { e.stopPropagation(); expandedZoneId = (expandedZoneId === idx) ? null : idx; renderAll(); }
-
 function handleZoneCheck(e, idx) {
   e.stopPropagation();
   const z = DATA.cols[idx];
   const tIdx = TYPE_MAP[activeType];
-  const zoneUnits = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1).map(m => Number(m[0]));
-  const isAllSelected = zoneUnits.every(id => selectedUnits.has(id));
-  zoneUnits.forEach(id => isAllSelected ? selectedUnits.delete(id) : selectedUnits.add(id));
+  const ids = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1).map(m => Number(m[0]));
+  const isAll = ids.every(id => selectedUnits.has(id));
+  ids.forEach(id => isAll ? selectedUnits.delete(id) : selectedUnits.add(id));
   renderAll();
 }
-
-function handleZoneCheckAll() {
-  const tIdx = TYPE_MAP[activeType];
-  const allIds = DATA.master.filter(m => Number(m[tIdx]) === 1).map(m => Number(m[0]));
-  const isEverythingSelected = allIds.every(id => selectedUnits.has(id));
-  if (isEverythingSelected) {
-    selectedUnits.clear();
-  } else {
-    allIds.forEach(id => selectedUnits.add(id));
-  }
-  renderAll();
-}
-
 function toggleUnit(id) { selectedUnits.has(id) ? selectedUnits.delete(id) : selectedUnits.add(id); renderAll(); }
 
-function scrollToLastWork() {
-  const finalIdx = getFinalWorkZoneIndex();
-  if (finalIdx === -1) return;
-  const target = document.getElementById(`zone-card-${finalIdx}`);
-  if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-}
-
-// --- ユーティリティ ---
 function updateCount() {
   const count = selectedUnits.size;
   document.getElementById('u-total').innerText = count;
-  const sendBtn = document.getElementById('send-btn'), cancelBtn = document.getElementById('cancel-btn');
-  sendBtn.disabled = (count === 0);
-  sendBtn.innerText = editingLogRow ? "修正を保存" : "登録実行";
-  cancelBtn.style.display = (count > 0 || editingLogRow) ? "block" : "none";
+  document.getElementById('send-btn').disabled = (count === 0);
+  document.getElementById('send-btn').innerText = editingLogRow ? "修正を保存" : "登録実行";
+  document.getElementById('cancel-btn').style.display = (count > 0 || editingLogRow) ? "block" : "none";
 }
 
 function updateDateDisplay() {
-  const dStr = document.getElementById('work-date').value;
-  if (!dStr) return;
-  const d = new Date(dStr);
+  const d = new Date(document.getElementById('work-date').value);
   document.getElementById('date-label').innerText = `${d.getMonth()+1}/${d.getDate()}(${["日","月","火","水","木","金","土"][d.getDay()]})`;
 }
 
@@ -212,7 +195,7 @@ function switchView(v) {
   const isWork = (v === 'work');
   if (selectedUnits.size > 0 || editingLogRow) cancelEdit();
   document.getElementById('view-work').style.display = isWork ? 'block' : 'none';
-  document.getElementById('view-log').style.display = isWork ? 'none' : 'block';
+  document.getElementById('view-log').style.display = !isWork ? 'block' : 'none';
   document.getElementById('view-mode-controls').style.display = isWork ? 'block' : 'none';
   document.getElementById('tab-work').className = 'top-tab ' + (isWork ? 'active-work' : '');
   document.getElementById('tab-log').className = 'top-tab ' + (!isWork ? 'active-log' : '');
@@ -224,8 +207,7 @@ function formatLastDate(z) {
   const units = DATA.master.filter(m => Number(m[0])>=Math.min(z.s,z.e) && Number(m[0])<=Math.max(z.s,z.e));
   let last = null;
   units.forEach(m => { if(m[tCol]) { const d = new Date(m[tCol]); if(!last || d > last) last = d; } });
-  if(!last) return "未入力";
-  return `${last.getMonth()+1}/${last.getDate()}(${["日","月","火","水","木","金","土"][last.getDay()]})`;
+  return last ? `${last.getMonth()+1}/${last.getDate()}` : "未";
 }
 
 function getFinalWorkZoneIndex() {
@@ -235,21 +217,13 @@ function getFinalWorkZoneIndex() {
   return DATA.cols.findIndex(z => maxId>=Math.min(z.s,z.e) && maxId<=Math.max(z.s,z.e));
 }
 
-// --- 通信 ---
 async function upload() {
   if (selectedUnits.size === 0) return;
   document.getElementById('loading').style.display = 'flex';
   try {
     const res = await callGAS("addNewRecord", { date: document.getElementById('work-date').value, type: activeType, ids: Array.from(selectedUnits), editRow: editingLogRow });
-    if (res.status === "success") { 
-      selectedUnits.clear(); 
-      editingLogRow = null; 
-      await silentLogin(); 
-      switchView('log'); 
-    } else { 
-      alert(res.message); 
-    }
-  } catch(e) { alert("通信エラー"); } finally { document.getElementById('loading').style.display = 'none'; }
+    if (res.status === "success") { cancelEdit(); await silentLogin(); switchView('log'); }
+  } catch(e) { alert("エラー"); } finally { document.getElementById('loading').style.display = 'none'; }
 }
 
 function cancelEdit() { editingLogRow = null; selectedUnits.clear(); expandedZoneId = null; renderAll(); }
@@ -259,29 +233,24 @@ function renderLogs() {
   document.getElementById('log-list').innerHTML = filtered.map(l => `
     <div style="background:var(--card); padding:15px; margin:10px; border-radius:10px; border-left:5px solid var(--accent);">
       <div style="font-size:11px; color:var(--text-dim);">${l.date} (${l.day}) - ${l.user}</div>
-      <div style="display:flex; justify-content:space-between; margin-top:5px; align-items: center;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
         <div style="font-weight:900; font-size:15px;">${l.zone} (No.${l.s}-${l.e})</div>
         <div class="log-unit-badge">${l.count}</div>
       </div>
       <div style="text-align:right; margin-top:10px; font-size:12px;">
-        <span onclick="startEdit(${l.row},'${l.ids}','${l.date}')" style="color:var(--accent); margin-right:15px; cursor:pointer; font-weight:bold;">編集</span>
-        <span onclick="handleDelete(${l.row})" style="color:var(--danger); cursor:pointer; font-weight:bold;">削除</span>
+        <span onclick="startEdit(${l.row},'${l.ids}','${l.date}')" style="color:var(--accent); margin-right:15px; font-weight:bold;">編集</span>
+        <span onclick="handleDelete(${l.row})" style="color:var(--danger); font-weight:bold;">削除</span>
       </div>
     </div>`).join('') + `<div style="height:200px;"></div>`;
 }
 
 function startEdit(row, ids, date) { editingLogRow = row; selectedUnits = new Set(ids.split(',').map(Number)); document.getElementById('work-date').value = date.replace(/\//g,'-'); updateDateDisplay(); switchView('work'); }
-
-async function handleDelete(row) { if(confirm("削除しますか？")) { document.getElementById('loading').style.display='flex'; await callGAS("deleteLog",{row}); await silentLogin(); } }
-
+async function handleDelete(row) { if(confirm("削除？")) { document.getElementById('loading').style.display='flex'; await callGAS("deleteLog",{row}); await silentLogin(); } }
 function showQR() {
   const target = document.getElementById("qr-target");
-  if (!target) return;
   target.innerHTML = "";
-  new QRCode(target, { text: window.location.href, width: 200, height: 200, colorDark : "#000000", colorLight : "#ffffff", correctLevel : QRCode.Level.H });
+  new QRCode(target, { text: window.location.href, width: 200, height: 200 });
   document.getElementById("qr-overlay").style.display = "flex";
 }
-
 function hideQR() { document.getElementById("qr-overlay").style.display = "none"; }
-
-function logout() { if (confirm("ログアウトしますか？")) { localStorage.clear(); location.reload(); } }
+function logout() { localStorage.clear(); location.reload(); }
