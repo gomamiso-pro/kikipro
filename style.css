@@ -102,20 +102,15 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
   background: transparent; /* 非対象は透明 */
 }
 
-.p-seg.active {
-  background: #ffff00 !important; /* 対象は鮮やかな黄色 */
-  box-shadow: 0 0 3px rgba(0,0,0,0.2);
-}
-
 .expand-box { display: none; width: 100%; padding: 12px; background: #111; box-sizing: border-box; border-top: 2px solid var(--accent); }
 .expanded .expand-box { display: block; }
 .unit-chip { background: #222; color: #888; border-radius: 4px; padding: 10px 0; text-align: center; font-size: 14px; border: 1px solid #444; }
-/* 選択されたチップ（黄色） */
+.p-seg.active,
 .unit-chip.active {
-  background: #ffff00 !important;
+  background-color: var(--accent) !important;
   color: #000 !important;
-  font-weight: 900;
-  border: 1px solid #ffff00;
+  box-shadow: 0 0 8px rgba(255, 255, 0, 0.4);
+  border: none;
 }
 
 .footer { background: var(--header-bg); border-top: 1px solid var(--panel); padding: 10px 15px; position: fixed; bottom: 0; width: 100%; box-sizing: border-box; }
@@ -159,4 +154,11 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
 /* ローディングも最前面に */
 #loading {
   z-index: 10000;
+}
+/* 履歴の「台」スタイルを登録画面の Oswald フォントに合わせる */
+.log-unit-badge {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  color: var(--accent);
+  font-size: 16px;
 }
