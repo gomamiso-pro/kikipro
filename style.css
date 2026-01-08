@@ -10,8 +10,7 @@
   --danger: #bf616a; 
 }
 
-/* --- 全体レイアウト --- */
-* { box-sizing: border-box; } /* 全要素の幅計算を固定 */
+* { box-sizing: border-box; }
 
 body { 
   font-family: 'Noto Sans JP', sans-serif; 
@@ -24,8 +23,10 @@ body {
   overflow: hidden; 
 }
 
-/* --- 固定パーツ --- */
+/* --- ヘッダー・ナビ --- */
 .header { flex-shrink: 0; height: 50px; background: var(--header-bg); border-bottom: 1px solid var(--panel); display: flex; justify-content: space-between; align-items: center; padding: 0 15px; z-index: 1000; }
+.qr-btn { color: #ffffff !important; cursor: pointer; font-size: 13px; font-weight: bold; }
+
 .nav-row { flex-shrink: 0; display: flex; background: var(--header-bg); border-bottom: 1px solid var(--panel); }
 .top-tab { flex: 1; padding: 12px; text-align: center; font-size: 13px; font-weight: 700; cursor: pointer; color: var(--text-dim); }
 .top-tab.active-work { background: #5e81ac !important; color: #fff !important; }
@@ -39,97 +40,72 @@ body {
 .view-mode-bar button { flex:1; padding:10px; border-radius:6px; border:none; background:var(--card); color:var(--text-dim); font-weight:900; font-size:12px; }
 .view-mode-bar button.active { background: var(--accent) !important; color: #000 !important; }
 
-/* --- スクロールエリア（右端・下端の修正） --- */
-#view-work, #view-log { 
-  flex: 1; 
-  overflow-y: auto; 
-  -webkit-overflow-scrolling: touch; 
-  width: 100%; /* 幅を画面内に収める */
-}
+/* --- メインコンテンツ --- */
+#view-work, #view-log { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; width: 100%; }
 
-/* リスト表示：下部に大きな余白 */
-.zone-container-list { 
-  padding: 10px 10px 200px 10px; 
+/* リスト表示のデザインをタイル表示に合わせる */
+.zone-container-list { padding: 10px 10px 200px 10px; display: flex; flex-direction: column; gap: 10px; width: 100%; }
+.zone-row { border-radius: 8px; overflow: hidden; background: #fff; border: 2px solid transparent; width: 100%; color: #000; }
+.has-selection { border-color: var(--accent) !important; box-shadow: 0 0 10px rgba(250, 204, 21, 0.4); }
+
+/* チェックボックス周辺の余白確保 */
+.zone-check-area { 
+  width: 60px; /* 少し広めに */
+  background: rgba(0,0,0,0.03); 
   display: flex; 
-  flex-direction: column; 
-  gap: 10px; 
-  width: 100%;
-}
-.zone-row { border-radius: 8px; overflow: hidden; background: #fff; border: 2px solid transparent; width: 100%; }
-.has-selection { border-color: var(--accent) !important; }
-
-/* タイル表示：4列が等幅で収まるように計算 */
-.zone-container-tile { 
-  padding: 8px 8px 200px 8px; 
-  display: grid; 
-  grid-template-columns: repeat(4, 1fr); 
-  gap: 6px; 
-  width: 100%;
-}
-.tile-card { 
-  min-height: 90px; 
-  padding: 6px 4px; 
-  display: flex; 
-  flex-direction: column; 
-  justify-content: space-between; 
-  border-radius: 6px; 
-  border: 2px solid transparent; 
-  overflow: hidden; 
+  justify-content: center; 
+  align-items: center; 
+  flex-shrink: 0;
+  border-right: 1px solid rgba(0,0,0,0.05);
 }
 
-/* --- ステータスバー --- */
-.status-bar-bg { background: rgba(0, 0, 0, 0.15) !important; height: 6px !important; margin-top: 4px; border-radius: 3px; display: flex; gap: 1px; }
+.zone-main-content { flex: 1; padding: 12px; }
+/* リスト内のテキストスタイルをタイルに統一 */
+.zone-main-content b { font-family: 'Noto Sans JP'; font-weight: 900; font-size: 13px; }
+.zone-main-content .f-oswald { font-weight: 700; }
+
+/* タイル表示 */
+.zone-container-tile { padding: 8px 8px 200px 8px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; width: 100%; }
+.tile-card { min-height: 90px; padding: 6px 4px; display: flex; flex-direction: column; justify-content: space-between; border-radius: 6px; border: 2px solid transparent; overflow: hidden; }
+
+/* ステータスバー */
+.status-bar-bg { background: rgba(0, 0, 0, 0.1) !important; height: 6px !important; margin-top: 4px; border-radius: 3px; display: flex; gap: 1px; }
 .p-seg { flex: 1; height: 100%; }
 .p-seg.active { background-color: var(--accent) !important; }
 
-/* 詳細展開 */
+/* 詳細チップ */
 .expand-box { display: none; width: 100%; padding: 10px; background: #111; }
-.expanded { grid-column: span 4; } /* タイル時、詳細を開くと横いっぱいに */
+.expanded { grid-column: span 4; }
 .expanded .expand-box { display: block; border-top: 1px solid var(--accent); }
 .unit-chip { background: #222; color: #888; border-radius: 4px; padding: 10px 0; text-align: center; font-size: 12px; border: 1px solid #444; }
 .unit-chip.active { background: var(--accent) !important; color: #000 !important; font-weight: 900; }
 
-/* --- フッターとボタン --- */
-.footer { 
-  flex-shrink: 0; 
-  background: var(--header-bg); 
-  border-top: 1px solid var(--panel); 
-  padding: 12px 15px 25px; /* 下部に少し余裕 */
-  position: fixed; 
-  bottom: 0; 
-  width: 100%; 
-  z-index: 2000; 
+/* --- 履歴の台数バッジ（登録画面と同じ配色・フォントへ） --- */
+.log-unit-badge { 
+  font-family: 'Oswald'; 
+  font-size: 24px; /* 登録画面の雰囲気に合わせて調整 */
+  color: var(--accent); 
+  font-weight: 700; 
+  line-height: 1;
 }
+.log-unit-badge::after {
+  content: "台";
+  font-size: 10px;
+  margin-left: 2px;
+}
+
+/* --- フッター --- */
+.footer { flex-shrink: 0; background: var(--header-bg); border-top: 1px solid var(--panel); padding: 12px 15px 25px; position: fixed; bottom: 0; width: 100%; z-index: 2000; }
 .footer-main-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-.date-container { background: var(--panel); padding: 5px 15px; border-radius: 6px; color: var(--accent); }
+#u-total { font-family: 'Oswald'; font-size: 32px; color: var(--accent); font-weight: 700; }
+.date-container { background: var(--panel); padding: 5px 15px; border-radius: 6px; color: var(--accent); position: relative; }
 #date-label { font-family: 'Oswald'; font-size: 24px; font-weight: 900; }
 
 .footer-btns { display: flex; flex-direction: column; gap: 8px; }
-
-/* ボタンのデザイン統一 */
-.btn-exec, .btn-cancel { 
-  width: 100%; 
-  padding: 14px; 
-  border-radius: 8px; 
-  font-weight: 900; 
-  font-size: 16px; 
-  border: none; 
-  cursor: pointer; 
-  transition: 0.1s;
-}
+.btn-exec, .btn-cancel { width: 100%; padding: 14px; border-radius: 8px; font-weight: 900; font-size: 16px; border: none; cursor: pointer; }
 .btn-exec { background: #5e81ac; color: #fff; box-shadow: 0 4px 0 #3b526d; }
-.btn-exec:active { transform: translateY(2px); box-shadow: none; }
 .btn-exec:disabled { background: #444; color: #888; box-shadow: none; opacity: 0.5; }
+.btn-cancel { background: #4b5263; color: #eceff4; box-shadow: 0 4px 0 #2e3440; }
 
-.btn-cancel { 
-  background: #4b5263; /* 落ち着いた紺グレー */
-  color: #eceff4; 
-  box-shadow: 0 4px 0 #2e3440; 
-}
-.btn-cancel:active { transform: translateY(2px); box-shadow: none; }
-
-/* その他 */
-.user-profile { display: flex; flex-direction: column; align-items: center; }
-#user-display { font-size: 10px; font-weight: 700; }
-.logout-btn { background: var(--danger); color: #fff; border: none; padding: 4px 8px; border-radius: 4px; font-size: 10px; }
-.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 5000; }
+/* 共通フォント */
+.f-oswald { font-family: 'Oswald', sans-serif; }
