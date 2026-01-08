@@ -12,6 +12,8 @@ let isSignUpMode = false;
 const TYPE_MAP = { "通常":3, "セル盤":4, "計数機":5, "ユニット":6, "説明書":7 };
 const DATE_COL_MAP = { "通常":8, "セル盤":9, "計数機":10, "ユニット":11, "説明書":12 };
 
+const ICON_URL = "https://raw.githubusercontent.com/gomamiso-pro/kikipro/main/Ki.png";
+
 window.onload = () => {
   silentLogin(); // api.jsの関数
   const d = new Date();
@@ -225,9 +227,10 @@ function setMode(m) {
   renderAll(); 
 }
 
+// --- ビュー切り替えの修正（選択解除を追加） ---
 function switchView(v) {
   const isWork = (v === 'work');
-  if (selectedUnits.size > 0 || editingLogRow) cancelEdit();
+  cancelEdit(); // タブ切り替え時にリセット
   document.getElementById('view-work').style.display = isWork ? 'block' : 'none';
   document.getElementById('view-log').style.display = !isWork ? 'block' : 'none';
   document.getElementById('view-mode-controls').style.display = isWork ? 'block' : 'none';
@@ -235,7 +238,11 @@ function switchView(v) {
   document.getElementById('tab-log').className = 'top-tab ' + (!isWork ? 'active-log' : '');
   renderAll();
 }
-
+// --- 🚩の画像化（renderList / renderTile 内で共通） ---
+function getFlagHtml(originalIdx, finalIdx) {
+  if (originalIdx !== finalIdx) return "";
+  return `<img src="${ICON_URL}" style="width:14px; height:14px; vertical-align:middle; margin-right:2px;">`;
+}
 function formatLastDate(z) {
   const tCol = DATE_COL_MAP[activeType];
   const units = DATA.master.filter(m => Number(m[0])>=Math.min(z.s,z.e) && Number(m[0])<=Math.max(z.s,z.e));
@@ -264,6 +271,7 @@ async function upload() {
 
 function cancelEdit() { editingLogRow = null; selectedUnits.clear(); expandedZoneId = null; renderAll(); }
 
+// 履歴描画の編集ボタン修正
 function renderLogs() {
   const filtered = DATA.logs.filter(l => l.type === activeType);
   document.getElementById('log-list').innerHTML = filtered.map(l => `
@@ -274,13 +282,31 @@ function renderLogs() {
         <div class="log-unit-badge">${l.count}</div>
       </div>
       <div style="text-align:right; margin-top:10px; font-size:12px;">
-        <span onclick="startEdit(${l.row},'${l.ids}','${l.date}')" style="color:var(--accent); margin-right:15px; font-weight:bold;">編集</span>
-        <span onclick="handleDelete(${l.row})" style="color:var(--danger); font-weight:bold;">削除</span>
+        <span onclick="startEdit(${l.row}, '${l.ids}', '${l.date}', '${l.type}')" style="color:var(--accent); margin-right:15px; font-weight:bold; cursor:pointer;">編集</span>
+        <span onclick="handleDelete(${l.row})" style="color:var(--danger); font-weight:bold; cursor:pointer;">削除</span>
       </div>
     </div>`).join('') + `<div style="height:200px;"></div>`;
 }
 
-function startEdit(row, ids, date) { editingLogRow = row; selectedUnits = new Set(ids.split(',').map(Number)); document.getElementById('work-date').value = date.replace(/\//g,'-'); updateDateDisplay(); switchView('work'); }
+function startEdit(row, ids, date, type) {
+  editingLogRow = row;
+  selectedUnits = new Set(ids.split(',').map(Number));
+  activeType = type;
+  displayMode = "tile"; // 強制タイル表示
+  
+  document.getElementById('work-date').value = date.replace(/\//g, '-');
+  updateDateDisplay();
+  
+  // switchViewを通さず直接表示（cancelEditを防ぐため）
+  document.getElementById('view-work').style.display = 'block';
+  document.getElementById('view-log').style.display = 'none';
+  document.getElementById('view-mode-controls').style.display = 'block';
+  document.getElementById('tab-work').className = 'top-tab active-work';
+  document.getElementById('tab-log').className = 'top-tab';
+  
+  renderAll();
+  setTimeout(() => scrollToLastWork(), 300);
+}
 async function handleDelete(row) { if(confirm("削除？")) { document.getElementById('loading').style.display='flex'; await callGAS("deleteLog",{row}); await silentLogin(); } }
 function showQR() {
   const target = document.getElementById("qr-target");
