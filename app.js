@@ -9,13 +9,14 @@ let expandedZoneId = null;
 let editingLogRow = null;
 let isSignUpMode = false;
 
+// ★アイコンURL（適宜、自分専用のURLに書き換えてください）
+const ICON_URL = "https://raw.githubusercontent.com/あなたのパス/icon.png";
+
 const TYPE_MAP = { "通常":3, "セル盤":4, "計数機":5, "ユニット":6, "説明書":7 };
 const DATE_COL_MAP = { "通常":8, "セル盤":9, "計数機":10, "ユニット":11, "説明書":12 };
 
-const ICON_URL = "https://raw.githubusercontent.com/gomamiso-pro/kikipro/main/Ki.png";
-
 window.onload = () => {
-  silentLogin(); // api.jsの関数
+  silentLogin(); // api.js
   const d = new Date();
   document.getElementById('work-date').value = d.toISOString().split('T')[0];
   updateDateDisplay();
@@ -142,7 +143,10 @@ function renderList() {
           <div class="zone-main-content" style="background:${z.bg};">
             <div style="display:flex; justify-content:space-between;">
               <b>${z.name}</b>
-              <span class="f-oswald" style="font-size:14px; font-weight:900;">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z)}</span>
+              <span class="f-oswald" style="font-size:14px; font-weight:900;">
+                ${originalIdx === finalIdx ? `<img src="${ICON_URL}" style="width:14px; height:14px; vertical-align:middle; margin-right:2px;">` : ''}
+                ${formatLastDate(z)}
+              </span>
             </div>
             <div style="display:flex; justify-content:space-between; margin-top:5px;">
               <span class="f-oswald" style="font-size:18px;">No.${z.s}-${z.e}</span>
@@ -179,7 +183,10 @@ function renderTile() {
       <div id="zone-card-${originalIdx}" class="tile-card ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" style="background:${z.bg};" onclick="handleZoneAction(event, ${originalIdx})">
         <div class="tile-row tile-row-top">
           <div onclick="handleZoneCheck(event, ${originalIdx})"><input type="checkbox" ${isAllSelected ? 'checked' : ''} style="pointer-events:none; transform:scale(0.8);"></div>
-          <span>${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z)}</span>
+          <span>
+            ${originalIdx === finalIdx ? `<img src="${ICON_URL}" style="width:14px; height:14px; vertical-align:middle; margin-right:2px;">` : ''}
+            ${formatLastDate(z)}
+          </span>
         </div>
         <div class="tile-row tile-row-name">${z.name.replace('ゾーン', '')}</div>
         <div class="tile-row tile-row-no">No.${z.s}-${z.e}</div>
@@ -227,10 +234,10 @@ function setMode(m) {
   renderAll(); 
 }
 
-// --- ビュー切り替えの修正（選択解除を追加） ---
 function switchView(v) {
   const isWork = (v === 'work');
-  cancelEdit(); // タブ切り替え時にリセット
+  // 入力・履歴のタグが切り替わったら選択と編集モードを解除
+  cancelEdit(); 
   document.getElementById('view-work').style.display = isWork ? 'block' : 'none';
   document.getElementById('view-log').style.display = !isWork ? 'block' : 'none';
   document.getElementById('view-mode-controls').style.display = isWork ? 'block' : 'none';
@@ -238,11 +245,7 @@ function switchView(v) {
   document.getElementById('tab-log').className = 'top-tab ' + (!isWork ? 'active-log' : '');
   renderAll();
 }
-// --- 🚩の画像化（renderList / renderTile 内で共通） ---
-function getFlagHtml(originalIdx, finalIdx) {
-  if (originalIdx !== finalIdx) return "";
-  return `<img src="${ICON_URL}" style="width:14px; height:14px; vertical-align:middle; margin-right:2px;">`;
-}
+
 function formatLastDate(z) {
   const tCol = DATE_COL_MAP[activeType];
   const units = DATA.master.filter(m => Number(m[0])>=Math.min(z.s,z.e) && Number(m[0])<=Math.max(z.s,z.e));
@@ -271,7 +274,6 @@ async function upload() {
 
 function cancelEdit() { editingLogRow = null; selectedUnits.clear(); expandedZoneId = null; renderAll(); }
 
-// 履歴描画の編集ボタン修正
 function renderLogs() {
   const filtered = DATA.logs.filter(l => l.type === activeType);
   document.getElementById('log-list').innerHTML = filtered.map(l => `
@@ -292,12 +294,10 @@ function startEdit(row, ids, date, type) {
   editingLogRow = row;
   selectedUnits = new Set(ids.split(',').map(Number));
   activeType = type;
-  displayMode = "tile"; // 強制タイル表示
-  
+  displayMode = "tile";
   document.getElementById('work-date').value = date.replace(/\//g, '-');
   updateDateDisplay();
   
-  // switchViewを通さず直接表示（cancelEditを防ぐため）
   document.getElementById('view-work').style.display = 'block';
   document.getElementById('view-log').style.display = 'none';
   document.getElementById('view-mode-controls').style.display = 'block';
@@ -307,11 +307,14 @@ function startEdit(row, ids, date, type) {
   renderAll();
   setTimeout(() => scrollToLastWork(), 300);
 }
+
 async function handleDelete(row) { if(confirm("削除？")) { document.getElementById('loading').style.display='flex'; await callGAS("deleteLog",{row}); await silentLogin(); } }
+
 function showQR() {
   const target = document.getElementById("qr-target");
   target.innerHTML = "";
   new QRCode(target, { text: window.location.href, width: 200, height: 200 });
   document.getElementById("qr-overlay").style.display = "flex";
 }
+
 function hideQR() { document.getElementById("qr-overlay").style.display = "none"; }
