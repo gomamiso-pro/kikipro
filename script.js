@@ -31,7 +31,7 @@ window.onload = () => {
   updateDateDisplay();
 };
 
-// --- 認証・登録 ---
+// --- 認証・ログイン ---
 function toggleAuthMode() {
   isRegisterMode = !isRegisterMode;
   document.getElementById('auth-title').innerText = isRegisterMode ? "NEW REGISTER" : "KIKI LOGIN";
@@ -97,7 +97,7 @@ async function callGAS(method, data = {}) {
   return await res.json();
 }
 
-// --- メイン描画系 ---
+// --- メイン描画 ---
 function renderAll() {
   const types = ["通常", "セル盤", "計数機", "ユニット", "説明書"];
   document.getElementById('type-tabs').innerHTML = types.map(t => `<button class="type-btn ${t===activeType?'active':''}" onclick="changeType('${t}')">${t}</button>`).join('');
@@ -133,11 +133,11 @@ function renderList() {
 
     return `
       <div id="zone-card-${originalIdx}" class="zone-row ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" onclick="handleZoneAction(event, ${originalIdx})">
-        <div style="display:flex; align-items:stretch;">
-          <div class="zone-check-area" onclick="handleZoneCheck(event, ${originalIdx})" style="width:50px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.05);">
-            <input type="checkbox" ${isAllSelected ? 'checked' : ''} style="transform:scale(1.5);">
+        <div style="display:flex; align-items:stretch; width:100%;">
+          <div class="zone-check-area" onclick="handleZoneCheck(event, ${originalIdx})">
+            <input type="checkbox" ${isAllSelected ? 'checked' : ''} style="transform:scale(1.5); pointer-events:none;">
           </div>
-          <div class="zone-main-content" style="background:${z.bg}; color:#000; flex:1; padding:10px; border-radius:0 8px 8px 0;">
+          <div class="zone-main-content" style="background:${z.bg}; color:#000; flex:1;">
             <div style="display:flex; justify-content:space-between; font-family:'Oswald'; align-items: center;">
               <b>${z.name}</b>
               <span style="font-size:16px; font-weight:900;">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z)}</span>
@@ -148,11 +148,11 @@ function renderList() {
             </div>
           </div>
         </div>
-        <div class="status-bar-bg" style="margin-top:8px; height:6px;">
+        <div class="status-bar-bg" style="margin:8px 10px 10px 10px;">
           ${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}
         </div>
         <div class="expand-box" onclick="event.stopPropagation()">
-          <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(50px, 1fr)); gap:4px; margin-top:10px;">
+          <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(55px, 1fr)); gap:6px; padding:5px;">
             ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${m[0]})">${m[0]}</div>`).join('')}
           </div>
         </div>
@@ -180,18 +180,18 @@ function renderTile() {
       <div id="zone-card-${originalIdx}" class="tile-card ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" style="background:${z.bg}; color:#000;" onclick="handleZoneAction(event, ${originalIdx})">
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <div onclick="handleZoneCheck(event, ${originalIdx})">
-            <input type="checkbox" ${isAllSelected ? 'checked' : ''} style="transform:scale(1.2);">
+            <input type="checkbox" ${isAllSelected ? 'checked' : ''} style="transform:scale(1.1); pointer-events:none;">
           </div>
-          <span style="font-size:14px; font-weight:900; font-family:'Oswald';">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z)}</span>
+          <span style="font-size:12px; font-weight:900; font-family:'Oswald';">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z)}</span>
         </div>
-        <div style="font-weight:900; font-size:11px;">${z.name.replace('ゾーン', '')}</div>
-        <div style="text-align:left; font-family:'Oswald'; font-weight:700; font-size:15px;">No.${z.s}-${z.e}</div>
-        <div style="text-align:right; font-family:'Oswald'; font-size:13px; font-weight:700;">${selCount}/${zoneUnits.length}台</div>
-        <div class="status-bar-bg" style="margin-top:4px; height:4px;">
+        <div style="font-weight:900; font-size:10px; margin-top:2px;">${z.name.replace('ゾーン', '')}</div>
+        <div style="text-align:left; font-family:'Oswald'; font-weight:700; font-size:14px;">No.${z.s}-${z.e}</div>
+        <div style="text-align:right; font-family:'Oswald'; font-size:12px; font-weight:700;">${selCount}/${zoneUnits.length}台</div>
+        <div class="status-bar-bg" style="margin-top:4px; height:4px !important;">
           ${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}
         </div>
         <div class="expand-box" onclick="event.stopPropagation()">
-           <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(45px, 1fr)); gap:4px; margin-top:8px;">
+           <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(48px, 1fr)); gap:4px; margin-top:8px;">
             ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" style="font-size:10px;" onclick="toggleUnit(${m[0]})">${m[0]}</div>`).join('')}
           </div>
         </div>
@@ -199,7 +199,7 @@ function renderTile() {
   }).join('');
 }
 
-// --- 補助ロジック・アクション ---
+// --- 操作・ロジック ---
 function handleZoneAction(e, idx) { e.stopPropagation(); expandedZoneId = (expandedZoneId === idx) ? null : idx; renderAll(); }
 
 function handleZoneCheck(e, idx) {
@@ -220,23 +220,23 @@ function toggleUnit(id) { selectedUnits.has(id) ? selectedUnits.delete(id) : sel
 function updateCount() {
   const count = selectedUnits.size;
   document.getElementById('u-total').innerText = count;
-  document.getElementById('send-btn').disabled = (count === 0);
-  document.getElementById('send-btn').innerText = editingLogRow ? "修正を保存" : "登録実行";
   
-  // 台数が1台以上、または編集モードの時にキャンセルを表示
-  document.getElementById('cancel-btn').style.display = (count > 0 || editingLogRow) ? "block" : "none";
+  const sendBtn = document.getElementById('send-btn');
+  const cancelBtn = document.getElementById('cancel-btn');
 
-  const toggleAllBtn = document.getElementById('toggle-all-btn');
-  if (toggleAllBtn) {
-    const tIdx = TYPE_MAP[activeType];
-    const allIds = DATA.master.filter(m => Number(m[tIdx]) === 1).map(m => Number(m[0]));
-    const isAll = allIds.length > 0 && allIds.every(id => selectedUnits.has(id));
-    toggleAllBtn.innerText = isAll ? "全解除" : "全選択";
+  sendBtn.disabled = (count === 0);
+  sendBtn.innerText = editingLogRow ? "修正を保存" : "登録実行";
+  
+  // キャンセルボタンは台が選ばれているか、編集モードの時に表示
+  if (cancelBtn) {
+    cancelBtn.style.display = (count > 0 || editingLogRow) ? "block" : "none";
   }
 }
 
 function updateDateDisplay() {
-  const d = new Date(document.getElementById('work-date').value);
+  const dStr = document.getElementById('work-date').value;
+  if (!dStr) return;
+  const d = new Date(dStr);
   document.getElementById('date-label').innerText = `${d.getMonth()+1}/${d.getDate()}(${["日","月","火","水","木","金","土"][d.getDay()]})`;
 }
 
@@ -250,7 +250,7 @@ function setMode(m) {
 function switchView(v) {
   const isWork = (v === 'work');
   
-  // 入力と履歴を切り替えたら、選択されている台をリセット
+  // 画面切り替え時に未登録の選択があればリセット
   if (selectedUnits.size > 0 || editingLogRow) {
     cancelEdit();
   }
@@ -286,57 +286,88 @@ function scrollToLastWork() {
     if (target) {
       target.scrollIntoView({behavior:'smooth', block:'center'});
       target.style.outline = "3px solid white";
+      target.style.outlineOffset = "-3px";
       setTimeout(() => target.style.outline = "none", 2000);
     }
   }
-}
-
-function toggleAllSelection() {
-  const tIdx = TYPE_MAP[activeType];
-  const allIds = DATA.master.filter(m => Number(m[tIdx])===1).map(m=>Number(m[0]));
-  const isAll = allIds.every(id=>selectedUnits.has(id));
-  isAll ? selectedUnits.clear() : allIds.forEach(id=>selectedUnits.add(id));
-  renderAll();
-}
-
-function closeAllDetails(e) { 
-  // 画面の何もないところをタップした時の処理が必要な場合はここに記述
 }
 
 async function upload() {
   if (selectedUnits.size === 0) return;
   document.getElementById('loading').style.display = 'flex';
   try {
-    await callGAS("addNewRecord", { date: document.getElementById('work-date').value, type: activeType, ids: Array.from(selectedUnits), editRow: editingLogRow });
-    selectedUnits.clear(); editingLogRow = null; await silentLogin(); switchView('log');
-  } catch(e) { alert("登録失敗"); } finally { document.getElementById('loading').style.display = 'none'; }
+    const res = await callGAS("addNewRecord", { 
+      date: document.getElementById('work-date').value, 
+      type: activeType, 
+      ids: Array.from(selectedUnits), 
+      editRow: editingLogRow 
+    });
+    if (res.status === "success") {
+      selectedUnits.clear(); 
+      editingLogRow = null; 
+      await silentLogin(); 
+      switchView('log');
+    } else {
+      alert(res.message);
+    }
+  } catch(e) { 
+    alert("通信エラーが発生しました"); 
+  } finally { 
+    document.getElementById('loading').style.display = 'none'; 
+  }
+}
+
+function cancelEdit() {
+  editingLogRow = null;
+  selectedUnits.clear();
+  expandedZoneId = null;
+  renderAll();
 }
 
 function renderLogs() {
   const filtered = DATA.logs.filter(l => l.type === activeType);
-  document.getElementById('log-list').innerHTML = filtered.map(l => `
-    <div style="background:var(--card); padding:15px; margin-bottom:10px; border-radius:10px; border-left:5px solid var(--accent);">
+  const container = document.getElementById('log-list');
+  container.innerHTML = filtered.map(l => `
+    <div style="background:var(--card); padding:15px; margin:10px; border-radius:10px; border-left:5px solid var(--accent);">
       <div style="font-size:11px; color:var(--text-dim);">${l.date} (${l.day}) - ${l.user}</div>
       <div style="display:flex; justify-content:space-between; margin-top:5px; align-items: center;">
         <div style="font-weight:900;">${l.zone} (No.${l.s}-${l.e})</div>
-        <div class="log-unit-badge" style="background:var(--accent); color:#000; padding:2px 8px; border-radius:4px; font-weight:900;">${l.count}台</div>
+        <div class="log-unit-badge">${l.count}台</div>
       </div>
       <div style="text-align:right; margin-top:10px; font-size:12px;">
-        <span onclick="startEdit(${l.row},'${l.ids}','${l.date}')" style="color:var(--accent); margin-right:15px; cursor:pointer;">編集</span>
-        <span onclick="handleDelete(${l.row})" style="color:var(--danger); cursor:pointer;">削除</span>
+        <span onclick="startEdit(${l.row},'${l.ids}','${l.date}')" style="color:var(--accent); margin-right:15px; cursor:pointer; font-weight:bold;">編集</span>
+        <span onclick="handleDelete(${l.row})" style="color:var(--danger); cursor:pointer; font-weight:bold;">削除</span>
       </div>
-    </div>`).join('');
+    </div>`).join('') + `<div style="height:200px;"></div>`; // 履歴の下も余白追加
 }
 
-function startEdit(row, ids, date) { editingLogRow=row; selectedUnits=new Set(ids.split(',').map(Number)); document.getElementById('work-date').value=date.replace(/\//g,'-'); switchView('work'); }
-function cancelEdit() { editingLogRow=null; selectedUnits.clear(); expandedZoneId=null; renderAll(); }
-async function handleDelete(row) { if(confirm("削除しますか？")) { document.getElementById('loading').style.display='flex'; await callGAS("deleteLog",{row}); await silentLogin(); } }
+function startEdit(row, ids, date) { 
+  editingLogRow = row; 
+  selectedUnits = new Set(ids.split(',').map(Number)); 
+  document.getElementById('work-date').value = date.replace(/\//g,'-'); 
+  updateDateDisplay();
+  switchView('work'); 
+}
 
+async function handleDelete(row) { 
+  if(confirm("この履歴を削除しますか？")) { 
+    document.getElementById('loading').style.display='flex'; 
+    await callGAS("deleteLog",{row}); 
+    await silentLogin(); 
+  } 
+}
+
+// QR表示
 function showQR() {
   const target = document.getElementById("qr-target");
   if (!target) return;
   target.innerHTML = "";
-  new QRCode(target, { text: window.location.href, width: 180, height: 180, colorDark : "#000000", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.H });
+  new QRCode(target, { 
+    text: window.location.href, 
+    width: 180, height: 180, 
+    colorDark : "#000000", colorLight : "#ffffff", 
+    correctLevel : QRCode.CorrectLevel.H 
+  });
   document.getElementById("qr-overlay").style.display = "flex";
 }
 
