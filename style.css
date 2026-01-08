@@ -35,15 +35,15 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
 .has-selection { border: 2.5px solid var(--accent); }
 
 .zone-container-tile {
-    padding: 8px;
+    padding: 5px;
     display: grid;
-    grid-template-columns: repeat(3, 1fr); /* 4列だと狭いため3列を推奨しますが、適宜変更してください */
-    gap: 8px;
+    grid-template-columns: repeat(4, 1fr); /* 4列だと狭いため3列を推奨しますが、適宜変更してください */
+    gap: 5px;
     padding-bottom: 160px;
 }
 .tile-card {
     min-height: 100px; /* 5段構成に合わせて高さを確保 */
-    padding: 8px 6px;
+    padding: 6px 4px;
     display: flex;
     flex-direction: column;
     gap: 2px;
@@ -53,11 +53,13 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
-.tile-card .progress-container {
+.progress-container {
     margin-top: 4px;
 }
 
-.f-oswald { font-family: 'Oswald', sans-serif; }
+.f-oswald { fo
+.tile-card .f-oswald { font-size: 11px !important; }
+.tile-card div { font-size: 9px; line-height: 1.2; }
 
 /* ユーザープロフィールの縦並び */
 .user-profile {
