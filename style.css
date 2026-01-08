@@ -66,7 +66,7 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
   background: #fff; color: #000; display: flex; flex-direction: column; justify-content: space-between;
 }
 .tile-row { width: 100%; overflow: hidden; white-space: nowrap; display: flex; align-items: center; line-height: 1.1; }
-.tile-row-top { justify-content: space-between; font-size: 9px; font-family: 'Oswald'; font-weight: 900; }
+.tile-row-top { justify-content: space-between; font-size: 12px; font-family: 'Oswald'; font-weight: 900; }
 .tile-row-name { font-size: 10px; font-weight: 900; transform: scaleX(0.9); transform-origin: left; }
 .tile-row-no { font-family: 'Oswald'; font-size: 13px; font-weight: 700; transform: scaleX(0.9); transform-origin: left; }
 .tile-row-count { justify-content: flex-end; font-family: 'Oswald'; font-size: 11px; font-weight: 700; }
