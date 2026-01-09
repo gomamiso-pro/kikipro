@@ -108,14 +108,19 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background:
 
 /* ★ タイル表示（4列・高密度・最小化） */
 .zone-container-tile { 
-  padding: 4px 2px; 
+  padding: 2px; /* 外側の余白を最小に */
   display: grid; 
   grid-template-columns: repeat(4, 1fr); 
-  gap: 3px; 
+  gap: 2px; /* タイル間の隙間を2pxに固定 */
 }
 .tile-card { 
-  min-height: 80px; height: 85px; padding: 3px 2px; border-radius: 4px; 
-  display: flex; flex-direction: column; justify-content: flex-start; position: relative; 
+  min-height: 78px; /* さらに高さを圧縮 */
+  padding: 2px; /* 内部余白を極小に */
+  border-radius: 3px; 
+  display: flex; flex-direction: column; justify-content: flex-start;
+  position: relative;
+  cursor: pointer;
+  box-sizing: border-box;
 }
 
 /* ★ タイル内テキスト（行間を極限まで縮小・文字幅維持） */
@@ -125,9 +130,17 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background:
   font-weight: 900; 
   letter-spacing: 0px; /* 文字幅を通常に戻す */
 }
-.tile-row-2 { text-align: left; font-size: 12px; font-weight: 900; line-height: 0.8; margin-top: 1px; letter-spacing: 0px; }
-.tile-row-3 { text-align: left; font-size: 10px; font-weight: 700; font-family: 'Oswald'; line-height: 0.8; margin-top: 1px; letter-spacing: 0px; }
-.tile-row-4 { text-align: right; font-size: 20px; font-weight: 900; line-height: 0.8; margin-top: auto; letter-spacing: 0px; }
+/* 文字が溢れないように強制制御 */
+.tile-row-2, .tile-row-3 {
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: clip; /* ...を出さずギリギリまで表示 */
+}
+
+.tile-row-2 { font-size: 11px; font-weight: 900; line-height: 0.8; margin-top: 2px; }
+.tile-row-3 { font-size: 9px; font-weight: 700; line-height: 0.8; margin-top: 1px; }
+.tile-row-4 { font-size: 18px; font-weight: 900; line-height: 0.8; margin-top: auto; letter-spacing: -0.5px; }
 .tile-row-5 { margin-top: 2px; }
 
 /* --- 展開状態（モーダル風ポップアップ） --- */
@@ -135,14 +148,13 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background:
   position: fixed !important;
   top: 50% !important; left: 50% !important;
   transform: translate(-50%, -50%) !important;
-  width: 92vw !important; max-width: 400px !important;
-  height: auto !important; max-height: 85vh !important;
-  z-index: 10000 !important;
-  background: #fff !important; /* 文字が黒なので背景は白に固定 */
-  box-shadow: 0 0 0 100vmax rgba(0,0,0,0.85), 0 20px 40px rgba(0,0,0,0.5) !important;
-  border-radius: 12px !important; padding: 15px !important;
-  display: flex !important; flex-direction: column !important;
+  width: 95vw !important; /* 横幅いっぱい */
+  height: auto !important; max-height: 80vh !important;
+  z-index: 99999 !important;
+  background: #fff !important;
+  padding: 15px !important;
   border: 3px solid var(--accent) !important;
+  box-shadow: 0 0 0 100vmax rgba(0,0,0,0.85) !important;
 }
 
 /* 展開時も黒文字を徹底 */
@@ -161,6 +173,8 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background:
 /* 展開した時だけ表示 */
 .tile-card.expanded .expand-box {
   display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 /* チップ */
 .unit-chip { 
@@ -175,10 +189,7 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background:
 }
 
 /* ★ゲージ（ステータスバーを細く・アクティブを黒に） */
-.status-bar-bg { 
-  display: flex; height: 3px; background: rgba(0,0,0,0.15); 
-  width: 100%; gap: 1px; margin-top: 2px; border-radius: 2px; overflow: hidden;
-}
+.status-bar-bg { height: 3px; margin-top: 1px; gap: 0.5px; background: rgba(0,0,0,0.1); }
 .p-seg { flex: 1; height: 100%; background: rgba(0,0,0,0.05); }
 .p-seg.active { 
   background: var(--accent) !important; /* 黄色に修正 */
