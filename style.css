@@ -109,14 +109,13 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 
 
 /* ★選択・編集時の黄色枠★ */
-.has-selection { 
-  /* 背景色は指定せず、枠線と光で強調 */
-  border: 4px solid var(--accent) !important; 
-  box-shadow: 0 0 15px rgba(250, 204, 21, 0.8) !important; 
-  z-index: 5;
+.has-selection {  
+  outline: 4px solid var(--accent) !important; 
+  outline-offset: -4px; 
+  box-shadow: 0 0 20px rgba(250, 204, 21, 0.8) !important; 
+  z-index: 50;
   position: relative;
 }
-
 .tile-row { width: 100%; display: flex; align-items: center; line-height: 1.0; }
 .tile-date-large { font-size: 11px; font-family: 'Oswald'; font-weight: 900; white-space: nowrap; }
 .tile-row-count { justify-content: flex-end; font-family: 'Oswald'; font-size: 14px; font-weight: 900; }
@@ -145,6 +144,12 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 }
 .expanded .expand-box { display: block; }
 
+.tile-card.expanded { 
+  grid-column: span 2; 
+  height: auto; 
+  z-index: 100; /* 他のカードより上に */
+  background-color: inherit !important; /* JSで指定した背景色を強制維持 */
+}
 /* 番号チップをタップした時に親カードが沈まないようにする工夫 */
 .tile-card.expanded:active {
   transform: none; /* 展開時はカード全体を動かさない */
@@ -163,11 +168,11 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
   transition: all 0.1s;
   box-shadow: 0 2px 0 rgba(0,0,0,0.3); /* 少し立体感 */
 }
-/* 個別チップの黄色 */
-.unit-chip.active { 
-  background: var(--accent) !important; 
-  color: #000 !important; /* 文字を黒にしてハッキリ見せる */
-  font-weight: 900 !important; 
+/* 3. チップの文字色（これがないと背景黄色に白文字で見えなくなる可能性があるため念押し） */
+.unit-chip.active {  
+  background: var(--accent) !important;  
+  color: #000 !important; /* 黒文字 */
+  font-weight: 900 !important;  
   border: 1px solid #000 !important;
   box-shadow: inset 0 2px 4px rgba(0,0,0,0.3) !important;
 }
