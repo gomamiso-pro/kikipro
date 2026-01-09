@@ -7,127 +7,118 @@
   <link rel="apple-touch-icon" href="Ki.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  
   <title>KIKI PRO V13</title>
+  
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+  
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="api.js"></script>
   <script src="app.js"></script>
 </head>
-<body>
+<body class="loading-state">
 
-<div id="loading" class="overlay">
-  <div class="spinner"></div>
-  <div style="color:var(--accent); font-weight:900; margin-top:10px;">LOADING...</div>
-</div>
+  <div id="loading" class="overlay">
+    <div class="spinner"></div>
+    <div style="color:var(--accent); font-weight:900; margin-top:15px; letter-spacing: 2px;">LOADING...</div>
+  </div>
 
-  <div id="manual-overlay" class="overlay" onclick="hideManual()" style="display:none; background:rgba(0,0,0,0.85); backdrop-filter:blur(5px); z-index: 250000;">
-    <div class="manual-content" onclick="event.stopPropagation()" style="width: 95%; max-width: 500px; height: 85vh; background: #fff; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; position: relative; border: 2px solid var(--accent);">
-      <div class="manual-header" style="background: var(--header-bg); padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent);">
-        <div style="font-family: 'Oswald'; color: var(--accent); font-weight: 900; font-size: 18px; letter-spacing: 1px;">KIKI MANUAL</div>
-        <button onclick="hideManual()" style="background: none; border: none; color: #fff; font-size: 32px; cursor: pointer; line-height: 1;">&times;</button>
+  <div id="manual-overlay" class="overlay" onclick="hideManual()" style="display:none; z-index: 250000;">
+    <div class="manual-content" onclick="event.stopPropagation()">
+      <div class="manual-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+        <div style="font-family:'Oswald'; color:var(--accent); font-weight:900; font-size:20px;">KIKI MANUAL</div>
+        <button onclick="hideManual()" class="close-x" style="background:none; border:none; color:#fff; font-size:30px;">&times;</button>
       </div>
-      <iframe id="manual-iframe" src="https://kikipro.vercel.app/manual.html" style="flex: 1; border: none; width: 100%;"></iframe>
+      <iframe id="manual-iframe" src="https://kikipro.vercel.app/manual.html"></iframe>
     </div>
   </div>
 
-  <div id="qr-overlay" class="overlay" onclick="hideQR()" style="display:none; background:rgba(0,0,0,0.85); backdrop-filter:blur(4px); z-index: 260000;">
-    <div class="qr-content-wrapper" onclick="event.stopPropagation()" style="background:#fff; padding:25px; border-radius:12px; text-align:center;">
-      <div id="qr-target" style="border:10px solid #fff; display: inline-block;"></div>
-      <div style="color:#000; font-family:'Oswald'; font-weight:900; margin-top:10px; font-size:14px; letter-spacing:1px;">SCAN TO SHARE</div>
-      <button onclick="hideQR()" style="margin-top:15px; width:100%; padding:10px; background:#333; color:#fff; border:none; border-radius:6px; font-weight:900;">CLOSE</button>
+  <div id="qr-overlay" class="overlay" onclick="hideQR()" style="display:none; z-index: 260000;">
+    <div class="qr-content-wrapper" onclick="event.stopPropagation()" style="text-align:center;">
+      <div id="qr-target" style="background:#fff; padding:15px; border-radius:8px; display:inline-block;"></div>
+      <div class="qr-label" style="color:var(--accent); font-weight:900; margin-top:15px; font-family:'Oswald';">SCAN TO SHARE</div>
+      <button onclick="hideQR()" class="qr-close-btn" style="margin-top:20px; background:var(--panel); color:#fff; border:none; padding:10px 20px; border-radius:6px; font-weight:900;">CLOSE</button>
     </div>
   </div>
 
   <div id="login-overlay" class="overlay" style="display: flex; background: var(--bg); z-index: 200000;">
-    <div class="auth-box" style="position: relative;">
-      <div onclick="showManual()" style="position: absolute; top: 15px; right: 15px; cursor: pointer; color: var(--accent); display: flex; flex-direction: column; align-items: center; gap: 2px;">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
-        <span style="font-size: 8px; font-weight: 900;">MANUAL</span>
+    <div class="auth-box">
+      <div onclick="showManual()" class="manual-icon-trigger" style="display:flex; align-items:center; gap:8px; color:var(--accent); margin-bottom:20px; font-weight:900; cursor:pointer;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+        <span>MANUAL</span>
       </div>
-      <div id="auth-title" style="font-family:'Oswald'; color:var(--accent); font-size:28px; font-weight:900; margin-bottom:20px; text-align:center; letter-spacing:2px;">KIKI LOGIN</div>
+      <div id="auth-title" style="font-family:'Oswald'; font-size:28px; color:var(--accent); font-weight:900; margin-bottom:25px; text-align:center;">KIKI LOGIN</div>
       <div id="login-fields">
         <input type="text" id="login-nick" placeholder="NICKNAME" class="auth-input">
         <input type="password" id="login-pass" placeholder="PASSWORD" class="auth-input">
-        <div id="auto-login-wrapper" style="margin: 5px 0 15px; font-size: 12px; display: flex; align-items: center; gap: 8px; color: var(--text-dim);">
-          <input type="checkbox" id="auto-login" checked>
+        <div class="auto-login-wrap" style="display:flex; align-items:center; gap:10px; margin-bottom:20px; font-size:12px; color:var(--text-dim);">
+          <input type="checkbox" id="auto-login" checked style="transform:scale(1.2);">
           <label for="auto-login">次回から自動ログイン</label>
         </div>
       </div>
       <button id="auth-submit" onclick="handleAuth()" class="auth-btn">LOGIN</button>
-      <div id="auth-switch-area" style="margin-top: 20px; text-align: center; font-size: 13px; line-height: 1.6;">
+      <div class="auth-switch" style="text-align:center; margin-top:20px; font-size:12px; color:var(--text-dim);">
         <span id="auth-toggle-msg">アカウントをお持ちでない方</span><br>
-        <a href="javascript:void(0)" onclick="toggleAuthMode()" id="auth-toggle-btn" style="color:var(--accent); font-weight:bold; text-decoration:none;">新規登録はこちら</a>
+        <a href="javascript:void(0)" onclick="toggleAuthMode()" id="auth-toggle-btn" style="color:var(--accent); text-decoration:none; font-weight:bold;">新規登録はこちら</a>
       </div>
     </div>
   </div>
 
-  <div id="app-content" style="display:none;">
-    <div class="header">
-      <div class="header-logo" style="font-family:'Oswald'; color:var(--accent); font-size:24px; font-weight:900;">KIKI PRO</div>
-      <div style="display:flex; align-items:center; gap:12px;">
-        <div onclick="showManual()" style="cursor:pointer; color:var(--accent); display:flex; align-items:center;">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
-        </div>
-        <div class="qr-btn" onclick="showQR()" style="cursor:pointer; color:#fff; display:flex; align-items:center;">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-        </div>
+  <div id="app-content">
+    <header class="header">
+      <div class="header-logo">KIKI PRO</div>
+      <div class="header-right">
+        <div onclick="showManual()" class="header-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg></div>
+        <div onclick="showQR()" class="header-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg></div>
         <div class="user-profile">
-          <div class="user-logo">👤</div>
-          <div id="user-display">---</div>
+          <span id="user-display">---</span>
         </div>
         <button onclick="logout()" class="logout-btn">LOGOUT</button>
       </div>
-    </div>
+    </header>
 
-    <div class="nav-row">
+    <nav class="nav-row">
       <div class="top-tab active-work" id="tab-work" onclick="switchView('work')">入力</div>
       <div class="top-tab" id="tab-log" onclick="switchView('log')">履歴</div>
-    </div>
+    </nav>
 
     <div class="type-bar" id="type-tabs"></div>
 
-    <div id="view-mode-controls">
-<div class="view-mode-bar" id="view-mode-controls">
-  <div class="switch-group">
-    <button id="mode-list-btn" class="switch-btn active" onclick="setMode('list')">リスト</button>
-    <button id="mode-tile-btn" class="switch-btn" onclick="setMode('tile')">全体</button>
-  </div>
-  
-  <button id="toggle-all-btn" class="action-toggle-btn" onclick="handleZoneCheckAll()">全選択</button>
-  
-  <button class="btn-final-jump" onclick="scrollToLastWork()">最終 🚩</button>
-</div>
+    <div id="view-mode-controls" class="view-mode-bar">
+      <div class="switch-group">
+        <button id="mode-list-btn" class="switch-btn active" onclick="setMode('list')">リスト</button>
+        <button id="mode-tile-btn" class="switch-btn" onclick="setMode('tile')">全体</button>
+      </div>
+      <button id="toggle-all-btn" class="action-toggle-btn" onclick="handleZoneCheckAll()">全選択</button>
+      <button class="btn-final-jump" onclick="scrollToLastWork()">最終 🚩</button>
+    </div>
 
     <main id="view-work">
       <div id="zone-display"></div>
     </main>
 
     <main id="view-log" style="display:none;">
-      <div id="log-list" style="padding:10px;"></div>
+      <div id="log-list"></div>
     </main>
 
-    <div class="footer">
+    <footer class="footer">
       <div class="footer-main-row">
-        <div style="font-family:'Oswald'; font-size:32px; color:var(--accent);">
-          <span id="u-total">0</span> <small style="font-size:12px;">台</small>
+        <div class="total-wrap">
+          <span id="u-total">0</span><small style="font-size:14px; font-weight:900; color:var(--text-dim); margin-left:5px;">台</small>
         </div>
-<div class="date-container" onclick="document.getElementById('work-date').showPicker()">
-  <div class="date-cal-red">
-    <span id="cal-month">1月</span>
-    <span id="cal-day">(土)</span>
-  </div>
-  <div class="date-cal-body">
-    <span id="cal-date">10</span>
-  </div>
-  <input type="date" id="work-date" onchange="updateDateDisplay()" style="position:absolute; opacity:0; pointer-events:none;">
-</div>
+        
+        <div class="date-container-simple" onclick="document.getElementById('work-date').showPicker()">
+          <span id="date-label">--/--(--)</span>
+          <input type="date" id="work-date" onchange="updateDateDisplay()" style="position:absolute; opacity:0; pointer-events:none; width:1px;">
+        </div>
       </div>
+      
       <div class="footer-btns">
         <button class="btn-cancel" id="cancel-btn" onclick="cancelEdit()" style="display:none;">選択をキャンセル</button>
         <button class="btn-exec" id="send-btn" onclick="upload()" disabled>登録実行</button>
       </div>
-    </div>
+    </footer>
   </div>
 
 </body>
