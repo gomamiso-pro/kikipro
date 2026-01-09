@@ -91,11 +91,14 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
   50% { outline: 4px solid transparent; }
   100% { outline: 4px solid var(--danger); }
 }
+/* 点滅アニメーション：3回で止まるように設定 */
 .last-work-highlight {
   outline: 4px solid var(--danger) !important;
   outline-offset: -4px;
-  animation: flash-red 0.5s ease infinite; /* JSで時間を制御するためここではinfinite */
+  /* 0.5秒の点滅を 3回 繰り返す (合計1.5秒) */
+  animation: flash-red 0.5s ease 3; 
 }
+
 
 /* 共通パーツ */
 .status-bar-bg { background: rgba(0,0,0,0.1); height: 5px; margin-top: 2px; display: flex; gap: 1px; width: 100%; }
