@@ -154,7 +154,14 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background:
 .expand-box { display: none; overflow-y: auto; width: 100%; margin-top: 10px; }
 .expanded .expand-box { display: block; }
 .unit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(65px, 1fr)); gap: 8px; padding: 4px; }
-
+/* 展開していないタイルの expand-box は隠しておく */
+.tile-card .expand-box {
+  display: none;
+}
+/* 展開した時だけ表示 */
+.tile-card.expanded .expand-box {
+  display: block !important;
+}
 /* チップ */
 .unit-chip { 
   background: #f0f0f0; color: #000; border-radius: 6px; text-align: center; 
