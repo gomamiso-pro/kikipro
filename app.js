@@ -324,35 +324,23 @@ function cancelEdit() { editingLogRow = null; selectedUnits.clear(); expandedZon
 // --- 履歴表示 ---
 function renderLogs() {
   const filtered = DATA.logs.filter(l => l.type === activeType);
-  document.getElementById('log-list').innerHTML = filtered.map(l => {
-    // カンマ区切りのIDを配列にして、チップを生成
-    const unitChips = l.ids.split(',').map(id => 
-      `<div class="log-unit-chip">${id}</div>`
-    ).join('');
-
-    return `
+  document.getElementById('log-list').innerHTML = filtered.map(l => `
     <div class="log-card">
       <div class="log-type-badge">${l.type}</div>
       <div class="log-sub-info">${l.date} (${l.day}) - ${l.user}</div>
-      
-      <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:10px;">
+      <div style="display:flex; justify-content:space-between; align-items:flex-end;">
         <div>
           <div class="log-main-info">${l.zone}</div>
-          <div class="log-sub-info">No.${l.s}-${l.e}</div>
+          <div class="log-target-ids f-oswald">${l.ids.replace(/,/g, ', ')}</div>
+          <div class="log-sub-info">（範囲: No.${l.s}-${l.e}）</div>
         </div>
         <div class="log-unit-large">${l.count}</div>
       </div>
-
-      <div class="log-unit-grid">
-        ${unitChips}
-      </div>
-
-      <div class="log-action-row" style="margin-top:15px;">
+      <div class="log-action-row">
         <button class="btn-log-edit" onclick="startEdit(${l.row}, '${l.ids}', '${l.date}', '${l.type}')">編集</button>
         <button class="btn-log-del" onclick="handleDelete(${l.row})">削除</button>
       </div>
-    </div>`;
-  }).join('') + `<div style="height:200px;"></div>`;
+    </div>`).join('') + `<div style="height:200px;"></div>`;
 }
 
 // 履歴から編集
