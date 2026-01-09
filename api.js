@@ -49,8 +49,10 @@ async function silentLogin() {
   const savedID = localStorage.getItem('kiki_authID');
   const savedPass = localStorage.getItem('kiki_authPass');
   
+  // ログイン情報がない場合
   if (!savedID || !savedPass) {
     document.getElementById('login-overlay').style.display = 'flex';
+    document.getElementById('app-content').style.display = 'none';
     return;
   }
 
@@ -69,18 +71,21 @@ async function silentLogin() {
     // 1. データのセット
     DATA = res;
     
-    // 2. 画面の構築を行う（この時点ではまだCSSで隠れている）
+    // 2. 画面の構築を行う
     renderAll();
     document.getElementById('user-display').innerText = DATA.user.toUpperCase();
     
     // 3. 全ての構築が終わったら、bodyにreadyクラスを付けて一気に表示
     document.body.classList.add('ready');
     
-    // 4. 最後にログイン画面とローディングを消す
+    // 4. ログイン画面を消し、アプリ本体を確実に表示する
     document.getElementById('login-overlay').style.display = 'none';
+    document.getElementById('app-content').style.display = 'block';
 
   } catch (e) { 
+    // ログイン失敗時はログイン画面に戻す
     document.getElementById('login-overlay').style.display = 'flex';
+    document.getElementById('app-content').style.display = 'none';
   } finally { 
     document.getElementById('loading').style.display = 'none'; 
   }
