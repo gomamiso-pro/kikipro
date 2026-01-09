@@ -215,26 +215,41 @@ function renderTile() {
     const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
     const isAll = zoneUnits.length > 0 && zoneUnits.every(m => selectedUnits.has(Number(m[0])));
     
+    // 背景色設定
     const bgColor = (z.color || z.bg) && (z.color || z.bg) !== "" ? (z.color || z.bg) : "#ffffff";
     const rawName = z.name.replace('ゾーン', '');
     const noStr = `No.${z.s}-${z.e}`;
 
+    // 日付に曜日を付与する (formatLastDateが内部で曜日を返さない場合のバックアップ)
+    let dateDisplay = formatLastDate(z, true);
+    
     return `
       <div id="zone-card-${originalIdx}" class="tile-card ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" 
-           style="background-color: ${bgColor} !important; color: #000 !important;" onclick="handleZoneAction(event, ${originalIdx})">
-        <div class="tile-row-1" style="color: #000;">
+           style="background-color: ${bgColor} !important;" onclick="handleZoneAction(event, ${originalIdx})">
+        
+        <div class="tile-row-1">
           <div onclick="handleZoneCheck(event, ${originalIdx})">
             <input type="checkbox" ${isAll ? 'checked' : ''} style="transform:scale(1.2); pointer-events:none;">
           </div>
-          <div class="f-oswald">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z, true)}</div>
+          <div class="f-oswald">${originalIdx === finalIdx ? '🚩' : ''}${dateDisplay}</div>
         </div>
-        <div class="tile-row-2" style="color: #000;"><b>${fitText(rawName, 6)}</b></div>
-        <div class="tile-row-3 f-oswald" style="color: #000;">${fitText(noStr, 8)}</div>
-        <div class="tile-row-4 f-oswald" style="color: #000;">${selCount}<small>/${zoneUnits.length}</small></div>
-        <div class="tile-row-5 status-bar-bg" style="background: rgba(0,0,0,0.15);">${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" style="${selectedUnits.has(Number(m[0])) ? 'background:#000;' : ''}"></div>`).join('')}</div>
+
+        <div class="tile-row-2"><b>${fitText(rawName, 5)}</b></div>
+        
+        <div class="tile-row-3 f-oswald">${fitText(noStr, 10)}</div>
+        
+        <div class="tile-row-4 f-oswald">
+          ${selCount}<small>/${zoneUnits.length}</small>
+        </div>
+
+        <div class="tile-row-5 status-bar-bg">
+          ${zoneUnits.map(m => `
+            <div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>
+          `).join('')}
+        </div>
         
         <div class="expand-box" onclick="event.stopPropagation()">
-          <h3 style="margin:0 0 15px 0; font-size:18px; color:#fff;">${z.name} - ユニット選択</h3>
+          <h3 style="margin:0 0 15px 0; font-size:18px;">${z.name} - ユニット選択</h3>
           <div class="unit-grid">
             ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${Number(m[0])})">${m[0]}</div>`).join('')}
           </div>
