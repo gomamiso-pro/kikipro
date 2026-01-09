@@ -148,6 +148,8 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background:
 /* 展開時も黒文字を徹底 */
 .expanded b, .expanded span, .expanded div, .expanded h3 { color: #000 !important; }
 .expanded .unit-chip { color: #000 !important; }
+.expanded .unit-chip.active { color: #000 !important; font-weight: 900; }
+.expanded .btn-close-expand { color: #fff !important; } /* 閉じるボタンだけ白文字 */
 
 .expand-box { display: none; overflow-y: auto; width: 100%; margin-top: 10px; }
 .expanded .expand-box { display: block; }
@@ -166,9 +168,15 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background:
 }
 
 /* ★ゲージ（ステータスバーを細く・アクティブを黒に） */
-.status-bar-bg { display: flex; height: 3px; background: rgba(0,0,0,0.1); width: 100%; gap: 1px; border-radius: 0; overflow: hidden; }
+.status-bar-bg { 
+  display: flex; height: 3px; background: rgba(0,0,0,0.15); 
+  width: 100%; gap: 1px; margin-top: 2px; border-radius: 2px; overflow: hidden;
+}
 .p-seg { flex: 1; height: 100%; background: rgba(0,0,0,0.05); }
-.p-seg.active { background: #000 !important; }
+.p-seg.active { 
+  background: var(--accent) !important; /* 黄色に修正 */
+  box-shadow: 0 0 2px rgba(0,0,0,0.3); 
+}
 
 /* --- 履歴 --- */
 .log-card { background: var(--card); padding: 12px; margin: 0 10px 10px 10px; border-radius: 10px; border-left: 5px solid var(--accent); color: #fff; }
