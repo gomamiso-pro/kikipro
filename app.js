@@ -46,7 +46,6 @@ async function silentLogin() {
   }
 }
 
-// 認証・ログイン処理
 async function handleAuth() {
   const nick = document.getElementById('login-nick').value;
   const pass = document.getElementById('login-pass').value;
@@ -76,7 +75,6 @@ function renderAll() {
   document.getElementById('type-tabs').innerHTML = types.map(t => `<button class="type-btn ${t===activeType?'active':''}" onclick="changeType('${t}')">${t}</button>`).join('');
   updateToggleAllBtnState();
   
-  // 画面の表示非表示に基づいて描画
   if(document.getElementById('view-work').style.display !== 'none') {
     displayMode === 'list' ? renderList() : renderTile();
   } else { 
@@ -222,10 +220,8 @@ function setMode(m) {
   renderAll(); 
 }
 
-// 修正：switchView で編集データを消さないように変更
 function switchView(v) {
   const isWork = (v === 'work');
-  // cancelEdit() をここから削除しました
   document.getElementById('view-work').style.display = isWork ? 'block' : 'none';
   document.getElementById('view-log').style.display = isWork ? 'none' : 'block';
   document.getElementById('view-mode-controls').style.display = isWork ? 'block' : 'none';
@@ -293,7 +289,6 @@ function renderLogs() {
   }).join('') + `<div style="height:200px;"></div>`;
 }
 
-// 修正：startEdit の中で switchView を呼んでもデータが消えないように調整
 function startEdit(row, ids, date, type) {
   editingLogRow = row; 
   const idStr = ids ? String(ids) : "";
@@ -307,7 +302,6 @@ function startEdit(row, ids, date, type) {
 
   displayMode = 'tile';
   
-  // switchView の前に個別に表示切り替え（cancelEdit を回避するため）
   document.getElementById('view-work').style.display = 'block';
   document.getElementById('view-log').style.display = 'none';
   document.getElementById('view-mode-controls').style.display = 'block';
@@ -328,4 +322,27 @@ async function handleDelete(row) {
     await silentLogin(); 
     renderAll(); 
   } 
+}
+
+// --- 追加機能: QR・マニュアル・認証切替 ---
+function showQR() { 
+  const target = document.getElementById("qr-target"); 
+  if(!target) return;
+  target.innerHTML = ""; 
+  new QRCode(target, { text: window.location.href, width: 200, height: 200 }); 
+  document.getElementById("qr-overlay").style.display = "flex"; 
+}
+function hideQR() { document.getElementById("qr-overlay").style.display = "none"; }
+
+function showManual() { 
+  document.getElementById('manual-overlay').style.display = 'flex'; 
+}
+function hideManual() { document.getElementById('manual-overlay').style.display = 'none'; }
+
+function toggleAuthMode() {
+  isSignUpMode = !isSignUpMode;
+  document.getElementById('auth-title').innerText = isSignUpMode ? "KIKI SIGN UP" : "KIKI LOGIN";
+  document.getElementById('auth-submit').innerText = isSignUpMode ? "REGISTER & LOGIN" : "LOGIN";
+  document.getElementById('auth-toggle-msg').innerText = isSignUpMode ? "既にアカウントをお持ちの方" : "アカウントをお持ちでない方";
+  document.getElementById('auth-toggle-btn').innerText = isSignUpMode ? "ログインはこちら" : "新規登録はこちら";
 }
