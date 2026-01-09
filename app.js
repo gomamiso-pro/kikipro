@@ -156,7 +156,15 @@ function handleZoneCheck(e, idx) {
   ids.forEach(id => isAll ? selectedUnits.delete(id) : selectedUnits.add(id));
   renderAll();
 }
-function toggleUnit(id) { selectedUnits.has(id) ? selectedUnits.delete(id) : selectedUnits.add(id); renderAll(); }
+function toggleUnit(id) {
+  if (selectedUnits.has(id)) {
+    selectedUnits.delete(id);
+  } else {
+    selectedUnits.add(id);
+  }
+  // renderAllを呼ぶが、expandedZoneId は維持されているので閉じない
+  renderAll(); 
+}
 function updateCount() {
   const count = selectedUnits.size;
   document.getElementById('u-total').innerText = count;
