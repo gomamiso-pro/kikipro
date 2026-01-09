@@ -92,6 +92,19 @@ function renderAll() {
   updateCount();
 }
 
+function getFinalDateByType(type) {
+  const tCol = DATE_COL_MAP[type];
+  let last = null;
+  DATA.master.forEach(m => {
+    if(m[tCol]) {
+      const d = new Date(m[tCol]);
+      if(!last || d > last) last = d;
+    }
+  });
+  if(!last) return "未";
+  return `${last.getMonth()+1}/${last.getDate()}`;
+}
+
 function changeType(t) { 
   activeType = t; 
   expandedZoneId = null; 
@@ -280,6 +293,9 @@ function cancelEdit() {
 function renderLogs() {
   const filtered = DATA.logs.filter(l => l.type === activeType);
   document.getElementById('log-list').innerHTML = filtered.map(l => {
+    const idArray = l.ids ? String(l.ids).split(',').map(Number).sort((a,b)=>a-b) : [];
+    const rangeDisplay = idArray.length > 0 ? `${idArray[0]}～${idArray[idArray.length-1]}` : '---';
+    
     return `
     <div class="log-card">
       <div class="log-type-badge">${l.type}</div>
@@ -287,7 +303,7 @@ function renderLogs() {
       <div style="display:flex; justify-content:space-between; align-items:flex-end;">
         <div>
           <div class="log-main-info">${l.zone}</div>
-          <div class="log-zone-no f-oswald">No.${l.range || '---'}</div>
+          <div class="log-zone-no f-oswald">No.${rangeDisplay}</div>
         </div>
         <div class="log-unit-large">${l.count}<small style="font-size:12px;">台</small></div>
       </div>
