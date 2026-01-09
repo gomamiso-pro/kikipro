@@ -147,11 +147,15 @@ function renderTile() {
         <div class="status-bar-bg" style="height:4px;">${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}</div>
         <div class="expand-box" onclick="event.stopPropagation()">
           <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:5px; padding:6px;">
-            ${zoneUnits.map(m => `
-              <div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" 
-                   onclick="toggleUnit(${m[0]})">
-                ${m[0]}
-              </div>`).join('')}
+            ${zoneUnits.map(m => {
+              const unitNum = Number(m[0]); // ここで確実に数値化
+              const isActive = selectedUnits.has(unitNum); // Set内の数値と比較
+              return `
+                <div class="unit-chip ${isActive ? 'active' : ''}" 
+                     onclick="toggleUnit(${unitNum})">
+                  ${unitNum}
+                </div>`;
+            }).join('')}
           </div>
         </div>
       </div>`;
