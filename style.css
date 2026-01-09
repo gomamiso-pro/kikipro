@@ -14,106 +14,108 @@ body {
 #app-content { display: none; flex-direction: column; height: 100%; width: 100%; }
 body.ready #app-content { display: flex !important; }
 
-/* ユーザー表示・ヘッダーアイコン */
-.user-profile { display: flex; flex-direction: column; align-items: center; }
-#user-display { font-size: 10px; font-weight: 700; color: #fff; margin-bottom: 2px; }
-.header-icons { display: flex; gap: 12px; align-items: center; }
-.icon-btn { background: none; border: none; font-size: 20px; cursor: pointer; padding: 5px; filter: grayscale(1); transition: 0.2s; }
-.icon-btn:active { transform: scale(0.9); opacity: 0.6; }
-
-/* ログイン画面 */
-.auth-box { 
-  width: 85%; max-width: 320px; background: var(--header-bg); padding: 30px; 
-  border-radius: 12px; border: 1px solid var(--panel); box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-}
-.auth-input { 
-  width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 6px; border: 1px solid var(--panel); 
-  background: var(--bg); color: #fff; font-size: 16px; 
-}
-.auth-btn { 
-  width: 100%; padding: 14px; background: var(--accent); color: #000; border: none; 
-  border-radius: 6px; font-weight: 900; font-size: 16px; letter-spacing: 1px; cursor: pointer;
-}
-.auth-btn:active { transform: scale(0.96); background: var(--accent-dim); }
-
-/* オーバーレイ共通（ログイン・QR・マニュアル） */
-.overlay { position: fixed; inset: 0; display: none; justify-content: center; align-items: center; z-index: 10000; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px); }
-#loading { background: var(--bg); flex-direction: column; z-index: 99999; display: flex; }
-#login-overlay { display: flex; } /* 初期状態は表示 */
-
-/* QR・マニュアル用コンテンツ */
-.modal-content { 
-  background: var(--card); padding: 20px; border-radius: 15px; width: 90%; max-width: 400px; 
-  text-align: center; border: 1px solid var(--panel); 
-}
-.modal-close { margin-top: 20px; width: 100%; padding: 12px; background: var(--panel); border: none; color: #fff; border-radius: 8px; font-weight: 900; }
-
-/* ローディングアニメーション */
-.spinner { 
-  width: 60px; height: 60px; border: 5px solid rgba(250,204,21,0.1); border-top: 5px solid var(--accent); 
-  border-radius: 50%; animation: spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite; 
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* ヘッダー・タブ */
+/* ヘッダー */
 .header { flex-shrink: 0; height: 60px; background: var(--header-bg); border-bottom: 1px solid var(--panel); display: flex; justify-content: space-between; align-items: center; padding: 0 15px; }
+.header-icons { display: flex; gap: 15px; }
+
+/* タブ・タイプ切替 */
 .nav-row { display: flex; background: var(--header-bg); border-bottom: 1px solid var(--panel); flex-shrink: 0; }
 .top-tab { flex: 1; padding: 12px; text-align: center; font-size: 13px; font-weight: 700; color: var(--text-dim); cursor: pointer; }
 .top-tab.active-work { background: #5e81ac !important; color: #fff !important; }
 .top-tab.active-log { background: #d08770 !important; color: #fff !important; }
 
-/* メインエリア */
-main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.type-bar { display: grid; grid-template-columns: repeat(5, 1fr); background: var(--panel); flex-shrink: 0; }
+.type-btn { background: var(--header-bg); border: none; color: var(--text-dim); padding: 12px 0; font-size: 10px; font-weight: 700; cursor: pointer; border-right: 1px solid var(--panel); }
+.type-btn.active { background: var(--accent) !important; color: #000 !important; }
 
-/* ゾーン・タイルの背景色固定（黒くなるのを防ぐ） */
-.zone-row, .tile-card { 
-  cursor: pointer; transition: transform 0.1s; border: none; 
+/* 切替バー */
+.view-mode-bar { display:flex; background:var(--bg); padding:8px 10px; gap:8px; border-bottom: 1px solid var(--panel); flex-shrink: 0; }
+.view-mode-bar button {
+  flex: 1; padding: 10px; border-radius: 6px; border: 2px solid var(--panel); 
+  background: var(--card); color: var(--text-dim); font-weight: 900; font-size: 12px;
 }
-.zone-row.has-selection, .tile-card.has-selection { 
+.view-mode-bar button.active { border: 2px solid var(--accent); color: var(--accent); background: transparent; }
+#toggle-all-btn.all-selected { background: var(--accent) !important; color: #000 !important; }
+
+/* メインエリア */
+main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background: var(--bg); }
+
+/* --- タイル表示 (4列) --- */
+.zone-container-tile { padding: 8px 8px 200px 8px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.tile-card { 
+  min-height: 90px; padding: 6px; border-radius: 8px; color: #000; 
+  display: flex; flex-direction: column; justify-content: space-between;
+  position: relative; border: 3px solid transparent;
+}
+
+/* 選択・展開時の枠強調（背景はJSの指定色を絶対に壊さない） */
+.has-selection { 
   outline: 4px solid var(--accent) !important; 
   outline-offset: -4px; 
-  box-shadow: 0 0 15px rgba(250, 204, 21, 0.8) !important; 
+  box-shadow: 0 0 15px rgba(250, 204, 21, 0.6);
   z-index: 5;
-  position: relative;
-  background-color: inherit !important; /* 元の背景色を維持 */
-}
-.tile-card.expanded { 
-  grid-column: span 2; height: auto; z-index: 100;
-  background-color: inherit !important; /* 展開中も背景色を維持 */
 }
 
-/* タイル表示 (4列) */
-.zone-container-tile { padding: 8px 4px 180px 4px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
-.tile-card { min-height: 80px; padding: 4px 3px; border-radius: 6px; color: #000; display: flex; flex-direction: column; overflow: hidden; }
+.tile-card.expanded { grid-column: span 2; min-height: 140px; z-index: 10; }
 
-/* 番号チップ（選択時は黄色背景に黒文字） */
+.tile-row { width: 100%; display: flex; align-items: center; justify-content: space-between; }
+.tile-date-large { font-size: 10px; font-family: 'Oswald'; font-weight: 900; }
+.tile-row-name { font-size: 11px; font-weight: 900; margin: 4px 0; flex: 1; text-align: left; overflow: hidden; }
+.tile-row-count { font-family: 'Oswald'; font-size: 16px; font-weight: 900; text-align: right; }
+
+/* --- リスト表示 --- */
+.zone-container-list { padding: 10px 10px 200px 10px; display: flex; flex-direction: column; gap: 10px; }
+.zone-row { border-radius: 8px; overflow: hidden; color: #000; display: flex; flex-direction: column; }
+.zone-main-content { padding: 12px; }
+
+/* ステータスバー */
+.status-bar-bg { background: rgba(0,0,0,0.15); height: 5px; display: flex; gap: 1px; width: 100%; }
+.p-seg { flex: 1; height: 100%; background: transparent; }
+.p-seg.active { background: var(--accent); }
+
+/* 展開エリア内部 */
+.expand-box { display: none; width: 100%; padding: 8px; background: rgba(0,0,0,0.2); border-radius: 0 0 8px 8px; }
+.expanded .expand-box { display: block; }
+
 .unit-chip { 
-  background: #333; color: #fff; border-radius: 4px; text-align: center; 
-  font-family: 'Oswald'; font-size: 11px; padding: 8px 0; border: 1px solid #444;
+  background: #2a2d37; color: #fff; border-radius: 4px; text-align: center; 
+  font-family: 'Oswald'; font-size: 12px; padding: 8px 0; border: 1px solid #444;
 }
 .unit-chip.active { 
-  background: var(--accent) !important; 
-  color: #000 !important; 
-  font-weight: 900 !important; 
-  border: 1px solid #000 !important;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.3) !important;
+  background: var(--accent) !important; color: #000 !important; font-weight: 900; border-color: #000;
 }
 
-/* 履歴カード */
+/* 履歴 */
 .log-card { background: var(--card); padding: 15px; margin: 12px; border-radius: 12px; border-left: 6px solid var(--accent); }
 .log-main-info { font-size: 18px; font-weight: 900; color: #fff; }
 .log-unit-large { font-family: 'Oswald'; color: var(--accent); font-size: 32px; font-weight: 700; }
+.log-action-row { display: flex; gap: 10px; margin-top: 10px; }
+.btn-log-edit, .btn-log-del { flex: 1; padding: 10px; border-radius: 6px; font-weight: 900; border: none; cursor: pointer; }
+.btn-log-edit { background: var(--accent); color: #000; }
+.btn-log-del { background: var(--danger); color: #fff; }
 
 /* フッター */
 .footer { 
   flex-shrink: 0; background: var(--header-bg); 
-  padding: 12px 15px calc(12px + env(safe-area-inset-bottom)); 
-  border-top: 1px solid var(--panel); z-index: 2000; 
+  padding: 12px 15px calc(15px + env(safe-area-inset-bottom)); 
+  border-top: 1px solid var(--panel);
 }
+.footer-main-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 #u-total { font-family: 'Oswald'; font-size: 32px; color: var(--accent); font-weight: 700; }
-.btn-exec { background: #5e81ac; color: #fff; width: 100%; padding: 14px; border-radius: 8px; font-weight: 900; font-size: 16px; border: none; }
-.btn-exec:disabled { opacity: 0.3; }
+.date-container { background: var(--panel); padding: 5px 12px; border-radius: 6px; color: var(--accent); }
+#date-label { font-family: 'Oswald'; font-size: 20px; font-weight: 900; }
+
+.btn-exec { background: #5e81ac; color: #fff; width: 100%; padding: 14px; border-radius: 8px; font-weight: 900; font-size: 16px; border: none; box-shadow: 0 4px 0 rgba(0,0,0,0.3); }
+.btn-exec:active { transform: translateY(2px); box-shadow: none; }
+.btn-cancel { background: #4b5263; color: #fff; width: 100%; padding: 12px; border-radius: 8px; font-weight: 900; margin-bottom: 8px; border: none; }
+
+/* 共通オーバーレイ（ログイン・マニュアル・QR） */
+.overlay { position: fixed; inset: 0; display: none; justify-content: center; align-items: center; z-index: 10000; background: rgba(0,0,0,0.9); backdrop-filter: blur(4px); }
+.auth-box { background: var(--header-bg); padding: 30px; border-radius: 12px; width: 85%; max-width: 320px; border: 1px solid var(--panel); }
+.auth-input { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 6px; border: 1px solid var(--panel); background: var(--bg); color: #fff; font-size: 16px; }
+.auth-btn { width: 100%; padding: 14px; background: var(--accent); color: #000; border: none; border-radius: 6px; font-weight: 900; }
+
+.modal-content { background: var(--card); padding: 20px; border-radius: 15px; width: 90%; max-width: 400px; text-align: center; color: #fff; }
+.modal-close { margin-top: 15px; width: 100%; padding: 10px; background: var(--panel); color: #fff; border: none; border-radius: 6px; }
 
 .f-oswald { font-family: 'Oswald', sans-serif; }
-@keyframes flash-red { 0%, 100% { outline: 4px solid var(--danger); } 50% { outline: 4px solid transparent; } }
-.last-work-highlight { outline: 4px solid var(--danger); outline-offset: -4px; animation: flash-red 0.5s ease 3; }
