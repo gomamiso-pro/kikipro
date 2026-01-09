@@ -28,7 +28,8 @@ async function silentLogin() {
   const savedPass = localStorage.getItem('kiki_authPass');
   
   if (!savedID || !savedPass) {
-    document.getElementById('loading').style.display = 'none';
+    const loader = document.getElementById('loading');
+    if(loader) loader.style.display = 'none';
     document.getElementById('login-overlay').style.display = 'flex';
     return;
   }
@@ -135,6 +136,17 @@ function handleZoneCheckAll() {
   renderAll();
 }
 
+/**
+ * 文字幅調整用ユーティリティ
+ */
+function fitText(text, limit) {
+  if (text.length > limit) {
+    const scale = limit / text.length;
+    return `<span style="display:inline-block; transform:scaleX(${scale}); transform-origin:left; white-space:nowrap;">${text}</span>`;
+  }
+  return `<span>${text}</span>`;
+}
+
 function renderList() {
   const container = document.getElementById('zone-display');
   container.className = "zone-container-list";
@@ -150,25 +162,27 @@ function renderList() {
     const zoneUnits = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1);
     const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
     const isAll = zoneUnits.length > 0 && zoneUnits.every(m => selectedUnits.has(Number(m[0])));
+    const isExpanded = expandedZoneId === originalIdx;
 
     return `
-      <div id="zone-card-${originalIdx}" class="zone-row ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" onclick="handleZoneAction(event, ${originalIdx})">
+      <div id="zone-card-${originalIdx}" class="zone-row ${selCount > 0 ? 'has-selection' : ''} ${isExpanded ? 'expanded' : ''}" onclick="handleZoneAction(event, ${originalIdx})">
         <div style="display:flex; width:100%; align-items:center; padding:12px;">
           <div class="zone-check-area" onclick="handleZoneCheck(event, ${originalIdx})">
             <input type="checkbox" ${isAll ? 'checked' : ''} style="transform:scale(1.5); pointer-events:none; margin-right:15px;">
           </div>
           <div style="flex:1;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
-              <b style="font-size:16px;">${z.name}</b>
-              <span class="f-oswald" style="font-size:16px; color:var(--accent);">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z)}</span>
+              <b style="font-size:18px;">${z.name}</b>
+              <span class="f-oswald" style="font-size:18px; color:var(--accent);">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z)}</span>
             </div>
             <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:5px;">
-              <span class="f-oswald" style="font-size:22px;">No.${z.s}-${z.e}</span>
-              <span class="f-oswald" style="font-size:22px; color:var(--accent);">${selCount}/${zoneUnits.length}台</span>
+              <span class="f-oswald" style="font-size:24px;">No.${z.s}-${z.e}</span>
+              <span class="f-oswald" style="font-size:24px; color:var(--accent);">${selCount}/${zoneUnits.length}台</span>
             </div>
           </div>
         </div>
         <div class="status-bar-bg">${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}</div>
+        
         <div class="expand-box" onclick="event.stopPropagation()">
           <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(65px, 1fr)); gap:8px; padding:15px;">
             ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${m[0]})">${m[0]}</div>`).join('')}
@@ -192,19 +206,19 @@ function renderTile() {
     const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
     
     const rawName = z.name.replace('ゾーン', '');
-    const nScale = rawName.length > 5 ? `style="transform: scaleX(${5/rawName.length}); display:inline-block; transform-origin:left;"` : '';
     const noStr = `No.${z.s}-${z.e}`;
-    const noScale = noStr.length > 8 ? `style="transform: scaleX(${8/noStr.length}); display:inline-block; transform-origin:left;"` : '';
+    const isExpanded = expandedZoneId === originalIdx;
 
     return `
-      <div id="zone-card-${originalIdx}" class="tile-card ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" onclick="handleZoneAction(event, ${originalIdx})">
+      <div id="zone-card-${originalIdx}" class="tile-card ${selCount > 0 ? 'has-selection' : ''} ${isExpanded ? 'expanded' : ''}" onclick="handleZoneAction(event, ${originalIdx})">
         <div class="tile-row-1 f-oswald">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z, true)}</div>
-        <div class="tile-row-2"><b ${nScale}>${rawName}</b></div>
-        <div class="tile-row-3 f-oswald"><span ${noScale}>${noStr}</span></div>
+        <div class="tile-row-2"><b>${fitText(rawName, 6)}</b></div>
+        <div class="tile-row-3 f-oswald">${fitText(noStr, 8)}</div>
         <div class="tile-row-4 f-oswald">${selCount}<small>/${zoneUnits.length}</small></div>
         <div class="tile-row-5 status-bar-bg">${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}</div>
+        
         <div class="expand-box" onclick="event.stopPropagation()">
-          <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:5px; padding:8px 4px;">
+          <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(60px, 1fr)); gap:8px; padding:15px;">
             ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${Number(m[0])})">${m[0]}</div>`).join('')}
           </div>
         </div>
@@ -287,7 +301,12 @@ function scrollToLastWork() {
   const finalIdx = getFinalWorkZoneIndex();
   if (finalIdx === -1) return;
   const target = document.getElementById(`zone-card-${finalIdx}`);
-  if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  if (target) {
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // ボタンの押し感を出すための視覚的フィードバック
+    target.style.transform = "scale(1.05)";
+    setTimeout(() => target.style.transform = "", 300);
+  }
 }
 
 async function upload() {
@@ -324,15 +343,15 @@ function renderLogs() {
       <div class="log-date-badge">${l.type} - ${l.date}</div>
       <div style="display:flex; justify-content:space-between; align-items:flex-end;">
         <div>
-          <div class="log-main-info">${l.zone}</div>
+          <div class="log-main-info" style="font-size:18px; font-weight:900;">${l.zone}</div>
           <div class="f-oswald log-range">No.${rangeStr}</div>
           <div style="font-size:11px; opacity:0.6; color:#fff;">担当: ${l.user}</div>
         </div>
         <div class="log-unit-large">${l.count}<small style="font-size:12px;">台</small></div>
       </div>
-      <div class="log-action-row">
-        <button class="btn-log-edit" onclick="startEdit(${l.row}, '${l.ids}', '${l.date}', '${l.type}')">履歴を編集</button>
-        <button class="btn-log-del" onclick="handleDelete(${l.row})">削除</button>
+      <div class="log-action-row" style="display:flex; gap:10px; margin-top:10px;">
+        <button class="btn-log-edit" onclick="startEdit(${l.row}, '${l.ids}', '${l.date}', '${l.type}')" style="flex:1;">履歴を編集</button>
+        <button class="btn-log-del" onclick="handleDelete(${l.row})" style="flex:1;">削除</button>
       </div>
     </div>`;
   }).join('') + `<div style="height:120px;"></div>`;
