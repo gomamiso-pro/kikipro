@@ -14,11 +14,12 @@ body {
 #app-content { display: none; flex-direction: column; height: 100%; width: 100%; }
 body.ready #app-content { display: flex !important; }
 
-/* ユーザー表示 */
+/* ユーザー表示・ヘッダーアイコン */
 .user-profile { display: flex; flex-direction: column; align-items: center; }
-#user-display { font-size: 10px; font-weight: 700; color: #fff; }
-.logout-btn { background: var(--danger); color: #fff; border: none; padding: 6px 10px; border-radius: 4px; font-size: 10px; font-weight: 900; cursor: pointer; }
-.logout-btn:active { opacity: 0.7; transform: scale(0.95); }
+#user-display { font-size: 10px; font-weight: 700; color: #fff; margin-bottom: 2px; }
+.header-icons { display: flex; gap: 12px; align-items: center; }
+.icon-btn { background: none; border: none; font-size: 20px; cursor: pointer; padding: 5px; filter: grayscale(1); transition: 0.2s; }
+.icon-btn:active { transform: scale(0.9); opacity: 0.6; }
 
 /* ログイン画面 */
 .auth-box { 
@@ -32,191 +33,86 @@ body.ready #app-content { display: flex !important; }
 .auth-btn { 
   width: 100%; padding: 14px; background: var(--accent); color: #000; border: none; 
   border-radius: 6px; font-weight: 900; font-size: 16px; letter-spacing: 1px; cursor: pointer;
-  transition: all 0.1s;
 }
 .auth-btn:active { transform: scale(0.96); background: var(--accent-dim); }
 
-/* オーバーレイ・ローディング */
-.overlay { position: fixed; inset: 0; display: flex; justify-content: center; align-items: center; z-index: 10000; }
-#loading { 
-  background: var(--bg); 
-  flex-direction: column;
-  z-index: 99999;
+/* オーバーレイ共通（ログイン・QR・マニュアル） */
+.overlay { position: fixed; inset: 0; display: none; justify-content: center; align-items: center; z-index: 10000; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px); }
+#loading { background: var(--bg); flex-direction: column; z-index: 99999; display: flex; }
+#login-overlay { display: flex; } /* 初期状態は表示 */
+
+/* QR・マニュアル用コンテンツ */
+.modal-content { 
+  background: var(--card); padding: 20px; border-radius: 15px; width: 90%; max-width: 400px; 
+  text-align: center; border: 1px solid var(--panel); 
 }
-.loading-text {
-  color: var(--accent);
-  font-family: 'Oswald';
-  font-weight: 900;
-  font-size: 18px;
-  letter-spacing: 4px;
-  animation: pulse 1.5s ease-in-out infinite;
-}
-.spinner-box {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-}
+.modal-close { margin-top: 20px; width: 100%; padding: 12px; background: var(--panel); border: none; color: #fff; border-radius: 8px; font-weight: 900; }
+
+/* ローディングアニメーション */
 .spinner { 
-  width: 60px; 
-  height: 60px; 
-  border: 5px solid rgba(250,204,21,0.1); 
-  border-top: 5px solid var(--accent); 
-  border-radius: 50%; 
-  animation: spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite; 
+  width: 60px; height: 60px; border: 5px solid rgba(250,204,21,0.1); border-top: 5px solid var(--accent); 
+  border-radius: 50%; animation: spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite; 
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-@keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.3; transform: scale(0.95); }
-}
 
-/* ヘッダー・ナビ */
+/* ヘッダー・タブ */
 .header { flex-shrink: 0; height: 60px; background: var(--header-bg); border-bottom: 1px solid var(--panel); display: flex; justify-content: space-between; align-items: center; padding: 0 15px; }
 .nav-row { display: flex; background: var(--header-bg); border-bottom: 1px solid var(--panel); flex-shrink: 0; }
 .top-tab { flex: 1; padding: 12px; text-align: center; font-size: 13px; font-weight: 700; color: var(--text-dim); cursor: pointer; }
-.top-tab:active { opacity: 0.7; }
 .top-tab.active-work { background: #5e81ac !important; color: #fff !important; }
 .top-tab.active-log { background: #d08770 !important; color: #fff !important; }
-
-.type-bar { display: grid; grid-template-columns: repeat(5, 1fr); background: var(--panel); flex-shrink: 0; }
-.type-btn { background: var(--header-bg); border: none; color: var(--text-dim); padding: 10px 0; font-size: 10px; font-weight: 700; cursor: pointer; }
-.type-btn:active { background: var(--panel); }
-.type-btn.active { background: var(--accent) !important; color: #000 !important; }
-
-/* 切替バー */
-.view-mode-bar { display:flex; background:var(--bg); padding:8px 10px; gap:8px; border-bottom: 1px solid var(--panel); flex-shrink: 0; }
-.view-mode-bar button {
-  flex: 1; padding: 10px; border-radius: 6px; border: 2px solid transparent; 
-  background: var(--card); color: var(--text-dim); font-weight: 900; font-size: 12px;
-  cursor: pointer; transition: all 0.1s;
-}
-.view-mode-bar button:active { transform: scale(0.95); }
-.view-mode-bar button.active { border: 2px solid var(--accent) !important; color: var(--accent) !important; background: transparent; }
-#toggle-all-btn.all-selected { background: var(--accent) !important; color: #000 !important; }
 
 /* メインエリア */
 main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 
-/* タイル表示 (4列) */
-.zone-container-tile { padding: 8px 4px 180px 4px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
-.tile-card { 
-  min-height: 80px; padding: 4px 3px; border-radius: 6px; background: #fff; color: #000; 
-  display: flex; flex-direction: column; overflow: hidden; border: 3px solid transparent; 
-  cursor: pointer; transition: transform 0.1s;
+/* ゾーン・タイルの背景色固定（黒くなるのを防ぐ） */
+.zone-row, .tile-card { 
+  cursor: pointer; transition: transform 0.1s; border: none; 
 }
-.tile-card:active { transform: scale(0.97); }
-
-/* ★選択・編集時の黄色枠（背景色は維持する）★ */
-.has-selection { 
+.zone-row.has-selection, .tile-card.has-selection { 
   outline: 4px solid var(--accent) !important; 
   outline-offset: -4px; 
   box-shadow: 0 0 15px rgba(250, 204, 21, 0.8) !important; 
   z-index: 5;
   position: relative;
+  background-color: inherit !important; /* 元の背景色を維持 */
 }
-
-.tile-row { width: 100%; display: flex; align-items: center; line-height: 1.0; }
-.tile-date-large { font-size: 11px; font-family: 'Oswald'; font-weight: 900; white-space: nowrap; }
-.tile-row-count { justify-content: flex-end; font-family: 'Oswald'; font-size: 14px; font-weight: 900; }
-.tile-row-name { font-size: 10px; font-weight: 900; text-align: left; margin: 2px 0; }
-.condensed-span { display: inline-block; transform-origin: left; white-space: nowrap; width: 100%; }
-
-/* リスト表示 */
-.zone-container-list { padding: 10px 10px 180px 10px; display: flex; flex-direction: column; gap: 10px; }
-.zone-row { border-radius: 8px; overflow: hidden; background: #fff; border: 3px solid transparent; color: #000; cursor: pointer; transition: transform 0.1s; }
-.zone-row:active { transform: scale(0.98); }
-.zone-check-area { width: 60px; background: rgba(0,0,0,0.05); display: flex; justify-content: center; align-items: center; }
-
-/* ステータスバー */
-.status-bar-bg { background: rgba(0,0,0,0.1); height: 4px; display: flex; gap: 1px; width: 100%; }
-.p-seg { flex: 1; height: 100%; transition: background 0.2s; }
-.p-seg.active { background: var(--accent) !important; }
-
-/* 展開エリア */
-.expand-box { 
-  display: none; 
-  width: 100%; 
-  margin-top: 5px; 
-  background: rgba(0,0,0,0.2); 
-  border-radius: 4px;
-}
-.expanded .expand-box { display: block; }
-
 .tile-card.expanded { 
-  grid-column: span 2; 
-  height: auto; 
-  z-index: 100;
-  background-color: inherit !important; /* JSで指定された色を優先 */
+  grid-column: span 2; height: auto; z-index: 100;
+  background-color: inherit !important; /* 展開中も背景色を維持 */
 }
 
-.tile-card.expanded:active { transform: none; }
+/* タイル表示 (4列) */
+.zone-container-tile { padding: 8px 4px 180px 4px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.tile-card { min-height: 80px; padding: 4px 3px; border-radius: 6px; color: #000; display: flex; flex-direction: column; overflow: hidden; }
 
-.zone-row.has-selection {
-  background-color: inherit !important;
-}
-
-/* 番号チップ */
+/* 番号チップ（選択時は黄色背景に黒文字） */
 .unit-chip { 
-  background: #333; 
-  color: #fff; 
-  border-radius: 4px; 
-  text-align: center; 
-  font-family: 'Oswald'; 
-  font-size: 11px; 
-  padding: 8px 0; 
-  border: 1px solid #444;
-  cursor: pointer; 
-  transition: all 0.1s;
-  box-shadow: 0 2px 0 rgba(0,0,0,0.3); 
+  background: #333; color: #fff; border-radius: 4px; text-align: center; 
+  font-family: 'Oswald'; font-size: 11px; padding: 8px 0; border: 1px solid #444;
 }
 .unit-chip.active { 
   background: var(--accent) !important; 
-  color: #000 !important; /* 黒文字 */
+  color: #000 !important; 
   font-weight: 900 !important; 
   border: 1px solid #000 !important;
   box-shadow: inset 0 2px 4px rgba(0,0,0,0.3) !important;
 }
-.unit-chip:active {
-  transform: scale(0.9) !important;
-  opacity: 0.8;
-}
 
-/* 履歴 */
+/* 履歴カード */
 .log-card { background: var(--card); padding: 15px; margin: 12px; border-radius: 12px; border-left: 6px solid var(--accent); }
-.log-type-badge { display: inline-block; background: var(--accent); color: #000; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 900; }
 .log-main-info { font-size: 18px; font-weight: 900; color: #fff; }
 .log-unit-large { font-family: 'Oswald'; color: var(--accent); font-size: 32px; font-weight: 700; }
-.log-unit-large::after { content: "台"; font-size: 12px; margin-left: 2px; }
-.log-action-row { display: flex; justify-content: space-between; margin-top: 15px; gap: 15px; }
-.btn-log-edit, .btn-log-del { flex: 1; padding: 12px; border-radius: 6px; font-weight: 900; border: 1px solid; background: #4b5263; cursor: pointer; transition: all 0.1s; }
-.btn-log-edit:active, .btn-log-del:active { transform: scale(0.95); opacity: 0.8; }
-.btn-log-edit { color: var(--accent); border-color: var(--accent); }
-.btn-log-del { color: var(--danger); border-color: var(--danger); }
 
 /* フッター */
 .footer { 
   flex-shrink: 0; background: var(--header-bg); 
-  padding: 12px 15px calc(15px + env(safe-area-inset-bottom)); 
+  padding: 12px 15px calc(12px + env(safe-area-inset-bottom)); 
   border-top: 1px solid var(--panel); z-index: 2000; 
 }
-.footer-main-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 #u-total { font-family: 'Oswald'; font-size: 32px; color: var(--accent); font-weight: 700; }
-.date-container { background: var(--panel); padding: 5px 15px; border-radius: 6px; color: var(--accent); cursor: pointer; }
-.date-container:active { opacity: 0.7; }
-#date-label { font-family: 'Oswald'; font-size: 24px; font-weight: 900; }
-
-/* 下部ボタン */
-.btn-exec, .btn-cancel { 
-  width: 100%; padding: 14px; border-radius: 8px; font-weight: 900; font-size: 16px; 
-  border: none; cursor: pointer; transition: all 0.1s; box-shadow: 0 4px 0 rgba(0,0,0,0.3);
-}
-.btn-exec { background: #5e81ac; color: #fff; }
-.btn-exec:disabled { opacity: 0.3; transform: none !important; box-shadow: none !important; }
-.btn-exec:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,0.3); }
-
-.btn-cancel { background: #4b5263; color: #fff; margin-bottom: 8px; }
-.btn-cancel:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,0.3); }
+.btn-exec { background: #5e81ac; color: #fff; width: 100%; padding: 14px; border-radius: 8px; font-weight: 900; font-size: 16px; border: none; }
+.btn-exec:disabled { opacity: 0.3; }
 
 .f-oswald { font-family: 'Oswald', sans-serif; }
 @keyframes flash-red { 0%, 100% { outline: 4px solid var(--danger); } 50% { outline: 4px solid transparent; } }
