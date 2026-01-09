@@ -260,10 +260,25 @@ function closeExpand(e) {
   renderAll();
 }
 
-function handleZoneAction(e, idx) { 
-  e.stopPropagation(); 
-  expandedZoneId = (expandedZoneId === idx) ? null : idx; 
-  renderAll(); 
+function handleZoneAction(event, index) {
+  // チェックボックス自体や展開ボックス内をクリックした時は無視
+  if (event.target.tagName === 'INPUT' || event.target.closest('.expand-box')) {
+    return;
+  }
+
+  // すでに展開されているものをタップした場合は閉じる、それ以外は展開する
+  if (expandedZoneId === index) {
+    expandedZoneId = null;
+  } else {
+    expandedZoneId = index;
+  }
+
+  // 再描画して .expanded クラスを適用させる
+  if (currentViewMode === 'tile') {
+    renderTile();
+  } else {
+    renderList();
+  }
 }
 
 function handleZoneCheck(e, idx) {
