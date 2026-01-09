@@ -72,21 +72,13 @@ async function handleAuth() {
 
 function renderAll() {
   const types = ["通常", "セル盤", "計数機", "ユニット", "説明書"];
+  // 清掃種別のボタン内に最終作業日の吹き出しを追加
   document.getElementById('type-tabs').innerHTML = types.map(t => {
     const lastDate = getFinalDateByType(t);
-    const dayNames = ["日","月","火","水","木","金","土"];
-    // 日付に曜日を追加
-    let dateDisplay = "未";
-    if(lastDate !== "未") {
-       const [m, d] = lastDate.split('/');
-       const tempDate = new Date(2026, m-1, d); // 2026年想定
-       dateDisplay = `${m}/${d}(${dayNames[tempDate.getDay()]})`;
-    }
-
     return `
       <button class="type-btn ${t===activeType?'active':''}" onclick="changeType('${t}')">
-        <span class="type-last-badge">${dateDisplay}</span>
-        <span class="type-label">${t}</span>
+        ${t}
+        <span class="type-last-badge">${lastDate}</span>
       </button>`;
   }).join('');
   
@@ -98,75 +90,6 @@ function renderAll() {
     renderLogs(); 
   }
   updateCount();
-}
-
-// ユニット選択を中央ポップアップで表示
-function openUnitPopup(idx) {
-  const z = DATA.cols[idx];
-  const tIdx = TYPE_MAP[activeType];
-  const zoneUnits = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1);
-  
-  const popupHtml = `
-    <div id="unit-popup-overlay" class="popup-overlay" onclick="closePopup()">
-      <div class="popup-content" onclick="event.stopPropagation()" style="border-top: 6px solid ${z.bg}">
-        <div class="popup-header">
-          <div class="popup-title-row">
-            <h3>${z.name}</h3>
-            <span class="popup-range f-oswald">No.${z.s} - ${z.e}</span>
-          </div>
-          <button class="popup-close-x" onclick="closePopup()">×</button>
-        </div>
-        <div class="chip-grid">
-          ${zoneUnits.map(m => `
-            <div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" 
-                 onclick="toggleUnitInPopup(this, ${m[0]})">
-              ${m[0]}
-            </div>
-          `).join('')}
-        </div>
-        <button class="btn-exec popup-done-btn" onclick="closePopup()">完了</button>
-      </div>
-    </div>
-  `;
-  document.body.insertAdjacentHTML('beforeend', popupHtml);
-}
-
-function toggleUnitInPopup(el, id) {
-  toggleUnit(id); // セットへの追加/削除とカウント更新
-  el.classList.toggle('active');
-}
-
-function closePopup() {
-  const popup = document.getElementById('unit-popup-overlay');
-  if (popup) popup.remove();
-  renderAll(); // 親画面の台数表示などを更新
-}
-
-// 日付表示の更新（カレンダー風デザイン用）
-function updateDateDisplay() {
-  const val = document.getElementById('work-date').value;
-  if(!val) return;
-  const d = new Date(val);
-  const m = d.getMonth() + 1;
-  const date = d.getDate();
-  const day = ["日","月","火","水","木","金","土"][d.getDay()];
-  
-  document.getElementById('cal-month').innerText = `${m}月`;
-  document.getElementById('cal-date').innerText = date;
-  document.getElementById('cal-day').innerText = `(${day})`;
-}
-
-function getFinalDateByType(type) {
-  const tCol = DATE_COL_MAP[type];
-  let last = null;
-  DATA.master.forEach(m => {
-    if(m[tCol]) {
-      const d = new Date(m[tCol]);
-      if(!last || d > last) last = d;
-    }
-  });
-  if(!last) return "未";
-  return `${last.getMonth()+1}/${last.getDate()}`;
 }
 
 function changeType(t) { 
@@ -247,28 +170,30 @@ function renderTile() {
     const isAll = zoneUnits.length > 0 && zoneUnits.every(m => selectedUnits.has(Number(m[0])));
     const isExpanded = expandedZoneId === originalIdx;
     
+    const rawName = z.name.replace('ゾーン', '');
+    let nScale = rawName.length > 4 ? Math.max(0.85, 4 / rawName.length) : 1;
+
     return `
       <div id="zone-card-${originalIdx}" class="tile-card ${selCount > 0 ? 'has-selection' : ''} ${isExpanded ? 'expanded' : ''}" style="background:${z.bg};" onclick="handleZoneAction(event, ${originalIdx})">
-        <div class="tile-row row-1">
+        <div class="tile-row tile-row-top">
           <div onclick="handleZoneCheck(event, ${originalIdx})">
-            <input type="checkbox" ${isAll ? 'checked' : ''} style="pointer-events:none; transform:scale(0.85);">
+            <input type="checkbox" ${isAll ? 'checked' : ''} style="pointer-events:none; transform:scale(0.8);">
           </div>
           <span class="tile-date-large">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z)}</span>
         </div>
-        <div class="tile-row row-2">
-          <span class="condensed-text font-bold">${z.name.replace('ゾーン','')}</span>
+        <div class="tile-row tile-row-name">
+          <span class="condensed-span" style="transform: scaleX(${nScale}); font-weight:900;">${rawName}</span>
         </div>
-        <div class="tile-row row-3">
-          <span class="f-oswald condensed-text">No.${z.s}-${z.e}</span>
+        <div class="tile-row tile-row-no">
+          <span class="f-oswald" style="font-size:13px; opacity:0.9;">No.${z.s}-${z.e}</span>
         </div>
-        <div class="tile-row row-4">
-          <span class="f-oswald tile-count-num">${selCount}<small style="font-size:10px;">/${zoneUnits.length}台</small></span>
+        <div class="tile-row tile-row-count f-oswald">
+          <span style="font-size:18px;">${selCount}</span><span style="font-size:10px; margin:0 2px;">/</span><span>${zoneUnits.length}台</span>
         </div>
-        <div class="status-bar-bg">${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}</div>
-        
+        <div class="status-bar-bg" style="height:3px;">${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}</div>
         <div class="expand-box" onclick="event.stopPropagation()">
-          <div class="chip-grid">
-            ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${m[0]})">${m[0]}</div>`).join('')}
+          <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; padding:10px 5px;">
+            ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${Number(m[0])})">${m[0]}</div>`).join('')}
           </div>
         </div>
       </div>`;
@@ -355,9 +280,6 @@ function cancelEdit() {
 function renderLogs() {
   const filtered = DATA.logs.filter(l => l.type === activeType);
   document.getElementById('log-list').innerHTML = filtered.map(l => {
-    const idArray = l.ids ? String(l.ids).split(',').map(Number).sort((a,b)=>a-b) : [];
-    const rangeDisplay = idArray.length > 0 ? `${idArray[0]}～${idArray[idArray.length-1]}` : '---';
-    
     return `
     <div class="log-card">
       <div class="log-type-badge">${l.type}</div>
@@ -365,7 +287,7 @@ function renderLogs() {
       <div style="display:flex; justify-content:space-between; align-items:flex-end;">
         <div>
           <div class="log-main-info">${l.zone}</div>
-          <div class="log-zone-no f-oswald">No.${rangeDisplay}</div>
+          <div class="log-zone-no f-oswald">No.${l.range || '---'}</div>
         </div>
         <div class="log-unit-large">${l.count}<small style="font-size:12px;">台</small></div>
       </div>
@@ -375,19 +297,6 @@ function renderLogs() {
       </div>
     </div>`;
   }).join('') + `<div style="height:250px;"></div>`;
-}
-
-function scrollToLastWork() {
-  const finalIdx = getFinalWorkZoneIndex();
-  if (finalIdx === -1) return;
-  
-  // displayModeに関わらず共通のIDスキームを使用
-  const target = document.getElementById(`zone-card-${finalIdx}`);
-  if (target) {
-    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    target.classList.add('last-work-highlight');
-    setTimeout(() => target.classList.remove('last-work-highlight'), 2000);
-  }
 }
 
 function startEdit(row, ids, date, type) {
