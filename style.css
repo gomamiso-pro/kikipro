@@ -69,48 +69,35 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
   gap: 4px; 
 }
 .tile-card { 
-  min-height: 80px; /* 高さをさらに圧縮 */
-  padding: 3px 2px; 
+  min-height: 80px; /* 高さを圧縮 */
+  padding: 4px 3px; 
   border-radius: 4px; 
   background: #fff; 
   color: #000; 
   display: flex; 
   flex-direction: column; 
-  justify-content: flex-start; /* 上詰めに */
+  justify-content: space-between; 
   overflow: hidden;
 }
-.tile-row { 
-  width: 100%; 
-  display: flex; 
-  align-items: center; 
-  line-height: 1.0; /* 行間を最小に */
-  margin-bottom: 1px;
-}
+.tile-row { width: 100%; display: flex; align-items: center; line-height: 1.0; }
 .tile-row-top { justify-content: space-between; margin-bottom: 2px; }
-.tile-date-large { font-size: 11px !important; font-family: 'Oswald'; font-weight: 900; letter-spacing: -0.5px; }
-.tile-row-name { font-size: 10px; font-weight: 900; text-align: left; justify-content: flex-start; }
+.tile-date-large { font-size: 11px !important; font-family: 'Oswald'; font-weight: 900; letter-spacing: -0.3px; }
 .tile-row-name span { 
   display: inline-block; 
   transform-origin: left; /* 左端を起点に縮小 */
   width: 100%; 
 }
-.tile-row-no { 
-  font-family: 'Oswald'; 
-  font-size: 12px; 
-  font-weight: 700; 
-  justify-content: flex-start; /* 左寄せ */
-  text-align: left;
-  padding-left: 2px;
-}
+.tile-row-name { font-size: 10px; font-weight: 900; text-align: left; margin-bottom: 1px; }
+.tile-row-no { font-family: 'Oswald'; font-size: 11px; font-weight: 700; text-align: left; color: #333; }
 .tile-row-count { 
   justify-content: flex-end; 
   font-family: 'Oswald'; 
-  font-size: 14px; /* 大きく */
+  font-size: 14px; 
   font-weight: 900; 
-  margin-top: -2px; /* 上の行に近づける */
+  margin-top: -1px;
 }
-/* 長体用スパン（左端起点） */
-.condensed-span { display: inline-block; transform-origin: left; white-space: nowrap; }
+/* 長体用スパン：左端起点 */
+.condensed-span { display: inline-block; transform-origin: left; white-space: nowrap; width: 100%; }
 
 .status-bar-bg { height: 3px; margin-top: 2px; }
 /* リスト表示 */
