@@ -165,10 +165,17 @@ function renderTile() {
     const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
     const isAllSelected = zoneUnits.length > 0 && zoneUnits.every(m => selectedUnits.has(Number(m[0])));
 
+    // --- ゾーン名の長体処理 (左寄せ用) ---
     const rawName = z.name.replace('ゾーン', '');
-    let scale = 1;
-    if (rawName.length >= 5) { scale = Math.max(0.5, 4.5 / rawName.length); }
-    const transformStyle = scale < 1 ? `style="transform: scaleX(${scale});"` : '';
+    let nameScale = 1;
+    if (rawName.length >= 5) { nameScale = Math.max(0.5, 4.5 / rawName.length); }
+    const nameStyle = `style="transform: scaleX(${nameScale});"`;
+
+    // --- No番号の長体処理 (No.101-120 などが4列だと長いため) ---
+    const noText = `No.${z.s}-${z.e}`;
+    let noScale = 1;
+    if (noText.length > 7) { noScale = Math.max(0.7, 7 / noText.length); }
+    const noStyle = `style="transform: scaleX(${noScale}); transform-origin: left; display: inline-block;"`;
 
     return `
       <div id="zone-card-${originalIdx}" class="tile-card ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" style="background:${z.bg};" onclick="handleZoneAction(event, ${originalIdx})">
@@ -179,9 +186,11 @@ function renderTile() {
           </span>
         </div>
         <div class="tile-row tile-row-name">
-          <span ${transformStyle}>${rawName}</span>
+          <span ${nameStyle}>${rawName}</span>
         </div>
-        <div class="tile-row tile-row-no f-oswald">No.${z.s}</div>
+        <div class="tile-row tile-row-no f-oswald">
+          <span ${noStyle}>${noText}</span>
+        </div>
         <div class="tile-row tile-row-count f-oswald">${selCount}/${zoneUnits.length}</div>
         <div class="status-bar-bg">
           ${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}
