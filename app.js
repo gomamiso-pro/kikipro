@@ -189,11 +189,11 @@ function renderTile() {
 
     const rawName = z.name.replace('ゾーン', '');
     let nameScale = 1;
-    if (rawName.length > 4) { nameScale = Math.max(0.8, 4 / rawName.length); }
+    if (rawName.length > 4) { nameScale = Math.max(0.95, 4 / rawName.length); }
 
     const noText = `No.${z.s}-${z.e}`;
     let noScale = 1;
-    if (noText.length > 8) { noScale = Math.max(0.9, 8 / noText.length); }
+    if (noText.length > 8) { noScale = Math.max(1, 8 / noText.length); }
 
     return `
       <div id="zone-card-${originalIdx}" class="tile-card ${selCount > 0 ? 'has-selection' : ''} ${isExpanded ? 'expanded' : ''}" style="background:${z.bg};" onclick="handleZoneAction(event, ${originalIdx})">
