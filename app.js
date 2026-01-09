@@ -199,6 +199,7 @@ function renderList() {
 /**
  * 全体（タイル）表示の描画
  */
+// 2. タイル描画関数の修正
 function renderTile() {
   const container = document.getElementById('zone-display');
   container.className = "zone-container-tile";
@@ -215,7 +216,6 @@ function renderTile() {
     
     const bgColor = (z.color || z.bg) && (z.color || z.bg) !== "" ? (z.color || z.bg) : "#ffffff";
     const rawName = z.name.replace('ゾーン', '');
-    // 表記を "No.1-23" 形式に
     const noStr = `No.${z.s}-${z.e}`;
 
     return `
@@ -225,7 +225,7 @@ function renderTile() {
            onclick="handleZoneAction(event, ${originalIdx})">
         
         <div class="tile-row-1">
-          <div onclick="handleZoneCheck(event, ${originalIdx})">
+          <div class="check-wrapper" onclick="handleZoneCheck(event, ${originalIdx})">
             <input type="checkbox" ${isAll ? 'checked' : ''} style="pointer-events:none;">
           </div>
           <div class="f-oswald">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z, true)}</div>
@@ -244,7 +244,7 @@ function renderTile() {
           <div class="unit-grid">
             ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${Number(m[0])})">${m[0]}</div>`).join('')}
           </div>
-          <button class="btn-close-expand" onclick="closeExpand(event)">選択を完了する</button>
+          <button class="btn-close-expand" onclick="closeExpand(event)">完了</button>
         </div>
       </div>`;
   }).join('');
@@ -256,22 +256,26 @@ function closeExpand(e) {
   renderAll();
 }
 
+// 1. アクションハンドラを確実に動作させる
 function handleZoneAction(event, index) {
-  // チェックボックスやその外枠、または展開パネル内の操作は無視
-  if (event.target.type === 'checkbox' || event.target.closest('.expand-box')) {
+  // 1-1. チェックボックス、またはそのラベル要素をクリックした場合は、
+  // チェックボックス側のイベント（handleZoneCheck）に任せるため、ここでは何もしない
+  if (event.target.type === 'checkbox' || event.target.closest('.check-wrapper')) {
+    return;
+  }
+
+  // 1-2. 展開パネル内の操作（ユニット選択など）は、親のタイルの展開/閉じる処理を動かさない
+  if (event.target.closest('.expand-box')) {
     return;
   }
   
-  // 伝播を止めて確実にIDをセット
+  // 1-3. 伝播を止めて確実にIDをセット
   event.stopPropagation();
   
-  if (expandedZoneId === index) {
-    expandedZoneId = null;
-  } else {
-    expandedZoneId = index;
-  }
+  // 展開の切り替え
+  expandedZoneId = (expandedZoneId === index) ? null : index;
 
-  // 表示モードに合わせて再描画
+  // 再描画
   if (currentViewMode === 'tile') {
     renderTile();
   } else {
