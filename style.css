@@ -106,7 +106,7 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
   cursor: pointer; transition: transform 0.1s;
 }
 .tile-card:active { transform: scale(0.97); }
-.tile-card.expanded { grid-column: span 2; height: auto; z-index: 10; background: #f8f9fa; transform: none !important; }
+
 
 /* ★選択・編集時の黄色枠★ */
 .has-selection { 
