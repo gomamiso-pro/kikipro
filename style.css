@@ -135,3 +135,19 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
   animation: qrPop 0.3s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 @keyframes qrPop { to { transform: scale(1); } }
+
+/* ボタンが押された時の凹みと色の変化 */
+#mode-list-btn:active, 
+#mode-tile-btn:active, 
+#toggle-all-btn:active,
+button[onclick="scrollToLastWork()"]:active {
+  transform: scale(0.95); /* 少し小さくする */
+  background-color: var(--accent-dim) !important; /* 色を少し暗くする */
+  transition: transform 0.1s;
+}
+
+/* 最終🚩ボタン専用のフィードバック（特定のIDがない場合） */
+.view-mode-bar button:active {
+  opacity: 0.7;
+}
+
