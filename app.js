@@ -185,33 +185,45 @@ function renderTile() {
     const zoneUnits = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1);
     const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
     const isAllSelected = zoneUnits.length > 0 && zoneUnits.every(m => selectedUnits.has(Number(m[0])));
+    const isExpanded = expandedZoneId === originalIdx;
 
-    // 長体設定：はみ出る時だけかける
     const rawName = z.name.replace('ゾーン', '');
     let nameScale = 1;
-    if (rawName.length > 4) { nameScale = Math.max(0.8, 4 / rawName.length); }
+    if (rawName.length > 4) { nameScale = Math.max(0.5, 4 / rawName.length); }
 
     const noText = `No.${z.s}-${z.e}`;
     let noScale = 1;
-    if (noText.length > 8) { noScale = Math.max(0.9, 8 / noText.length); }
+    if (noText.length > 8) { noScale = Math.max(0.6, 8 / noText.length); }
 
     return `
-      <div id="zone-card-${originalIdx}" class="tile-card ${selCount > 0 ? 'has-selection' : ''}" style="background:${z.bg};" onclick="handleZoneAction(event, ${originalIdx})">
+      <div id="zone-card-${originalIdx}" class="tile-card ${selCount > 0 ? 'has-selection' : ''} ${isExpanded ? 'expanded' : ''}" style="background:${z.bg};" onclick="handleZoneAction(event, ${originalIdx})">
         <div class="tile-row tile-row-top">
           <div onclick="handleZoneCheck(event, ${originalIdx})">
-            <input type="checkbox" ${isAllSelected ? 'checked' : ''} style="pointer-events:none; transform:scale(0.7);">
+            <input type="checkbox" ${isAllSelected ? 'checked' : ''} style="pointer-events:none; transform:scale(0.8);">
           </div>
           <span class="tile-date-large">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z)}</span>
         </div>
+        
         <div class="tile-row tile-row-name">
           <span class="condensed-span" style="transform: scaleX(${nameScale});">${rawName}</span>
         </div>
+        
         <div class="tile-row tile-row-no">
           <span class="condensed-span" style="transform: scaleX(${noScale});">${noText}</span>
         </div>
-        <div class="tile-row tile-row-count f-oswald">${selCount}/${zoneUnits.length}</div>
-        <div class="status-bar-bg" style="height:3px;">
+        
+        <div class="tile-row tile-row-count f-oswald">
+          ${selCount}<span style="font-size:10px; margin:0 2px;">/</span>${zoneUnits.length}
+        </div>
+        
+        <div class="status-bar-bg" style="height:4px; margin-bottom: ${isExpanded ? '4px' : '0'};">
           ${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}
+        </div>
+
+        <div class="expand-box" onclick="event.stopPropagation()">
+          <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:5px; padding:6px;">
+            ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${m[0]})">${m[0]}</div>`).join('')}
+          </div>
         </div>
       </div>`;
   }).join('');
