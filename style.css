@@ -92,12 +92,18 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
 .expand-box { 
   display: none; 
   width: 100%; 
-  background: rgba(0,0,0,0.05); 
-  border-radius: 4px; 
-  margin-top: 5px;
+  margin-top: 5px; 
+  background: rgba(0,0,0,0.05); /* 少しグレーにして境界を明確に */
+  border-radius: 4px;
+}
+.tile-card.expanded:active {
+  transform: none; /* 展開時はカード全体を動かさない */
 }
 .tile-card.expanded .expand-box { display: block; }
-
+.unit-chip:active {
+  transform: scale(0.9) !important;
+  background: var(--accent-dim) !important;
+}
 /* 選択中または編集中は黄色枠を表示 */
 .has-selection { 
   border: 3px solid var(--accent) !important; 
