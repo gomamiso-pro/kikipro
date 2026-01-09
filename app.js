@@ -72,7 +72,16 @@ async function handleAuth() {
 
 function renderAll() {
   const types = ["通常", "セル盤", "計数機", "ユニット", "説明書"];
-  document.getElementById('type-tabs').innerHTML = types.map(t => `<button class="type-btn ${t===activeType?'active':''}" onclick="changeType('${t}')">${t}</button>`).join('');
+  // 清掃種別のボタン内に最終作業日の吹き出しを追加
+  document.getElementById('type-tabs').innerHTML = types.map(t => {
+    const lastDate = getFinalDateByType(t);
+    return `
+      <button class="type-btn ${t===activeType?'active':''}" onclick="changeType('${t}')">
+        ${t}
+        <span class="type-last-badge">${lastDate}</span>
+      </button>`;
+  }).join('');
+  
   updateToggleAllBtnState();
   const viewWork = document.getElementById('view-work');
   if(viewWork.style.display !== 'none') {
