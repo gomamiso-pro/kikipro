@@ -16,12 +16,10 @@
 </head>
 <body>
 
-  <div id="loading" class="overlay" style="display: flex; z-index: 300000;">
-    <div class="spinner-box">
-      <div class="spinner"></div>
-      <div class="loading-text" style="color:var(--accent); font-family:'Oswald'; margin-top:15px; font-weight:900; letter-spacing:2px;">LOADING...</div>
-    </div>
-  </div>
+<div id="loading" class="overlay">
+  <div class="spinner"></div>
+  <div style="color:var(--accent); font-weight:900; margin-top:10px;">LOADING...</div>
+</div>
 
   <div id="manual-overlay" class="overlay" onclick="hideManual()" style="display:none; background:rgba(0,0,0,0.85); backdrop-filter:blur(5px); z-index: 250000;">
     <div class="manual-content" onclick="event.stopPropagation()" style="width: 95%; max-width: 500px; height: 85vh; background: #fff; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; position: relative; border: 2px solid var(--accent);">
@@ -90,13 +88,16 @@
     <div class="type-bar" id="type-tabs"></div>
 
     <div id="view-mode-controls">
-      <div class="view-mode-bar">
-        <button id="mode-list-btn" class="active" onclick="setMode('list')">リスト</button>
-        <button id="mode-tile-btn" onclick="setMode('tile')">全体</button>
-        <button onclick="scrollToLastWork()" style="color:var(--accent)">最終🚩</button>
-        <button id="toggle-all-btn" onclick="handleZoneCheckAll()">全選択</button>
-      </div>
-    </div>
+<div class="view-mode-bar" id="view-mode-controls">
+  <div class="switch-group">
+    <button id="mode-list-btn" class="switch-btn active" onclick="setMode('list')">リスト</button>
+    <button id="mode-tile-btn" class="switch-btn" onclick="setMode('tile')">全体</button>
+  </div>
+  
+  <button id="toggle-all-btn" class="action-toggle-btn" onclick="handleZoneCheckAll()">全選択</button>
+  
+  <button class="btn-final-jump" onclick="scrollToLastWork()">最終 🚩</button>
+</div>
 
     <main id="view-work">
       <div id="zone-display"></div>
@@ -111,10 +112,16 @@
         <div style="font-family:'Oswald'; font-size:32px; color:var(--accent);">
           <span id="u-total">0</span> <small style="font-size:12px;">台</small>
         </div>
-        <div class="date-container" onclick="document.getElementById('work-date').showPicker()">
-          <span id="date-label">---</span>
-          <input type="date" id="work-date" onchange="updateDateDisplay()" style="position:absolute; opacity:0; pointer-events:none; left:0;">
-        </div>
+<div class="date-container" onclick="document.getElementById('work-date').showPicker()">
+  <div class="date-cal-red">
+    <span id="cal-month">1月</span>
+    <span id="cal-day">(土)</span>
+  </div>
+  <div class="date-cal-body">
+    <span id="cal-date">10</span>
+  </div>
+  <input type="date" id="work-date" onchange="updateDateDisplay()" style="position:absolute; opacity:0; pointer-events:none;">
+</div>
       </div>
       <div class="footer-btns">
         <button class="btn-cancel" id="cancel-btn" onclick="cancelEdit()" style="display:none;">選択をキャンセル</button>
