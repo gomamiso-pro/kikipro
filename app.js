@@ -258,16 +258,51 @@ function renderLogs() {
         <div class="log-unit-large">${l.count}</div>
       </div>
       <div class="log-action-row">
-        <button class="btn-log-edit" onclick="startEdit(${l.row}, '${l.ids}', '${l.date}', '${l.type}')">編集</button>
+        <button class="btn-log-edit" onclick="startEdit(${l.row}, '${l.ids}', '${l.date}', '${l.type}')">
+          編集
+        </button>
         <button class="btn-log-del" onclick="handleDelete(${l.row})">削除</button>
       </div>
     </div>`;
   }).join('') + `<div style="height:200px;"></div>`;
 }
+// 編集モード開始
 function startEdit(row, ids, date, type) {
-  editingLogRow = row; selectedUnits = new Set(ids.split(',').map(Number)); activeType = type;
-  setMode('tile'); document.getElementById('work-date').value = date.replace(/\//g, '-');
-  updateDateDisplay(); switchView('work');
+  console.log("Editing row:", row, "IDs:", ids); // デバッグ用
+
+  // 1. 編集対象の行番号を保持
+  editingLogRow = row; 
+
+  // 2. 文字列のIDsを数値のSetに変換（ここが不一致だとチップが黄色くならない）
+  // "101,102" -> [101, 102] -> Set
+  if (ids) {
+    const idArray = String(ids).split(',').map(n => Number(n.trim()));
+    selectedUnits = new Set(idArray);
+  } else {
+    selectedUnits = new Set();
+  }
+
+  // 3. タイプと日付を復元
+  activeType = type;
+  // 日付のフォーマット調整 (yyyy/mm/dd -> yyyy-mm-dd)
+  if (date) {
+    document.getElementById('work-date').value = date.replace(/\//g, '-');
+  }
+  updateDateDisplay(); 
+
+  // 4. 表示モードを「全体（タイル）」に強制変更
+  displayMode = 'tile'; 
+  document.getElementById('mode-list-btn').classList.remove('active');
+  document.getElementById('mode-tile-btn').classList.add('active');
+
+  // 5. 入力（work）画面に切り替え
+  switchView('work');
+
+  // 6. 最後に強制再描画（これでチップが黄色くなる）
+  renderAll();
+
+  // 7. 編集のキャンセルボタンを表示させるためにカウント更新
+  updateCount();
 }
 async function handleDelete(row) { if(confirm("削除？")) { document.getElementById('loading').style.display='flex'; await callGAS("deleteLog",{row}); await silentLogin(); renderAll(); } }
 function showQR() { const target = document.getElementById("qr-target"); target.innerHTML = ""; new QRCode(target, { text: window.location.href, width: 200, height: 200 }); document.getElementById("qr-overlay").style.display = "flex"; }
