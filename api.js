@@ -22,28 +22,37 @@ async function callGAS(method, data = {}) {
 async function silentLogin() {
   const savedID = localStorage.getItem('kiki_authID');
   const savedPass = localStorage.getItem('kiki_authPass');
+
   if (!savedID || !savedPass) {
+    // 記憶がない場合のみログイン画面を表示
+    document.getElementById('loading').style.display = 'none';
     document.getElementById('login-overlay').style.display = 'flex';
     document.getElementById('app-content').style.display = 'none';
     return;
   }
+
+  // 記憶がある場合は「Loading...」を出し続ける
   document.getElementById('loading').style.display = 'flex';
+  document.getElementById('login-overlay').style.display = 'none';
+
   try {
     authID = savedID;
     authPass = savedPass;
     const res = await callGAS("getInitialData");
     DATA = res;
-    renderAll();
+    
     document.getElementById('user-display').innerText = DATA.user.toUpperCase();
+    renderAll();
+    
+    // データ準備完了後にアプリを表示
     document.body.classList.add('ready');
-    document.getElementById('login-overlay').style.display = 'none';
     document.getElementById('app-content').style.display = 'flex';
+    document.getElementById('loading').style.display = 'none';
   } catch (e) { 
+    console.error("Auto login failed:", e);
     localStorage.clear();
+    document.getElementById('loading').style.display = 'none';
     document.getElementById('login-overlay').style.display = 'flex';
-    document.getElementById('app-content').style.display = 'none';
-  } finally { 
-    document.getElementById('loading').style.display = 'none'; 
   }
 }
 
