@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/gomamiso-pro/kikipro/main/Ki.png">
-　<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/gomamiso-pro/kikipro/main/Ki.png">
-　<meta name="mobile-web-app-capable" content="yes">
+  <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/gomamiso-pro/kikipro/main/Ki.png">
+  <meta name="mobile-web-app-capable" content="yes">
   <title>KIKI PRO V12</title>
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="api.js"></script>
-　<script src="app.js"></script>
+  <script src="app.js"></script>
 </head>
 <body>
 
@@ -33,9 +33,8 @@
   <div class="auth-box">
     <div id="auth-title" style="font-family:'Oswald'; color:var(--accent); font-size:28px; font-weight:900; margin-bottom:20px; text-align:center; letter-spacing:2px;">KIKI LOGIN</div>
     <div id="login-fields">
-      <input type="email" id="login-id" placeholder="ID (EMAIL)" class="auth-input">
+      <input type="text" id="login-nick" placeholder="NICKNAME (LOGIN ID)" class="auth-input">
       <input type="password" id="login-pass" placeholder="PASSWORD" class="auth-input">
-      <input type="text" id="login-nick" placeholder="NICKNAME" class="auth-input" style="display:none;">
       
       <div id="auto-login-wrapper" style="margin: 5px 0 15px; font-size: 12px; display: flex; align-items: center; gap: 8px; color: var(--text-dim);">
         <input type="checkbox" id="auto-login" checked style="transform: scale(1.2);">
@@ -67,7 +66,6 @@
     <button onclick="logout()" class="logout-btn">LOGOUT</button>
   </div>
 </div>
-
 
 <div class="nav-row">
   <div class="top-tab active-work" id="tab-work" onclick="switchView('work')">入力</div>
@@ -104,6 +102,5 @@
   </div>
 </div>
 
-<script src="script.js"></script>
 </body>
 </html>
