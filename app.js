@@ -72,13 +72,21 @@ async function handleAuth() {
 
 function renderAll() {
   const types = ["通常", "セル盤", "計数機", "ユニット", "説明書"];
-  // 清掃種別のボタン内に最終作業日の吹き出しを追加
   document.getElementById('type-tabs').innerHTML = types.map(t => {
     const lastDate = getFinalDateByType(t);
+    const dayNames = ["日","月","火","水","木","金","土"];
+    // 日付に曜日を追加
+    let dateDisplay = "未";
+    if(lastDate !== "未") {
+       const [m, d] = lastDate.split('/');
+       const tempDate = new Date(2026, m-1, d); // 2026年想定
+       dateDisplay = `${m}/${d}(${dayNames[tempDate.getDay()]})`;
+    }
+
     return `
       <button class="type-btn ${t===activeType?'active':''}" onclick="changeType('${t}')">
-        ${t}
-        <span class="type-last-badge">${lastDate}</span>
+        <span class="type-last-badge">${dateDisplay}</span>
+        <span class="type-label">${t}</span>
       </button>`;
   }).join('');
   
@@ -90,6 +98,62 @@ function renderAll() {
     renderLogs(); 
   }
   updateCount();
+}
+
+// ユニット選択を中央ポップアップで表示
+function openUnitPopup(idx) {
+  const z = DATA.cols[idx];
+  const tIdx = TYPE_MAP[activeType];
+  const zoneUnits = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1);
+  
+  const popupHtml = `
+    <div id="unit-popup-overlay" class="popup-overlay" onclick="closePopup()">
+      <div class="popup-content" onclick="event.stopPropagation()" style="border-top: 6px solid ${z.bg}">
+        <div class="popup-header">
+          <div class="popup-title-row">
+            <h3>${z.name}</h3>
+            <span class="popup-range f-oswald">No.${z.s} - ${z.e}</span>
+          </div>
+          <button class="popup-close-x" onclick="closePopup()">×</button>
+        </div>
+        <div class="chip-grid">
+          ${zoneUnits.map(m => `
+            <div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" 
+                 onclick="toggleUnitInPopup(this, ${m[0]})">
+              ${m[0]}
+            </div>
+          `).join('')}
+        </div>
+        <button class="btn-exec popup-done-btn" onclick="closePopup()">完了</button>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', popupHtml);
+}
+
+function toggleUnitInPopup(el, id) {
+  toggleUnit(id); // セットへの追加/削除とカウント更新
+  el.classList.toggle('active');
+}
+
+function closePopup() {
+  const popup = document.getElementById('unit-popup-overlay');
+  if (popup) popup.remove();
+  renderAll(); // 親画面の台数表示などを更新
+}
+
+// 日付表示の更新（カレンダー風デザイン用）
+function updateDateDisplay() {
+  const val = document.getElementById('work-date').value;
+  if(!val) return;
+  const d = new Date(val);
+  const m = d.getMonth() + 1;
+  const date = d.getDate();
+  const day = ["日","月","火","水","木","金","土"][d.getDay()];
+  
+  document.getElementById('cal-month').innerText = `${m}月`;
+  document.getElementById('cal-date').innerText = date;
+  document.getElementById('cal-day').innerText = `(${day})`;
 }
 
 function getFinalDateByType(type) {
