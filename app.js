@@ -170,7 +170,7 @@ function renderTile() {
     let nameScale = 1;
     if (rawName.length > 4) {
       // 4文字を基準(100%)として、文字数が増えるほど縮小。最小0.5まで。
-      nameScale = Math.max(0.5, 4 / rawName.length);
+      nameScale = Math.max(0.8, 4 / rawName.length);
     }
 
     // --- No番号：8文字(No.101-120等)を超えたら圧縮 ---
@@ -178,7 +178,7 @@ function renderTile() {
     let noScale = 1;
     if (noText.length > 8) {
       // 8文字を基準(100%)として縮小。
-      noScale = Math.max(0.6, 8 / noText.length);
+      noScale = Math.max(0.9, 8 / noText.length);
     }
 
     return `
