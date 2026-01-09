@@ -91,7 +91,18 @@ function renderAll() {
   }
   updateCount();
 }
-
+function getFinalDateByType(type) {
+  const tCol = DATE_COL_MAP[type];
+  let last = null;
+  DATA.master.forEach(m => {
+    if(m[tCol]) {
+      const d = new Date(m[tCol]);
+      if(!last || d > last) last = d;
+    }
+  });
+  if(!last) return "未";
+  return `${last.getMonth()+1}/${last.getDate()}`;
+}
 function changeType(t) { 
   activeType = t; 
   expandedZoneId = null; 
