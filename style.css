@@ -36,10 +36,10 @@ body.ready #app-content { display: flex !important; }
 }
 .auth-btn:active { transform: scale(0.96); background: var(--accent-dim); }
 
-/* オーバーレイ */
+/* オーバーレイ・ローディング */
 .overlay { position: fixed; inset: 0; display: flex; justify-content: center; align-items: center; z-index: 10000; }
 #loading { 
-  background: var(--bg); /* オートログイン時は背景を真っ暗にしてログイン画面を隠す */
+  background: var(--bg); 
   flex-direction: column;
   z-index: 99999;
 }
@@ -107,16 +107,15 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 }
 .tile-card:active { transform: scale(0.97); }
 
-
-/* ★選択・編集時の黄色枠★ */
+/* ★選択・編集時の黄色枠（背景色は維持する）★ */
 .has-selection { 
-  /* 背景色の指定(background)を絶対に書かない */
   outline: 4px solid var(--accent) !important; 
-  outline-offset: -4px; /* 枠を内側に食い込ませて隣と干渉させない */
+  outline-offset: -4px; 
   box-shadow: 0 0 15px rgba(250, 204, 21, 0.8) !important; 
   z-index: 5;
   position: relative;
 }
+
 .tile-row { width: 100%; display: flex; align-items: center; line-height: 1.0; }
 .tile-date-large { font-size: 11px; font-family: 'Oswald'; font-weight: 900; white-space: nowrap; }
 .tile-row-count { justify-content: flex-end; font-family: 'Oswald'; font-size: 14px; font-weight: 900; }
@@ -129,18 +128,17 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 .zone-row:active { transform: scale(0.98); }
 .zone-check-area { width: 60px; background: rgba(0,0,0,0.05); display: flex; justify-content: center; align-items: center; }
 
-/* ステータスバー・チップ */
+/* ステータスバー */
 .status-bar-bg { background: rgba(0,0,0,0.1); height: 4px; display: flex; gap: 1px; width: 100%; }
 .p-seg { flex: 1; height: 100%; transition: background 0.2s; }
-/* ★個別ステータス反映★ */
 .p-seg.active { background: var(--accent) !important; }
 
-/* 展開エリア内のクリックミス防止 */
+/* 展開エリア */
 .expand-box { 
   display: none; 
   width: 100%; 
   margin-top: 5px; 
-  background: rgba(0,0,0,0.2); /* もう少し濃くすると番号が見やすいです */
+  background: rgba(0,0,0,0.2); 
   border-radius: 4px;
 }
 .expanded .expand-box { display: block; }
@@ -149,18 +147,16 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
   grid-column: span 2; 
   height: auto; 
   z-index: 100;
-  /* 背景色はJSのインラインスタイル(z.bg)をそのまま使う */
-  background-color: inherit !important; 
+  background-color: inherit !important; /* JSで指定された色を優先 */
 }
-/* --- リスト表示の選択時も同様 --- */
+
+.tile-card.expanded:active { transform: none; }
+
 .zone-row.has-selection {
   background-color: inherit !important;
 }
-/* 番号チップをタップした時に親カードが沈まないようにする工夫 */
-.tile-card.expanded:active {
-  transform: none; /* 展開時はカード全体を動かさない */
-}
 
+/* 番号チップ */
 .unit-chip { 
   background: #333; 
   color: #fff; 
@@ -172,25 +168,20 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
   border: 1px solid #444;
   cursor: pointer; 
   transition: all 0.1s;
-  box-shadow: 0 2px 0 rgba(0,0,0,0.3); /* 少し立体感 */
+  box-shadow: 0 2px 0 rgba(0,0,0,0.3); 
 }
-/* 3. チップの文字色（これがないと背景黄色に白文字で見えなくなる可能性があるため念押し） */
 .unit-chip.active { 
   background: var(--accent) !important; 
-  color: #000 !important; /* 文字は黒 */
+  color: #000 !important; /* 黒文字 */
   font-weight: 900 !important; 
   border: 1px solid #000 !important;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.3) !important;
 }
-/* チップをタップした瞬間のフィードバック */
 .unit-chip:active {
   transform: scale(0.9) !important;
   opacity: 0.8;
 }
-/* --- 履歴からの編集時などに背景色を維持するための指定 --- */
-.tile-card, .zone-row {
-  /* JS側で設定されたインラインスタイルの背景色を優先させる */
-  transition: transform 0.1s, border 0.1s;
-}
+
 /* 履歴 */
 .log-card { background: var(--card); padding: 15px; margin: 12px; border-radius: 12px; border-left: 6px solid var(--accent); }
 .log-type-badge { display: inline-block; background: var(--accent); color: #000; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 900; }
@@ -215,7 +206,7 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 .date-container:active { opacity: 0.7; }
 #date-label { font-family: 'Oswald'; font-size: 24px; font-weight: 900; }
 
-/* ★下部ボタンの押し心地★ */
+/* 下部ボタン */
 .btn-exec, .btn-cancel { 
   width: 100%; padding: 14px; border-radius: 8px; font-weight: 900; font-size: 16px; 
   border: none; cursor: pointer; transition: all 0.1s; box-shadow: 0 4px 0 rgba(0,0,0,0.3);
