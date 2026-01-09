@@ -132,30 +132,46 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 /* ★個別ステータス反映★ */
 .p-seg.active { background: var(--accent) !important; }
 
-/* 展開された個別エリアの背景を少し濃くして、操作ミスを防ぐ */
+/* 展開エリア内のクリックミス防止 */
 .expand-box { 
   display: none; 
   width: 100%; 
   margin-top: 5px; 
-  background: rgba(0,0,0,0.05); /* 少しグレーにして境界を明確に */
+  background: rgba(0,0,0,0.2); /* もう少し濃くすると番号が見やすいです */
   border-radius: 4px;
 }
+.expanded .expand-box { display: block; }
 
 /* 番号チップをタップした時に親カードが沈まないようにする工夫 */
 .tile-card.expanded:active {
   transform: none; /* 展開時はカード全体を動かさない */
 }
-.expanded .expand-box { display: block; }
 
 .unit-chip { 
-  background: #333; color: #fff; border-radius: 4px; text-align: center; 
-  font-family: 'Oswald'; font-size: 11px; padding: 8px 0; border: 1px solid #444;
-  cursor: pointer; transition: all 0.1s;
+  background: #333; 
+  color: #fff; 
+  border-radius: 4px; 
+  text-align: center; 
+  font-family: 'Oswald'; 
+  font-size: 11px; 
+  padding: 8px 0; 
+  border: 1px solid #444;
+  cursor: pointer; 
+  transition: all 0.1s;
+  box-shadow: 0 2px 0 rgba(0,0,0,0.3); /* 少し立体感 */
 }
-/* チップ自体の押し心地を強調 */
+/* ★ここが重要：選択された状態の黄色★ */
+.unit-chip.active { 
+  background: var(--accent) !important; 
+  color: #000 !important; 
+  font-weight: 900; 
+  border-color: #000;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); /* 押し込まれたような影 */
+}
+/* チップをタップした瞬間のフィードバック */
 .unit-chip:active {
   transform: scale(0.9) !important;
-  background: var(--accent-dim) !important;
+  opacity: 0.8;
 }
 /* 履歴 */
 .log-card { background: var(--card); padding: 15px; margin: 12px; border-radius: 12px; border-left: 6px solid var(--accent); }
