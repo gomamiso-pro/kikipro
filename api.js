@@ -3,6 +3,9 @@
  */
 const GAS_API_URL = "https://script.google.com/macros/s/AKfycbws_EpOwxZ5g4fJoo4LAmla1HgAEpYDpTSg1otdzT0Z8F3AqHIjX3CvJ_cmM27h3HRU/exec";
 
+// ★【重要】あなただけが決めた適当な文字列に変更してください
+const SECRET_API_KEY = "kiki_private_access_key_2026"; 
+
 let authID = "";
 let authPass = "";
 
@@ -16,7 +19,12 @@ async function callGAS(method, data = {}) {
   
   const res = await fetch(GAS_API_URL, { 
     method: "POST", 
-    body: JSON.stringify({ method, data }) 
+    // ★ bodyの中に apiKey を追加して送信
+    body: JSON.stringify({ 
+      method, 
+      data, 
+      apiKey: SECRET_API_KEY 
+    }) 
   });
   return await res.json();
 }
@@ -39,7 +47,7 @@ async function silentLogin() {
     authPass = savedPass;
     const res = await callGAS("getInitialData");
     
-    if (res.status === "error") {
+    if (res && res.status === "error") {
       localStorage.clear();
       location.reload(); 
       return;
