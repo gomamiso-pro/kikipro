@@ -189,6 +189,16 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
   box-shadow: 0 2px 4px rgba(0,0,0,0.3);
   border: 1px solid #000;
 }
+.log-target-ids {
+  font-size: 20px;          /* 大きく */
+  font-weight: 900;         /* 極太 */
+  color: var(--accent);    /* 黄色 */
+  letter-spacing: 1px;
+  margin: 5px 0;
+  word-break: break-all;    /* 折り返し設定 */
+  line-height: 1.2;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5); /* 読みやすく */
+}
 
 /* 編集・削除ボタンの間隔を広く */
 .log-action-row { display: flex; justify-content: space-between; margin-top: 15px; gap: 20px; }
