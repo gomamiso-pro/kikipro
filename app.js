@@ -226,10 +226,23 @@ async function upload() {
   if (selectedUnits.size === 0) return;
   document.getElementById('loading').style.display = 'flex';
   try {
-    await callGAS("addNewRecord", { date: document.getElementById('work-date').value, type: activeType, ids: Array.from(selectedUnits), editRow: editingLogRow });
-    cancelEdit(); await silentLogin(); switchView('log');
-  } catch(e) { alert("エラー"); }
-  finally { document.getElementById('loading').style.display = 'none'; }
+    // editingLogRow が null なら新規、数値なら上書き
+    await callGAS("addNewRecord", { 
+      date: document.getElementById('work-date').value, 
+      type: activeType, 
+      ids: Array.from(selectedUnits), 
+      editRow: editingLogRow 
+    });
+    
+    // 完了後は編集モードを解除してログ画面へ
+    cancelEdit(); 
+    await silentLogin(); // データを最新に更新
+    switchView('log');
+  } catch(e) { 
+    alert("通信エラーが発生しました"); 
+  } finally { 
+    document.getElementById('loading').style.display = 'none'; 
+  }
 }
 function cancelEdit() { editingLogRow = null; selectedUnits.clear(); expandedZoneId = null; renderAll(); }
 function renderLogs() {
