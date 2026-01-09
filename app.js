@@ -165,40 +165,41 @@ function renderTile() {
     const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
     const isAllSelected = zoneUnits.length > 0 && zoneUnits.every(m => selectedUnits.has(Number(m[0])));
 
-    // --- ゾーン名の長体処理 (左寄せ用) ---
+    // ゾーン名：5文字以上なら長体を検討
     const rawName = z.name.replace('ゾーン', '');
     let nameScale = 1;
-    if (rawName.length >= 5) { nameScale = Math.max(0.5, 4.5 / rawName.length); }
-    const nameStyle = `style="transform: scaleX(${nameScale});"`;
+    if (rawName.length > 4) {
+      nameScale = Math.min(1, 4.5 / rawName.length);
+    }
 
-    // --- No番号の長体処理 (No.101-120 などが4列だと長いため) ---
+    // 番号：8文字(No.101-120など)以上なら長体を検討
     const noText = `No.${z.s}-${z.e}`;
     let noScale = 1;
-    if (noText.length > 7) { noScale = Math.max(0.7, 7 / noText.length); }
-    const noStyle = `style="transform: scaleX(${noScale}); transform-origin: left; display: inline-block;"`;
+    if (noText.length > 7) {
+      noScale = Math.min(1, 7.5 / noText.length);
+    }
 
     return `
-      <div id="zone-card-${originalIdx}" class="tile-card ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" style="background:${z.bg};" onclick="handleZoneAction(event, ${originalIdx})">
+      <div id="zone-card-${originalIdx}" class="tile-card ${selCount > 0 ? 'has-selection' : ''}" style="background:${z.bg};" onclick="handleZoneAction(event, ${originalIdx})">
         <div class="tile-row tile-row-top">
-          <div onclick="handleZoneCheck(event, ${originalIdx})"><input type="checkbox" ${isAllSelected ? 'checked' : ''} style="pointer-events:none; transform:scale(0.75);"></div>
-          <span class="f-oswald">
+          <div onclick="handleZoneCheck(event, ${originalIdx})">
+            <input type="checkbox" ${isAllSelected ? 'checked' : ''} style="pointer-events:none; transform:scale(0.7);">
+          </div>
+          <span class="tile-date-large">
             ${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z)}
           </span>
         </div>
         <div class="tile-row tile-row-name">
-          <span ${nameStyle}>${rawName}</span>
+          <span class="condensed-span" style="transform: scaleX(${nameScale});">${rawName}</span>
         </div>
-        <div class="tile-row tile-row-no f-oswald">
-          <span ${noStyle}>${noText}</span>
+        <div class="tile-row tile-row-no">
+          <span class="condensed-span" style="transform: scaleX(${noScale});">${noText}</span>
         </div>
-        <div class="tile-row tile-row-count f-oswald">${selCount}/${zoneUnits.length}</div>
+        <div class="tile-row tile-row-count f-oswald">
+          ${selCount}<span style="font-size:9px; margin:0 1px;">/</span>${zoneUnits.length}
+        </div>
         <div class="status-bar-bg">
           ${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}
-        </div>
-        <div class="expand-box" onclick="event.stopPropagation()">
-           <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(48px, 1fr)); gap:4px; padding:10px 4px;">
-            ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${m[0]})">${m[0]}</div>`).join('')}
-          </div>
         </div>
       </div>`;
   }).join('');
