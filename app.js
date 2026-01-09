@@ -321,11 +321,30 @@ function switchView(v) {
 function formatLastDate(z, isShort = false) {
   const tCol = DATE_COL_MAP[activeType];
   const units = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e));
+  
   let last = null;
-  units.forEach(m => { if (m[tCol]) { const d = new Date(m[tCol]); if (!last || d > last) last = d; } });
+  units.forEach(m => { 
+    if (m[tCol]) { 
+      const d = new Date(m[tCol]); 
+      if (!last || d > last) last = d; 
+    } 
+  });
+
   if (!last) return "未";
-  const days = ["日","月","火","水","木","金","土"];
-  return isShort ? `${last.getMonth() + 1}/${last.getDate()}` : `${last.getMonth() + 1}/${last.getDate()}(${days[last.getDay()]})`;
+
+  const m = last.getMonth() + 1;
+  const d = last.getDate();
+  const days = ["日", "月", "火", "水", "木", "金", "土"];
+  const day = days[last.getDay()];
+
+  // isShort (タイル表示) でも曜日を入れる。
+  // 4列表示で収まりを良くするため、スペースを詰めた表記に。
+  if (isShort) {
+    return `${m}/${d}(${day})`; 
+  }
+
+  // リスト表示など（通常）
+  return `${m}/${d}(${day})`;
 }
 
 function getFinalWorkZoneIndex() {
