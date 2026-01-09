@@ -46,45 +46,37 @@ async function handleAuth() {
   const id = document.getElementById('login-nick').value;
   const pass = document.getElementById('login-pass').value;
 
-  // 1. 入力チェック
-  if(!id || !pass) {
-    alert("ニックネームとパスワードを入力してください");
-    return;
-  }
+  if(!id || !pass) return alert("入力してください");
 
   document.getElementById('loading').style.display = 'flex';
   
   try {
     authID = id;
     authPass = pass;
-    // 2. GASへ問い合わせ（ここで認証が行われる）
+    
+    // callGASの中でエラー判定をしているので、ここに来る＝成功
     const res = await callGAS("getInitialData");
 
-    // 3. 認証結果の判定
-    if (res && res.status === "success") {
-      // ログイン成功時のみ保存
-      if(document.getElementById('auto-login').checked) {
-        localStorage.setItem('kiki_authID', id);
-        localStorage.setItem('kiki_authPass', pass);
-      }
-
-      DATA = res;
-      renderAll();
-      document.getElementById('user-display').innerText = DATA.user.toUpperCase();
-
-      // ★ 認証成功した時だけ、画面を「表示状態」にする
-      document.body.classList.add('ready');
-      document.getElementById('login-overlay').style.display = 'none';
-      
-    } else {
-      // 認証失敗
-      alert(res.message || "認証に失敗しました。IDまたはパスワードが違います。");
-      // 失敗した場合は authID などをクリアする
-      authID = "";
-      authPass = "";
+    // ログイン成功時の保存処理
+    if(document.getElementById('auto-login').checked) {
+      localStorage.setItem('kiki_authID', id);
+      localStorage.setItem('kiki_authPass', pass);
     }
+
+    DATA = res;
+    renderAll();
+    document.getElementById('user-display').innerText = DATA.user.toUpperCase();
+
+    // ★ 成功が確定してから初めて画面を表示する
+    document.body.classList.add('ready');
+    document.getElementById('login-overlay').style.display = 'none';
+
   } catch (e) {
-    alert("通信エラーが発生しました。ネットワーク環境を確認してください。");
+    // 認証失敗や通信エラーはすべてここに来る
+    alert("ログインに失敗しました: " + e.message);
+    // 失敗した場合は情報をクリアして先に進ませない
+    authID = "";
+    authPass = "";
   } finally {
     document.getElementById('loading').style.display = 'none';
   }
