@@ -110,9 +110,11 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 
 /* ★選択・編集時の黄色枠★ */
 .has-selection { 
-  border: 3px solid var(--accent) !important; 
-  box-shadow: 0 0 15px rgba(250, 204, 21, 0.6) !important; 
-  background: rgba(250, 204, 21, 0.05) !important; /* ほんのり中も黄色く */
+  /* 背景色は指定せず、枠線と光で強調 */
+  border: 4px solid var(--accent) !important; 
+  box-shadow: 0 0 15px rgba(250, 204, 21, 0.8) !important; 
+  z-index: 5;
+  position: relative;
 }
 
 .tile-row { width: 100%; display: flex; align-items: center; line-height: 1.0; }
@@ -164,15 +166,20 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 /* 個別チップの黄色 */
 .unit-chip.active { 
   background: var(--accent) !important; 
-  color: #000 !important; 
+  color: #000 !important; /* 文字を黒にしてハッキリ見せる */
   font-weight: 900 !important; 
-  border-color: #000 !important;
+  border: 1px solid #000 !important;
   box-shadow: inset 0 2px 4px rgba(0,0,0,0.3) !important;
 }
 /* チップをタップした瞬間のフィードバック */
 .unit-chip:active {
   transform: scale(0.9) !important;
   opacity: 0.8;
+}
+/* --- 履歴からの編集時などに背景色を維持するための指定 --- */
+.tile-card, .zone-row {
+  /* JS側で設定されたインラインスタイルの背景色を優先させる */
+  transition: transform 0.1s, border 0.1s;
 }
 /* 履歴 */
 .log-card { background: var(--card); padding: 15px; margin: 12px; border-radius: 12px; border-left: 6px solid var(--accent); }
