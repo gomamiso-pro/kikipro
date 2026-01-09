@@ -215,7 +215,8 @@ function renderTile() {
     
     const bgColor = (z.color || z.bg) && (z.color || z.bg) !== "" ? (z.color || z.bg) : "#ffffff";
     const rawName = z.name.replace('ゾーン', '');
-    const noStr = `${z.s}-${z.e}`;
+    // 表記を "No.1-23" 形式に
+    const noStr = `No.${z.s}-${z.e}`;
 
     return `
       <div id="zone-card-${originalIdx}" 
@@ -225,14 +226,14 @@ function renderTile() {
         
         <div class="tile-row-1">
           <div onclick="handleZoneCheck(event, ${originalIdx})">
-            <input type="checkbox" ${isAll ? 'checked' : ''} style="pointer-events:none; transform:scale(0.9);">
+            <input type="checkbox" ${isAll ? 'checked' : ''} style="pointer-events:none;">
           </div>
           <div class="f-oswald">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z, true)}</div>
         </div>
 
-        <div class="tile-row-2"><b>${fitText(rawName, 5)}</b></div>
+        <div class="tile-row-2"><b>${rawName.length > 5 ? fitText(rawName, 5) : rawName}</b></div>
         <div class="tile-row-3 f-oswald">${noStr}</div>
-        <div class="tile-row-4 f-oswald">${selCount}<small style="font-size:10px;">/${zoneUnits.length}</small></div>
+        <div class="tile-row-4 f-oswald">${selCount}<small style="font-size:9px; opacity:0.7;">/${zoneUnits.length}</small></div>
 
         <div class="tile-row-5 status-bar-bg">
           ${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}
@@ -241,12 +242,7 @@ function renderTile() {
         <div class="expand-box" onclick="event.stopPropagation()">
           <h3 style="margin:0 0 10px 0; font-size:16px;">${z.name}</h3>
           <div class="unit-grid">
-            ${zoneUnits.map(m => `
-              <div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" 
-                   onclick="toggleUnit(${Number(m[0])})">
-                ${m[0]}
-              </div>
-            `).join('')}
+            ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${Number(m[0])})">${m[0]}</div>`).join('')}
           </div>
           <button class="btn-close-expand" onclick="closeExpand(event)">選択を完了する</button>
         </div>
@@ -261,19 +257,21 @@ function closeExpand(e) {
 }
 
 function handleZoneAction(event, index) {
-  // チェックボックス自体や展開ボックス内をクリックした時は無視
-  if (event.target.tagName === 'INPUT' || event.target.closest('.expand-box')) {
+  // チェックボックスやその外枠、または展開パネル内の操作は無視
+  if (event.target.type === 'checkbox' || event.target.closest('.expand-box')) {
     return;
   }
-
-  // すでに展開されているものをタップした場合は閉じる、それ以外は展開する
+  
+  // 伝播を止めて確実にIDをセット
+  event.stopPropagation();
+  
   if (expandedZoneId === index) {
     expandedZoneId = null;
   } else {
     expandedZoneId = index;
   }
 
-  // 再描画して .expanded クラスを適用させる
+  // 表示モードに合わせて再描画
   if (currentViewMode === 'tile') {
     renderTile();
   } else {
