@@ -106,9 +106,15 @@ function renderList() {
           </div>
         </div>
         <div class="status-bar-bg">${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}</div>
-        <div class="expand-box"><div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(60px, 1fr)); gap:8px; padding:10px;">
-          ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${m[0]})">${m[0]}</div>`).join('')}
-        </div></div>
+        <div class="expand-box" onclick="event.stopPropagation()">
+          <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(60px, 1fr)); gap:8px; padding:10px;">
+            ${zoneUnits.map(m => `
+              <div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" 
+                   onclick="toggleUnit(${m[0]})">
+                ${m[0]}
+              </div>`).join('')}
+          </div>
+        </div>
       </div>`;
   }).join('');
 }
@@ -139,9 +145,15 @@ function renderTile() {
         <div class="tile-row tile-row-no"><span class="f-oswald" style="font-size:11px;">No.${z.s}-${z.e}</span></div>
         <div class="tile-row tile-row-count f-oswald">${selCount}<span style="font-size:10px; margin:0 2px;">/</span>${zoneUnits.length}</div>
         <div class="status-bar-bg" style="height:4px;">${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}</div>
-        <div class="expand-box"><div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:5px; padding:6px;">
-          ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${m[0]})">${m[0]}</div>`).join('')}
-        </div></div>
+        <div class="expand-box" onclick="event.stopPropagation()">
+          <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:5px; padding:6px;">
+            ${zoneUnits.map(m => `
+              <div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" 
+                   onclick="toggleUnit(${m[0]})">
+                ${m[0]}
+              </div>`).join('')}
+          </div>
+        </div>
       </div>`;
   }).join('');
 }
