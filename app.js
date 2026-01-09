@@ -99,9 +99,22 @@ function renderAll() {
 function changeType(t) { activeType = t; expandedZoneId = null; if(!editingLogRow) selectedUnits.clear(); renderAll(); }
 
 function handleZoneCheckAll() {
+  const btn = document.getElementById('toggle-all-btn');
+  
+  // 押した瞬間の演出：クラスを追加
+  btn.style.transform = "scale(0.9)";
+  btn.style.opacity = "0.7";
+
+  // 0.15秒後に元に戻す（これで「カチッ」とした動きになります）
+  setTimeout(() => {
+    btn.style.transform = "scale(1)";
+    btn.style.opacity = "1";
+  }, 150);
+
   const tIdx = TYPE_MAP[activeType];
   const allIds = DATA.master.filter(m => Number(m[tIdx]) === 1).map(m => Number(m[0]));
   const isEverythingSelected = allIds.every(id => selectedUnits.has(id));
+  
   if (isEverythingSelected) {
     allIds.forEach(id => selectedUnits.delete(id));
   } else {
@@ -109,6 +122,7 @@ function handleZoneCheckAll() {
   }
   renderAll();
 }
+
 
 function scrollToLastWork() {
   const finalIdx = getFinalWorkZoneIndex();
