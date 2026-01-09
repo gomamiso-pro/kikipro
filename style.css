@@ -63,28 +63,32 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
 
 /* 全体表示（タイル）4列固定 */
 .zone-container-tile { 
-  padding: 8px 8px 220px 8px; 
+  padding: 8px 4px 220px 4px; 
   display: grid; 
   grid-template-columns: repeat(4, 1fr); 
   gap: 4px; 
 }
 .tile-card { 
-  min-height: 95px; padding: 4px 2px; border-radius: 6px; border: 2px solid transparent; 
-  background: #fff; color: #000; display: flex; flex-direction: column; justify-content: space-between; 
+  min-height: 80px; /* 高さをさらに圧縮 */
+  padding: 3px 2px; 
+  border-radius: 4px; 
+  background: #fff; 
+  color: #000; 
+  display: flex; 
+  flex-direction: column; 
+  justify-content: flex-start; /* 上詰めに */
   overflow: hidden;
 }
-.tile-row { width: 100%; display: flex; align-items: center; line-height: 1.1; }
-.tile-row-top { justify-content: space-between; font-size: 9px; font-family: 'Oswald'; font-weight: 900; }
-.tile-row-name { 
-  font-size: 11px; 
-  font-weight: 900; 
-  text-align: left; /* 左寄せ */
-  justify-content: flex-start; 
-  white-space: nowrap; 
-  overflow: visible;
-  width: 100%;
-  padding-left: 2px; /* 少し余白を足す */
+.tile-row { 
+  width: 100%; 
+  display: flex; 
+  align-items: center; 
+  line-height: 1.0; /* 行間を最小に */
+  margin-bottom: 1px;
 }
+.tile-row-top { justify-content: space-between; margin-bottom: 2px; }
+.tile-date-large { font-size: 11px !important; font-family: 'Oswald'; font-weight: 900; letter-spacing: -0.5px; }
+.tile-row-name { font-size: 10px; font-weight: 900; text-align: left; justify-content: flex-start; }
 .tile-row-name span { 
   display: inline-block; 
   transform-origin: left; /* 左端を起点に縮小 */
@@ -98,8 +102,17 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
   text-align: left;
   padding-left: 2px;
 }
-.tile-row-count { justify-content: flex-end; font-family: 'Oswald'; font-size: 10px; font-weight: 700; }
+.tile-row-count { 
+  justify-content: flex-end; 
+  font-family: 'Oswald'; 
+  font-size: 14px; /* 大きく */
+  font-weight: 900; 
+  margin-top: -2px; /* 上の行に近づける */
+}
+/* 長体用スパン（左端起点） */
+.condensed-span { display: inline-block; transform-origin: left; white-space: nowrap; }
 
+.status-bar-bg { height: 3px; margin-top: 2px; }
 /* リスト表示 */
 .zone-container-list { padding: 10px 10px 220px 10px; display: flex; flex-direction: column; gap: 10px; }
 .zone-row { border-radius: 8px; overflow: hidden; background: #fff; border: 2px solid transparent; color: #000; }
