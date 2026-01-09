@@ -16,15 +16,30 @@ async function callGAS(method, data = {}) {
   if(!data.authID) data.authID = authID;
   if(!data.authPass) data.authPass = authPass;
   
-  const res = await fetch(GAS_API_URL, { 
-    method: "POST", 
-    body: JSON.stringify({ 
-      method, 
-      data, 
-      apiKey: SECRET_API_KEY 
-    }) 
-  });
-  return await res.json();
+  try {
+    const res = await fetch(GAS_API_URL, { 
+      method: "POST", 
+      body: JSON.stringify({ 
+        method, 
+        data, 
+        apiKey: SECRET_API_KEY 
+      }) 
+    });
+    
+    if (!res.ok) throw new Error("Network error");
+    
+    const json = await res.json();
+    
+    // ★重要: JSONが空だったり、statusがerrorなら、ここで明示的にエラーとして扱う
+    if (!json || json.status === "error") {
+      throw new Error(json.message || "認証エラー");
+    }
+    
+    return json;
+  } catch (e) {
+    console.error("GAS Call Error:", e);
+    throw e; // エラーを投げて、呼び出し側の catchブロックに飛ばす
+  }
 }
 
 /**
