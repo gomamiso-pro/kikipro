@@ -46,17 +46,23 @@ async function handleAuth() {
   const id = document.getElementById('login-nick').value;
   const pass = document.getElementById('login-pass').value;
 
-  if(!id || !pass) return alert("入力してください");
+  // 1. 入力チェック
+  if(!id || !pass) {
+    alert("ニックネームとパスワードを入力してください");
+    return;
+  }
 
   document.getElementById('loading').style.display = 'flex';
   
   try {
     authID = id;
     authPass = pass;
+    // 2. GASへ問い合わせ（ここで認証が行われる）
     const res = await callGAS("getInitialData");
 
-    if (res.status === "success") {
-      // ログイン成功時の保存処理
+    // 3. 認証結果の判定
+    if (res && res.status === "success") {
+      // ログイン成功時のみ保存
       if(document.getElementById('auto-login').checked) {
         localStorage.setItem('kiki_authID', id);
         localStorage.setItem('kiki_authPass', pass);
@@ -66,15 +72,19 @@ async function handleAuth() {
       renderAll();
       document.getElementById('user-display').innerText = DATA.user.toUpperCase();
 
-      // ★ここが重要！画面を表示状態にする
+      // ★ 認証成功した時だけ、画面を「表示状態」にする
       document.body.classList.add('ready');
-
       document.getElementById('login-overlay').style.display = 'none';
+      
     } else {
-      alert(res.message);
+      // 認証失敗
+      alert(res.message || "認証に失敗しました。IDまたはパスワードが違います。");
+      // 失敗した場合は authID などをクリアする
+      authID = "";
+      authPass = "";
     }
   } catch (e) {
-    alert("通信エラーが発生しました");
+    alert("通信エラーが発生しました。ネットワーク環境を確認してください。");
   } finally {
     document.getElementById('loading').style.display = 'none';
   }
