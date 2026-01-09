@@ -373,8 +373,25 @@ async function handleDelete(row) {
     renderAll();
   } 
 }
-
-function showQR() { const target = document.getElementById("qr-target"); target.innerHTML = ""; new QRCode(target, { text: window.location.href, width: 200, height: 200 }); document.getElementById("qr-overlay").style.display = "flex"; }
+function showQR() {
+  const target = document.getElementById("qr-target");
+  target.innerHTML = "";
+  
+  // URLを直接指定
+  const shareUrl = "https://kikipro.vercel.app/";
+  
+  new QRCode(target, {
+    text: shareUrl,
+    width: 200,
+    height: 200,
+    colorDark : "#000000",
+    colorLight : "#ffffff",
+    correctLevel : QRCode.CorrectLevel.H
+  });
+  
+  document.getElementById("qr-overlay").style.display = "flex";
+}
+//function showQR() { const target = document.getElementById("qr-target"); target.innerHTML = ""; new QRCode(target, { text: window.location.href, width: 200, height: 200 }); document.getElementById("qr-overlay").style.display = "flex"; }
 function hideQR() { document.getElementById("qr-overlay").style.display = "none"; }
 
 // --- 説明書ポップアップ制御 ---
