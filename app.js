@@ -404,11 +404,22 @@ function hideQR() { document.getElementById("qr-overlay").style.display = "none"
 function showManual() {
   const modal = document.getElementById('manual-overlay');
   modal.style.display = 'flex';
-  // 常に最新を読み込むためにリロード
+  
+  // ログイン画面もマニュアルも overlay クラスなので、
+  // マニュアルを開いている間、ログイン画面が消えないように z-index を調整
+  modal.style.zIndex = "20001"; 
+  
   const iframe = document.getElementById('manual-iframe');
   iframe.src = iframe.src;
 }
 
 function hideManual() {
   document.getElementById('manual-overlay').style.display = 'none';
+  
+  // ★ ここが修正ポイント ★
+  // もし ready クラスを持っていない（＝まだログイン完了していない）なら、
+  // 強制的にログイン画面を表示したままにする
+  if (!document.body.classList.contains('ready')) {
+    document.getElementById('login-overlay').style.display = 'flex';
+  }
 }
