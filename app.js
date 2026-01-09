@@ -234,7 +234,9 @@ async function upload() {
 function cancelEdit() { editingLogRow = null; selectedUnits.clear(); expandedZoneId = null; renderAll(); }
 function renderLogs() {
   const filtered = DATA.logs.filter(l => l.type === activeType);
-  document.getElementById('log-list').innerHTML = filtered.map(l => `
+  document.getElementById('log-list').innerHTML = filtered.map(l => {
+    // ids は "1,2,3" のようなカンマ区切り文字列であることを想定
+    return `
     <div class="log-card">
       <div class="log-type-badge">${l.type}</div>
       <div class="log-sub-info">${l.date} (${l.day}) - ${l.user}</div>
@@ -246,7 +248,8 @@ function renderLogs() {
         <button class="btn-log-edit" onclick="startEdit(${l.row}, '${l.ids}', '${l.date}', '${l.type}')">編集</button>
         <button class="btn-log-del" onclick="handleDelete(${l.row})">削除</button>
       </div>
-    </div>`).join('') + `<div style="height:200px;"></div>`;
+    </div>`;
+  }).join('') + `<div style="height:200px;"></div>`;
 }
 function startEdit(row, ids, date, type) {
   editingLogRow = row; selectedUnits = new Set(ids.split(',').map(Number)); activeType = type;
