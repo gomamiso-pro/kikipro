@@ -165,18 +165,20 @@ function renderTile() {
     const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
     const isAllSelected = zoneUnits.length > 0 && zoneUnits.every(m => selectedUnits.has(Number(m[0])));
 
-    // ゾーン名：5文字以上なら長体を検討
+    // --- ゾーン名：4文字を超えたら枠に合わせて圧縮率を計算 ---
     const rawName = z.name.replace('ゾーン', '');
     let nameScale = 1;
     if (rawName.length > 4) {
-      nameScale = Math.min(1, 4.5 / rawName.length);
+      // 4文字を基準(100%)として、文字数が増えるほど縮小。最小0.5まで。
+      nameScale = Math.max(0.5, 4 / rawName.length);
     }
 
-    // 番号：8文字(No.101-120など)以上なら長体を検討
+    // --- No番号：8文字(No.101-120等)を超えたら圧縮 ---
     const noText = `No.${z.s}-${z.e}`;
     let noScale = 1;
-    if (noText.length > 7) {
-      noScale = Math.min(1, 7.5 / noText.length);
+    if (noText.length > 8) {
+      // 8文字を基準(100%)として縮小。
+      noScale = Math.max(0.6, 8 / noText.length);
     }
 
     return `
@@ -189,15 +191,19 @@ function renderTile() {
             ${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z)}
           </span>
         </div>
+        
         <div class="tile-row tile-row-name">
           <span class="condensed-span" style="transform: scaleX(${nameScale});">${rawName}</span>
         </div>
+        
         <div class="tile-row tile-row-no">
           <span class="condensed-span" style="transform: scaleX(${noScale});">${noText}</span>
         </div>
+        
         <div class="tile-row tile-row-count f-oswald">
-          ${selCount}<span style="font-size:9px; margin:0 1px;">/</span>${zoneUnits.length}
+          ${selCount}<span style="font-size:9px; margin:0 1px; font-weight:normal;">/</span>${zoneUnits.length}
         </div>
+        
         <div class="status-bar-bg">
           ${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}
         </div>
