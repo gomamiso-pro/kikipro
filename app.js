@@ -147,6 +147,9 @@ function fitText(text, limit) {
   return `<span>${text}</span>`;
 }
 
+/**
+ * リスト表示の描画
+ */
 function renderList() {
   const container = document.getElementById('zone-display');
   container.className = "zone-container-list";
@@ -163,28 +166,28 @@ function renderList() {
     const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
     const isAll = zoneUnits.length > 0 && zoneUnits.every(m => selectedUnits.has(Number(m[0])));
     
-    // 背景色設定 (D列はインデックス3)
-    const bgColor = z.color && z.color !== "" ? z.color : "#ffffff";
+    // 背景色設定（z.color または z.bg のどちらでも動作するように担保）
+    const bgColor = (z.color || z.bg) && (z.color || z.bg) !== "" ? (z.color || z.bg) : "#ffffff";
 
     return `
       <div id="zone-card-${originalIdx}" class="zone-row ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" 
-           style="background-color: ${bgColor} !important; color: #000;" onclick="handleZoneAction(event, ${originalIdx})">
+           style="background-color: ${bgColor} !important; color: #000 !important;" onclick="handleZoneAction(event, ${originalIdx})">
         <div style="display:flex; width:100%; align-items:center; padding:12px;">
           <div class="zone-check-area" onclick="handleZoneCheck(event, ${originalIdx})">
             <input type="checkbox" ${isAll ? 'checked' : ''} style="transform:scale(1.5); pointer-events:none; margin-right:15px;">
           </div>
           <div style="flex:1;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
-              <b style="font-size:18px;">${z.name}</b>
-              <span class="f-oswald" style="font-size:18px;">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z)}</span>
+              <b style="font-size:18px; color:#000;">${z.name}</b>
+              <span class="f-oswald" style="font-size:18px; color:#000;">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z)}</span>
             </div>
             <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:5px;">
-              <span class="f-oswald" style="font-size:24px;">No.${z.s}-${z.e}</span>
-              <span class="f-oswald" style="font-size:24px;">${selCount}/${zoneUnits.length}台</span>
+              <span class="f-oswald" style="font-size:24px; color:#000;">No.${z.s}-${z.e}</span>
+              <span class="f-oswald" style="font-size:24px; color:#000;">${selCount}/${zoneUnits.length}台</span>
             </div>
           </div>
         </div>
-        <div class="status-bar-bg" style="background: rgba(0,0,0,0.1);">${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}</div>
+        <div class="status-bar-bg" style="background: rgba(0,0,0,0.15);">${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" style="${selectedUnits.has(Number(m[0])) ? 'background:#000;' : ''}"></div>`).join('')}</div>
         <div class="expand-box" onclick="event.stopPropagation()">
           <div class="unit-grid">
             ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${m[0]})">${m[0]}</div>`).join('')}
@@ -195,6 +198,9 @@ function renderList() {
   }).join('');
 }
 
+/**
+ * 全体（タイル）表示の描画
+ */
 function renderTile() {
   const container = document.getElementById('zone-display');
   container.className = "zone-container-tile";
@@ -209,26 +215,26 @@ function renderTile() {
     const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
     const isAll = zoneUnits.length > 0 && zoneUnits.every(m => selectedUnits.has(Number(m[0])));
     
-    const bgColor = z.color && z.color !== "" ? z.color : "#ffffff";
+    const bgColor = (z.color || z.bg) && (z.color || z.bg) !== "" ? (z.color || z.bg) : "#ffffff";
     const rawName = z.name.replace('ゾーン', '');
     const noStr = `No.${z.s}-${z.e}`;
 
     return `
       <div id="zone-card-${originalIdx}" class="tile-card ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" 
-           style="background-color: ${bgColor} !important; color: #000;" onclick="handleZoneAction(event, ${originalIdx})">
-        <div class="tile-row-1">
+           style="background-color: ${bgColor} !important; color: #000 !important;" onclick="handleZoneAction(event, ${originalIdx})">
+        <div class="tile-row-1" style="color: #000;">
           <div onclick="handleZoneCheck(event, ${originalIdx})">
             <input type="checkbox" ${isAll ? 'checked' : ''} style="transform:scale(1.2); pointer-events:none;">
           </div>
           <div class="f-oswald">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z, true)}</div>
         </div>
-        <div class="tile-row-2"><b>${fitText(rawName, 6)}</b></div>
-        <div class="tile-row-3 f-oswald">${fitText(noStr, 8)}</div>
-        <div class="tile-row-4 f-oswald">${selCount}<small>/${zoneUnits.length}</small></div>
-        <div class="tile-row-5 status-bar-bg" style="background: rgba(0,0,0,0.1);">${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}</div>
+        <div class="tile-row-2" style="color: #000;"><b>${fitText(rawName, 6)}</b></div>
+        <div class="tile-row-3 f-oswald" style="color: #000;">${fitText(noStr, 8)}</div>
+        <div class="tile-row-4 f-oswald" style="color: #000;">${selCount}<small>/${zoneUnits.length}</small></div>
+        <div class="tile-row-5 status-bar-bg" style="background: rgba(0,0,0,0.15);">${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" style="${selectedUnits.has(Number(m[0])) ? 'background:#000;' : ''}"></div>`).join('')}</div>
         
         <div class="expand-box" onclick="event.stopPropagation()">
-          <h3 style="margin:0 0 15px 0; font-size:18px;">${z.name} - ユニット選択</h3>
+          <h3 style="margin:0 0 15px 0; font-size:18px; color:#fff;">${z.name} - ユニット選択</h3>
           <div class="unit-grid">
             ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${Number(m[0])})">${m[0]}</div>`).join('')}
           </div>
@@ -237,6 +243,7 @@ function renderTile() {
       </div>`;
   }).join('');
 }
+
 function closeExpand(e) {
   e.stopPropagation();
   expandedZoneId = null;
