@@ -1,56 +1,56 @@
-const GAS_API_URL = "https://script.google.com/macros/s/AKfycbws_EpOwxZ5g4fJoo4LAmla1HgAEpYDpTSg1otdzT0Z8F3AqHIjX3CvJ_cmM27h3HRU/exec";
+/**
+ * Google Apps Script 実行用
+ * @param {string} methodName - GAS側の関数名
+ * @param {object} params - GASに渡す引数オブジェクト
+ */
 
-// 認証情報を保持するグローバル変数
+// 認証情報を保持する変数（app.jsのログイン処理で上書きされます）
 let authID = "";
 let authPass = "";
 
-/**
- * Google Apps Script への通信を共通化する関数
- * @param {string} method - 実行するGASのメソッド名
- * @param {object} data - 送信するデータ
- */
-async function callGAS(method, data = {}) {
-  // 認証情報が引数にない場合は、保持している変数からセット
-  if (!data.authID) data.authID = authID;
-  if (!data.authPass) data.authPass = authPass;
+// GASのWebアプリURL（デプロイしたURLに差し替えてください）
+const GAS_URL = "https://script.google.com/macros/s/AKfycbws_EpOwxZ5g4fJoo4LAmla1HgAEpYDpTSg1otdzT0Z8F3AqHIjX3CvJ_cmM27h3HRU/exec";
+
+async function callGAS(methodName, params = {}) {
+  // 常に最新の認証情報を付与
+  const payload = {
+    method: methodName,
+    authID: params.authID || authID,
+    authPass: params.authPass || authPass,
+    ...params
+  };
 
   try {
-    const res = await fetch(GAS_API_URL, { 
-      method: "POST", 
-      body: JSON.stringify({ method, data }) 
+    const response = await fetch(GAS_URL, {
+      method: "POST",
+      body: JSON.stringify(payload)
     });
 
-    if (!res.ok) throw new Error("サーバーとの接続に失敗しました");
+    if (!response.ok) throw new Error("ネットワーク応答が正常ではありません");
 
-    const json = await res.json();
+    const result = await response.json();
 
-    // GAS側でエラーが返された場合（パスワード間違いなど）
-    if (json.status === "error") {
-      throw new Error(json.message || "予期せぬエラーが発生しました");
+    // GAS側でエラーが返された場合（例: {error: "認証失敗"}）
+    if (result.error) {
+      throw new Error(result.error);
     }
 
-    return json;
-  } catch (e) {
-    console.error("Communication Error:", e);
-    // 上位（app.js）でアラート表示させるためにエラーをスロー
-    throw e;
+    return result;
+  } catch (error) {
+    console.error("GAS Call Error:", error);
+    // ユーザーへの通知（app.js側でcatchしてalertすることも可能）
+    throw error;
   }
 }
 
 /**
  * ログアウト処理
- * ローカルストレージを空にしてページを再読み込みする
+ * ローカルストレージをクリアして再読み込み
  */
 function logout() {
-  if (confirm("ログアウトしてもよろしいですか？")) {
-    localStorage.clear();
+  if (confirm("ログアウトしますか？")) {
+    localStorage.removeItem('kiki_authID');
+    localStorage.removeItem('kiki_authPass');
     location.reload();
   }
-}
-
-/**
- * 認証情報が保存されているか確認する補助関数
- */
-function isUserAuthenticated() {
-  return !!(localStorage.getItem('kiki_authID') && localStorage.getItem('kiki_authPass'));
 }
