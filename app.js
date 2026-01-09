@@ -12,10 +12,17 @@ const DATE_COL_MAP = { "通常":8, "セル盤":9, "計数機":10, "ユニット"
 window.onload = () => {
   silentLogin(); 
   const d = new Date();
-  document.getElementById('work-date').value = d.toISOString().split('T')[0];
+  // 入力欄の初期値を今日の日付に設定
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  document.getElementById('work-date').value = `${y}-${m}-${day}`;
   updateDateDisplay();
 };
 
+/**
+ * 自動ログイン処理
+ */
 async function silentLogin() {
   const savedID = localStorage.getItem('kiki_authID');
   const savedPass = localStorage.getItem('kiki_authPass');
@@ -32,7 +39,7 @@ async function silentLogin() {
   try {
     authID = savedID;
     authPass = savedPass;
-    const res = await callGAS("getInitialData", { authID, authPass });
+    const res = await callGAS("getInitialData");
     DATA = res;
     document.getElementById('user-display').innerText = DATA.user.toUpperCase();
     renderAll();
@@ -46,6 +53,9 @@ async function silentLogin() {
   }
 }
 
+/**
+ * ログイン・新規登録実行
+ */
 async function handleAuth() {
   const nick = document.getElementById('login-nick').value;
   const pass = document.getElementById('login-pass').value;
@@ -70,12 +80,16 @@ async function handleAuth() {
   finally { document.getElementById('loading').style.display = 'none'; }
 }
 
+/**
+ * 画面全体の描画
+ */
 function renderAll() {
   const types = ["通常", "セル盤", "計数機", "ユニット", "説明書"];
   document.getElementById('type-tabs').innerHTML = types.map(t => `<button class="type-btn ${t===activeType?'active':''}" onclick="changeType('${t}')">${t}</button>`).join('');
   updateToggleAllBtnState();
   
-  if(document.getElementById('view-work').style.display !== 'none') {
+  const viewWork = document.getElementById('view-work');
+  if(viewWork.style.display !== 'none') {
     displayMode === 'list' ? renderList() : renderTile();
   } else { 
     renderLogs(); 
@@ -107,6 +121,9 @@ function handleZoneCheckAll() {
   renderAll();
 }
 
+/**
+ * リスト表示描画
+ */
 function renderList() {
   const container = document.getElementById('zone-display');
   container.className = "zone-container-list";
@@ -128,13 +145,19 @@ function renderList() {
             <input type="checkbox" ${isAll ? 'checked' : ''} style="transform:scale(1.6); pointer-events:none;">
           </div>
           <div class="zone-main-content" style="background:${z.bg}; flex:1; padding:12px;">
-            <div style="display:flex; justify-content:space-between;"><b>${z.name}</b><span class="f-oswald">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z)}</span></div>
-            <div style="display:flex; justify-content:space-between; margin-top:5px;"><span class="f-oswald" style="font-size:18px;">No.${z.s}-${z.e}</span><span class="f-oswald">${selCount}/${zoneUnits.length}台</span></div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <b style="font-size:14px;">${z.name}</b>
+              <span class="f-oswald" style="font-size:11px;">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z)}</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:5px;">
+              <span class="f-oswald" style="font-size:18px;">No.${z.s}-${z.e}</span>
+              <span class="f-oswald" style="font-size:14px;">${selCount}/${zoneUnits.length}台</span>
+            </div>
           </div>
         </div>
         <div class="status-bar-bg">${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}</div>
         <div class="expand-box" onclick="event.stopPropagation()">
-          <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(60px, 1fr)); gap:8px; padding:10px;">
+          <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(65px, 1fr)); gap:10px; padding:15px;">
             ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${m[0]})">${m[0]}</div>`).join('')}
           </div>
         </div>
@@ -142,6 +165,9 @@ function renderList() {
   }).join('');
 }
 
+/**
+ * タイル表示描画
+ */
 function renderTile() {
   const container = document.getElementById('zone-display');
   container.className = "zone-container-tile";
@@ -157,17 +183,28 @@ function renderTile() {
     const isExpanded = expandedZoneId === originalIdx;
     
     const rawName = z.name.replace('ゾーン', '');
-    let nScale = rawName.length > 4 ? Math.max(0.95, 4 / rawName.length) : 1;
+    let nScale = rawName.length > 4 ? Math.max(0.9, 4 / rawName.length) : 1;
 
     return `
       <div id="zone-card-${originalIdx}" class="tile-card ${selCount > 0 ? 'has-selection' : ''} ${isExpanded ? 'expanded' : ''}" style="background:${z.bg};" onclick="handleZoneAction(event, ${originalIdx})">
-        <div class="tile-row tile-row-top"><div onclick="handleZoneCheck(event, ${originalIdx})"><input type="checkbox" ${isAll ? 'checked' : ''} style="pointer-events:none; transform:scale(0.8);"></div><span class="tile-date-large">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z)}</span></div>
-        <div class="tile-row tile-row-name"><span class="condensed-span" style="transform: scaleX(${nScale});">${rawName}</span></div>
-        <div class="tile-row tile-row-no"><span class="f-oswald" style="font-size:11px;">No.${z.s}-${z.e}</span></div>
-        <div class="tile-row tile-row-count f-oswald">${selCount}<span style="font-size:10px; margin:0 2px;">/</span>${zoneUnits.length}</div>
-        <div class="status-bar-bg" style="height:4px;">${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}</div>
+        <div class="tile-row tile-row-top" style="display:flex; justify-content:space-between; align-items:center;">
+          <div onclick="handleZoneCheck(event, ${originalIdx})">
+            <input type="checkbox" ${isAll ? 'checked' : ''} style="pointer-events:none; transform:scale(0.85);">
+          </div>
+          <span class="tile-date-large">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z)}</span>
+        </div>
+        <div class="tile-row tile-row-name" style="margin:4px 0; overflow:hidden;">
+          <span class="condensed-span" style="transform: scaleX(${nScale}); display:inline-block; transform-origin:left; white-space:nowrap; font-weight:900;">${rawName}</span>
+        </div>
+        <div class="tile-row tile-row-no">
+          <span class="f-oswald" style="font-size:11px; opacity:0.8;">No.${z.s}-${z.e}</span>
+        </div>
+        <div class="tile-row tile-row-count f-oswald" style="display:flex; justify-content:flex-end; align-items:baseline;">
+          <span style="font-size:18px;">${selCount}</span><span style="font-size:10px; margin:0 2px;">/</span><span style="font-size:12px;">${zoneUnits.length}</span>
+        </div>
+        <div class="status-bar-bg" style="height:3px; margin-top:2px;">${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}</div>
         <div class="expand-box" onclick="event.stopPropagation()">
-          <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:5px; padding:6px;">
+          <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; padding:10px 5px;">
             ${zoneUnits.map(m => {
               const unitNum = Number(m[0]);
               return `<div class="unit-chip ${selectedUnits.has(unitNum) ? 'active' : ''}" onclick="toggleUnit(${unitNum})">${unitNum}</div>`;
@@ -246,6 +283,17 @@ function getFinalWorkZoneIndex() {
   return DATA.cols.findIndex(z => maxId>=Math.min(z.s,z.e) && maxId<=Math.max(z.s,z.e));
 }
 
+function scrollToLastWork() {
+  const idx = getFinalWorkZoneIndex();
+  if (idx === -1) return;
+  const target = document.getElementById(`zone-card-${idx}`);
+  if (target) {
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    target.classList.add('last-work-highlight');
+    setTimeout(() => target.classList.remove('last-work-highlight'), 2000);
+  }
+}
+
 async function upload() {
   if (selectedUnits.size === 0) return;
   document.getElementById('loading').style.display = 'flex';
@@ -301,30 +349,25 @@ function startEdit(row, ids, date, type) {
   updateDateDisplay(); 
 
   displayMode = 'tile';
-  
-  document.getElementById('view-work').style.display = 'block';
-  document.getElementById('view-log').style.display = 'none';
-  document.getElementById('view-mode-controls').style.display = 'block';
-  document.getElementById('tab-work').className = 'top-tab active-work';
-  document.getElementById('tab-log').className = 'top-tab';
+  switchView('work');
 
   document.querySelectorAll('.view-mode-bar button').forEach(b => b.classList.remove('active'));
   document.getElementById('mode-tile-btn').classList.add('active');
 
   renderAll();
-  updateCount();
 }
 
 async function handleDelete(row) { 
-  if(confirm("削除？")) { 
+  if(confirm("この履歴を削除しますか？")) { 
     document.getElementById('loading').style.display='flex'; 
-    await callGAS("deleteLog",{row}); 
-    await silentLogin(); 
-    renderAll(); 
+    try {
+      await callGAS("deleteLog",{row}); 
+      await silentLogin(); 
+    } catch(e) { alert("削除に失敗しました"); }
+    finally { document.getElementById('loading').style.display = 'none'; }
   } 
 }
 
-// --- 追加機能: QR・マニュアル・認証切替 ---
 function showQR() { 
   const target = document.getElementById("qr-target"); 
   if(!target) return;
