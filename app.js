@@ -165,7 +165,11 @@ function renderList() {
         </div>
         <div class="expand-box" onclick="event.stopPropagation()">
           <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(60px, 1fr)); gap:8px; padding:10px;">
-            ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${m[0]})">${m[0]}</div>`).join('')}
+            ${zoneUnits.map(m => `
+              <div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" 
+                   onclick="toggleUnit(${m[0]})">
+                ${m[0]}
+              </div>`).join('')}
           </div>
         </div>
       </div>`;
@@ -222,7 +226,11 @@ function renderTile() {
 
         <div class="expand-box" onclick="event.stopPropagation()">
           <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:5px; padding:6px;">
-            ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${m[0]})">${m[0]}</div>`).join('')}
+            ${zoneUnits.map(m => `
+              <div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" 
+                   onclick="toggleUnit(${m[0]})">
+                ${m[0]}
+              </div>`).join('')}
           </div>
         </div>
       </div>`;
