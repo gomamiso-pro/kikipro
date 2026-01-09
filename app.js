@@ -162,10 +162,13 @@ function renderList() {
     const zoneUnits = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1);
     const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
     const isAll = zoneUnits.length > 0 && zoneUnits.every(m => selectedUnits.has(Number(m[0])));
-    const isExpanded = expandedZoneId === originalIdx;
+    
+    // 背景色設定 (D列はインデックス3)
+    const bgColor = z.color && z.color !== "" ? z.color : "#ffffff";
 
     return `
-      <div id="zone-card-${originalIdx}" class="zone-row ${selCount > 0 ? 'has-selection' : ''} ${isExpanded ? 'expanded' : ''}" onclick="handleZoneAction(event, ${originalIdx})">
+      <div id="zone-card-${originalIdx}" class="zone-row ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" 
+           style="background-color: ${bgColor} !important; color: #000;" onclick="handleZoneAction(event, ${originalIdx})">
         <div style="display:flex; width:100%; align-items:center; padding:12px;">
           <div class="zone-check-area" onclick="handleZoneCheck(event, ${originalIdx})">
             <input type="checkbox" ${isAll ? 'checked' : ''} style="transform:scale(1.5); pointer-events:none; margin-right:15px;">
@@ -173,20 +176,20 @@ function renderList() {
           <div style="flex:1;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
               <b style="font-size:18px;">${z.name}</b>
-              <span class="f-oswald" style="font-size:18px; color:var(--accent);">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z)}</span>
+              <span class="f-oswald" style="font-size:18px;">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z)}</span>
             </div>
             <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:5px;">
               <span class="f-oswald" style="font-size:24px;">No.${z.s}-${z.e}</span>
-              <span class="f-oswald" style="font-size:24px; color:var(--accent);">${selCount}/${zoneUnits.length}台</span>
+              <span class="f-oswald" style="font-size:24px;">${selCount}/${zoneUnits.length}台</span>
             </div>
           </div>
         </div>
-        <div class="status-bar-bg">${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}</div>
-        
+        <div class="status-bar-bg" style="background: rgba(0,0,0,0.1);">${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}</div>
         <div class="expand-box" onclick="event.stopPropagation()">
-          <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(65px, 1fr)); gap:8px; padding:15px;">
+          <div class="unit-grid">
             ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${m[0]})">${m[0]}</div>`).join('')}
           </div>
+          <button class="btn-close-expand" onclick="closeExpand(event)">閉じる</button>
         </div>
       </div>`;
   }).join('');
@@ -204,26 +207,40 @@ function renderTile() {
     const originalIdx = DATA.cols.indexOf(z);
     const zoneUnits = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1);
     const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
+    const isAll = zoneUnits.length > 0 && zoneUnits.every(m => selectedUnits.has(Number(m[0])));
     
+    const bgColor = z.color && z.color !== "" ? z.color : "#ffffff";
     const rawName = z.name.replace('ゾーン', '');
     const noStr = `No.${z.s}-${z.e}`;
-    const isExpanded = expandedZoneId === originalIdx;
 
     return `
-      <div id="zone-card-${originalIdx}" class="tile-card ${selCount > 0 ? 'has-selection' : ''} ${isExpanded ? 'expanded' : ''}" onclick="handleZoneAction(event, ${originalIdx})">
-        <div class="tile-row-1 f-oswald">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z, true)}</div>
+      <div id="zone-card-${originalIdx}" class="tile-card ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" 
+           style="background-color: ${bgColor} !important; color: #000;" onclick="handleZoneAction(event, ${originalIdx})">
+        <div class="tile-row-1">
+          <div onclick="handleZoneCheck(event, ${originalIdx})">
+            <input type="checkbox" ${isAll ? 'checked' : ''} style="transform:scale(1.2); pointer-events:none;">
+          </div>
+          <div class="f-oswald">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z, true)}</div>
+        </div>
         <div class="tile-row-2"><b>${fitText(rawName, 6)}</b></div>
         <div class="tile-row-3 f-oswald">${fitText(noStr, 8)}</div>
         <div class="tile-row-4 f-oswald">${selCount}<small>/${zoneUnits.length}</small></div>
-        <div class="tile-row-5 status-bar-bg">${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}</div>
+        <div class="tile-row-5 status-bar-bg" style="background: rgba(0,0,0,0.1);">${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}</div>
         
         <div class="expand-box" onclick="event.stopPropagation()">
-          <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(60px, 1fr)); gap:8px; padding:15px;">
+          <h3 style="margin:0 0 15px 0; font-size:18px;">${z.name} - ユニット選択</h3>
+          <div class="unit-grid">
             ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${Number(m[0])})">${m[0]}</div>`).join('')}
           </div>
+          <button class="btn-close-expand" onclick="closeExpand(event)">選択を完了する</button>
         </div>
       </div>`;
   }).join('');
+}
+function closeExpand(e) {
+  e.stopPropagation();
+  expandedZoneId = null;
+  renderAll();
 }
 
 function handleZoneAction(e, idx) { 
@@ -338,20 +355,29 @@ function renderLogs() {
   document.getElementById('log-list').innerHTML = filtered.map(l => {
     const ids = l.ids ? String(l.ids).split(',').map(Number).sort((a,b)=>a-b) : [];
     const rangeStr = ids.length > 0 ? `${ids[0]}～${ids[ids.length-1]}` : '---';
+    
+    // 日付に曜日を追加
+    let dateWithDay = l.date;
+    try {
+      const d = new Date(l.date.replace(/\//g, '-'));
+      const days = ["日","月","火","水","木","金","土"];
+      dateWithDay += `(${days[d.getDay()]})`;
+    } catch(e) {}
+
     return `
     <div class="log-card">
-      <div class="log-date-badge">${l.type} - ${l.date}</div>
-      <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+      <div class="log-date-badge">${l.type} - ${dateWithDay}</div>
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; color:#fff;">
         <div>
           <div class="log-main-info" style="font-size:18px; font-weight:900;">${l.zone}</div>
           <div class="f-oswald log-range">No.${rangeStr}</div>
-          <div style="font-size:11px; opacity:0.6; color:#fff;">担当: ${l.user}</div>
+          <div style="font-size:11px; opacity:0.6;">担当: ${l.user}</div>
         </div>
         <div class="log-unit-large">${l.count}<small style="font-size:12px;">台</small></div>
       </div>
-      <div class="log-action-row" style="display:flex; gap:10px; margin-top:10px;">
-        <button class="btn-log-edit" onclick="startEdit(${l.row}, '${l.ids}', '${l.date}', '${l.type}')" style="flex:1;">履歴を編集</button>
-        <button class="btn-log-del" onclick="handleDelete(${l.row})" style="flex:1;">削除</button>
+      <div class="log-action-row">
+        <button class="btn-log-edit shadow-blue" onclick="startEdit(${l.row}, '${l.ids}', '${l.date}', '${l.type}')">編集</button>
+        <button class="btn-log-del shadow-red" onclick="handleDelete(${l.row})">削除</button>
       </div>
     </div>`;
   }).join('') + `<div style="height:120px;"></div>`;
