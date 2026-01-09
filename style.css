@@ -114,35 +114,44 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background:
   gap: 2px; /* タイル間の隙間を2pxに固定 */
 }
 .tile-card { 
-  min-height: 78px; /* さらに高さを圧縮 */
-  padding: 2px; /* 内部余白を極小に */
-  border-radius: 3px; 
-  display: flex; flex-direction: column; justify-content: flex-start;
+  min-height: 80px; 
+  height: 85px; 
+  padding: 4px 2px; 
+  border-radius: 4px; 
+  display: flex; 
+  flex-direction: column; 
+  justify-content: flex-start;
   position: relative;
-  cursor: pointer;
-  box-sizing: border-box;
+  cursor: pointer; /* マウスでもタップ可能であることを示す */
+  user-select: none; /* テキスト選択によるタップ阻害を防止 */status-bar-bg
+  -webkit-user-select: none;
 }
-
+/* チェックボックス周りのタップ判定を独立させる */
+.check-wrapper {
+  padding: 4px;
+  margin: -4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 /* ★ タイル内テキスト（行間を極限まで縮小・文字幅維持） */
-.tile-row-1 { display: flex; justify-content: space-between; align-items: center; width: 100%; line-height: 1; }
-.tile-row-1 .f-oswald { 
-  font-size: 11px; 
-  font-weight: 900; 
-  letter-spacing: 0px; /* 文字幅を通常に戻す */
+.tile-row-1 { display: flex; justify-content: space-between; align-items: center; width: 100%; line-height: 1; margin-bottom: 2px; }
+.tile-row-1 .f-oswald { font-size: 10px; font-weight: 900; letter-spacing: 0px; }
 }
-/* 文字が溢れないように強制制御 */
-.tile-row-2, .tile-row-3 {
-  width: 100%;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: clip; /* ...を出さずギリギリまで表示 */
-}
+/* ゾーン名とNo：幅が狭いのでさらにフォント調整 */
+.tile-row-2 { font-size: 11px; font-weight: 900; line-height: 0.9; margin-top: 2px; overflow: hidden; white-space: nowrap; }
+.tile-row-3 { font-size: 9px; font-weight: 700; line-height: 0.9; margin-top: 1px; }
+.tile-row-4 { font-size: 18px; font-weight: 900; line-height: 0.8; margin-top: auto; }
 
-.tile-row-2 { font-size: 11px; font-weight: 900; line-height: 0.8; margin-top: 2px; }
-.tile-row-3 { font-size: 9px; font-weight: 700; line-height: 0.8; margin-top: 1px; }
-.tile-row-4 { font-size: 18px; font-weight: 900; line-height: 0.8; margin-top: auto; letter-spacing: -0.5px; }
 .tile-row-5 { margin-top: 2px; }
 
+/* 展開していない時のexpand-boxは物理的に消す */
+.tile-card:not(.expanded) .expand-box {
+  display: none !important;
+}
+.tile-card.expanded .expand-box {
+  display: block !important;
+}
 /* --- 展開状態（モーダル風ポップアップ） --- */
 .expanded {
   position: fixed !important;
@@ -189,12 +198,9 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background:
 }
 
 /* ★ゲージ（ステータスバーを細く・アクティブを黒に） */
-.status-bar-bg { height: 3px; margin-top: 1px; gap: 0.5px; background: rgba(0,0,0,0.1); }
+.status-bar-bg { display: flex; height: 3px; background: rgba(0,0,0,0.1); width: 100%; gap: 1px; margin-top: 2px; }
 .p-seg { flex: 1; height: 100%; background: rgba(0,0,0,0.05); }
-.p-seg.active { 
-  background: var(--accent) !important; /* 黄色に修正 */
-  box-shadow: 0 0 2px rgba(0,0,0,0.3); 
-}
+.p-seg.active { background: var(--accent) !important; }
 
 /* --- 履歴 --- */
 .log-card { background: var(--card); padding: 12px; margin: 0 10px 10px 10px; border-radius: 10px; border-left: 5px solid var(--accent); color: #fff; }
