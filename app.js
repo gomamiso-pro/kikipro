@@ -9,8 +9,8 @@ let expandedZoneId = null;
 let editingLogRow = null;
 let isSignUpMode = false;
 
-// ★アイコンURL（適宜、自分専用のURLに書き換えてください）
-const ICON_URL = "https://raw.githubusercontent.com/gomamiso-pro/kikipro/icon.png";
+// ★アイコンURL（必要に応じて変更）
+const ICON_URL = "https://raw.githubusercontent.com/gomamiso-pro/kikipro/main/Ki.png";
 
 const TYPE_MAP = { "通常":3, "セル盤":4, "計数機":5, "ユニット":6, "説明書":7 };
 const DATE_COL_MAP = { "通常":8, "セル盤":9, "計数機":10, "ユニット":11, "説明書":12 };
@@ -26,48 +26,47 @@ window.onload = () => {
 function toggleAuthMode() {
   isSignUpMode = !isSignUpMode;
   const title = document.getElementById('auth-title');
-  const nickField = document.getElementById('login-nick');
   const submitBtn = document.getElementById('auth-submit');
   const toggleBtn = document.getElementById('auth-toggle-btn');
   const toggleMsg = document.getElementById('auth-toggle-msg');
-  const autoLoginWrap = document.getElementById('auto-login-wrapper');
 
   if (isSignUpMode) {
     title.innerText = "KIKI SIGN UP";
-    nickField.style.display = "block";
     submitBtn.innerText = "REGISTER & LOGIN";
     toggleMsg.innerText = "既にアカウントをお持ちの方";
     toggleBtn.innerText = "ログインはこちら";
-    autoLoginWrap.style.visibility = "hidden";
   } else {
     title.innerText = "KIKI LOGIN";
-    nickField.style.display = "none";
     submitBtn.innerText = "LOGIN";
     toggleMsg.innerText = "アカウントをお持ちでない方";
     toggleBtn.innerText = "新規登録はこちら";
-    autoLoginWrap.style.visibility = "visible";
   }
 }
 
 async function handleAuth() {
-  const id = document.getElementById('login-id').value;
-  const pass = document.getElementById('login-pass').value;
+  // ニックネームをIDとして使用
   const nick = document.getElementById('login-nick').value;
+  const pass = document.getElementById('login-pass').value;
   const autoLogin = document.getElementById('auto-login').checked;
 
-  if (!id || !pass || (isSignUpMode && !nick)) return alert("全ての項目を入力してください");
+  if (!nick || !pass) return alert("ニックネームとパスワードを入力してください");
 
   document.getElementById('loading').style.display = 'flex';
   try {
     const method = isSignUpMode ? "signUp" : "getInitialData";
-    const res = await callGAS(method, { authID: id, authPass: pass, nickname: nick });
+    // authIDにニックネームをセット
+    const res = await callGAS(method, { 
+      authID: nick, 
+      authPass: pass, 
+      nickname: nick 
+    });
     
     if (res.status === "error") {
       alert(res.message);
       return;
     }
 
-    authID = id;
+    authID = nick;
     authPass = pass;
 
     if (autoLogin || isSignUpMode) {
@@ -116,18 +115,13 @@ function scrollToLastWork() {
   const target = document.getElementById(`zone-card-${finalIdx}`);
   if (target) {
     target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    
-    // 赤色点滅クラスを付与
     target.classList.add('last-work-highlight');
-    
-    // 3回の点滅が終わった頃（約1.6秒後）にクラスを削除
+    // 0.5s×3回 = 1.5s なので 1.6s後にクラス削除
     setTimeout(() => { 
       target.classList.remove('last-work-highlight'); 
     }, 1600);
   }
 }
-
-
 
 function renderList() {
   const container = document.getElementById('zone-display');
@@ -151,14 +145,14 @@ function renderList() {
           <div class="zone-main-content" style="background:${z.bg};">
             <div style="display:flex; justify-content:space-between;">
               <b>${z.name}</b>
-              <span class="f-oswald" style="font-size:14px; font-weight:900;">
+              <span class="f-oswald">
                 ${originalIdx === finalIdx ? '🚩' : ''}
                 ${formatLastDate(z)}
               </span>
             </div>
             <div style="display:flex; justify-content:space-between; margin-top:5px;">
               <span class="f-oswald" style="font-size:18px;">No.${z.s}-${z.e}</span>
-              <span class="f-oswald" style="font-weight:700; font-size:14px;">${selCount}/${zoneUnits.length}台</span>
+              <span class="f-oswald">${selCount}/${zoneUnits.length}台</span>
             </div>
           </div>
         </div>
@@ -244,7 +238,6 @@ function setMode(m) {
 
 function switchView(v) {
   const isWork = (v === 'work');
-  // 入力・履歴のタグが切り替わったら選択と編集モードを解除
   cancelEdit(); 
   document.getElementById('view-work').style.display = isWork ? 'block' : 'none';
   document.getElementById('view-log').style.display = !isWork ? 'block' : 'none';
