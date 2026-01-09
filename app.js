@@ -331,8 +331,7 @@ function renderLogs() {
       <div style="display:flex; justify-content:space-between; align-items:flex-end;">
         <div>
           <div class="log-main-info">${l.zone}</div>
-          <div class="log-target-ids f-oswald">${l.ids.replace(/,/g, ', ')}</div>
-          <div class="log-sub-info">（範囲: No.${l.s}-${l.e}）</div>
+          <div class="log-range-info f-oswald">No.${l.s} - ${l.e}</div>
         </div>
         <div class="log-unit-large">${l.count}</div>
       </div>
