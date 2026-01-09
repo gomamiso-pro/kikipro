@@ -16,14 +16,14 @@
 </head>
 <body>
 
-　<div id="loading" class="overlay">
+  <div id="loading" class="overlay" style="display: flex; z-index: 300000;">
     <div class="spinner-box">
       <div class="spinner"></div>
-      <div class="loading-text">LOADING...</div>
+      <div class="loading-text" style="color:var(--accent); font-family:'Oswald'; margin-top:15px; font-weight:900; letter-spacing:2px;">LOADING...</div>
     </div>
   </div>
 
-  <div id="manual-overlay" class="overlay" onclick="hideManual()" style="display:none; background:rgba(0,0,0,0.85); backdrop-filter:blur(5px); z-index: 200000;">
+  <div id="manual-overlay" class="overlay" onclick="hideManual()" style="display:none; background:rgba(0,0,0,0.85); backdrop-filter:blur(5px); z-index: 250000;">
     <div class="manual-content" onclick="event.stopPropagation()" style="width: 95%; max-width: 500px; height: 85vh; background: #fff; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; position: relative; border: 2px solid var(--accent);">
       <div class="manual-header" style="background: var(--header-bg); padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent);">
         <div style="font-family: 'Oswald'; color: var(--accent); font-weight: 900; font-size: 18px; letter-spacing: 1px;">KIKI MANUAL</div>
@@ -33,14 +33,15 @@
     </div>
   </div>
 
-  <div id="qr-overlay" class="overlay" onclick="hideQR()" style="display:none; background:rgba(0,0,0,0.85); backdrop-filter:blur(4px);">
+  <div id="qr-overlay" class="overlay" onclick="hideQR()" style="display:none; background:rgba(0,0,0,0.85); backdrop-filter:blur(4px); z-index: 260000;">
     <div class="qr-content-wrapper" onclick="event.stopPropagation()" style="background:#fff; padding:25px; border-radius:12px; text-align:center;">
-      <div id="qr-target" style="border:10px solid #fff;"></div>
+      <div id="qr-target" style="border:10px solid #fff; display: inline-block;"></div>
       <div style="color:#000; font-family:'Oswald'; font-weight:900; margin-top:10px; font-size:14px; letter-spacing:1px;">SCAN TO SHARE</div>
+      <button onclick="hideQR()" style="margin-top:15px; width:100%; padding:10px; background:#333; color:#fff; border:none; border-radius:6px; font-weight:900;">CLOSE</button>
     </div>
   </div>
 
-  <div id="login-overlay" class="overlay" style="display: flex; background: var(--bg);">
+  <div id="login-overlay" class="overlay" style="display: flex; background: var(--bg); z-index: 200000;">
     <div class="auth-box" style="position: relative;">
       <div onclick="showManual()" style="position: absolute; top: 15px; right: 15px; cursor: pointer; color: var(--accent); display: flex; flex-direction: column; align-items: center; gap: 2px;">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
@@ -97,17 +98,22 @@
       </div>
     </div>
 
-    <main id="view-work"><div id="zone-display"></div></main>
-    <main id="view-log" style="display:none;"><div id="log-list" style="padding:10px;"></div></main>
+    <main id="view-work">
+      <div id="zone-display"></div>
+    </main>
+
+    <main id="view-log" style="display:none;">
+      <div id="log-list" style="padding:10px;"></div>
+    </main>
 
     <div class="footer">
       <div class="footer-main-row">
-        <div style="font-family:Oswald; font-size:32px; color:var(--accent);">
+        <div style="font-family:'Oswald'; font-size:32px; color:var(--accent);">
           <span id="u-total">0</span> <small style="font-size:12px;">台</small>
         </div>
         <div class="date-container" onclick="document.getElementById('work-date').showPicker()">
           <span id="date-label">---</span>
-          <input type="date" id="work-date" onchange="updateDateDisplay()" style="position:absolute; opacity:0; pointer-events:none;">
+          <input type="date" id="work-date" onchange="updateDateDisplay()" style="position:absolute; opacity:0; pointer-events:none; left:0;">
         </div>
       </div>
       <div class="footer-btns">
@@ -116,5 +122,6 @@
       </div>
     </div>
   </div>
+
 </body>
 </html>
