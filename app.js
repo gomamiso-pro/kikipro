@@ -41,36 +41,42 @@ function toggleAuthMode() {
   }
 }
 
+// app.js の handleAuth 関数（イメージ）
 async function handleAuth() {
-  const nick = document.getElementById('login-nick').value;
+  const id = document.getElementById('login-nick').value;
   const pass = document.getElementById('login-pass').value;
-  const autoLogin = document.getElementById('auto-login').checked;
 
-  if (!nick || !pass) return alert("ニックネームとパスワードを入力してください");
+  if(!id || !pass) return alert("入力してください");
 
   document.getElementById('loading').style.display = 'flex';
+  
   try {
-    const method = isSignUpMode ? "signUp" : "getInitialData";
-    const res = await callGAS(method, { authID: nick, authPass: pass, nickname: nick });
-    
-    if (res.status === "error") {
-      alert(res.message);
-      return;
-    }
-    authID = nick;
+    authID = id;
     authPass = pass;
-    if (autoLogin || isSignUpMode) {
-      localStorage.setItem('kiki_authID', authID);
-      localStorage.setItem('kiki_authPass', authPass);
+    const res = await callGAS("getInitialData");
+
+    if (res.status === "success") {
+      // ログイン成功時の保存処理
+      if(document.getElementById('auto-login').checked) {
+        localStorage.setItem('kiki_authID', id);
+        localStorage.setItem('kiki_authPass', pass);
+      }
+
+      DATA = res;
+      renderAll();
+      document.getElementById('user-display').innerText = DATA.user.toUpperCase();
+
+      // ★ここが重要！画面を表示状態にする
+      document.body.classList.add('ready');
+
+      document.getElementById('login-overlay').style.display = 'none';
+    } else {
+      alert(res.message);
     }
-    document.getElementById('login-overlay').style.display = 'none';
-    DATA = res;
-    document.getElementById('user-display').innerText = DATA.user.toUpperCase();
-    renderAll();
-  } catch (e) { 
-    alert("接続に失敗しました"); 
-  } finally { 
-    document.getElementById('loading').style.display = 'none'; 
+  } catch (e) {
+    alert("通信エラーが発生しました");
+  } finally {
+    document.getElementById('loading').style.display = 'none';
   }
 }
 
