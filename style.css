@@ -36,32 +36,32 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
 .top-tab { flex: 1; padding: 12px; text-align: center; font-size: 13px; font-weight: 700; color: var(--text-dim); }
 .top-tab.active-work { background: #5e81ac !important; color: #fff !important; }
 .top-tab.active-log { background: #d08770 !important; color: #fff !important; }
+
 .type-bar { display: grid; grid-template-columns: repeat(5, 1fr); background: var(--panel); }
 .type-btn { background: var(--header-bg); border: none; color: var(--text-dim); padding: 10px 0; font-size: 10px; font-weight: 700; transition: background 0.5s; }
 .type-btn.active { background: var(--accent) !important; color: #000 !important; }
 
-/* 表示切替・全選択・最終🚩（0.5秒戻りフィードバック） */
+/* 表示切替・全選択ボタン */
 .view-mode-bar { display:flex; background:var(--bg); padding:8px 10px; gap:8px; border-bottom: 1px solid var(--panel); }
 .view-mode-bar button {
   flex: 1; padding: 10px; border-radius: 6px; border: 2px solid transparent; 
   background: var(--card); color: var(--text-dim); font-weight: 900; font-size: 12px; 
   transition: all 0.5s ease;
 }
-.view-mode-bar button:active {
-  transform: scale(0.92);
-  background: var(--accent) !important;
-  color: #000 !important;
-  transition: all 0.05s;
-}
 .view-mode-bar button.active {
   background: transparent !important; 
   border: 2px solid var(--accent) !important; 
   color: var(--accent) !important; 
 }
+/* 全選択ボタンが「全解除（選択あり）」状態のときの色 */
+#toggle-all-btn.all-selected {
+  background: var(--accent) !important;
+  color: #000 !important;
+}
 
 #view-work, #view-log { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 
-/* 全体表示（タイル）4列固定 */
+/* 【全体表示（タイル）4列固定】 */
 .zone-container-tile { 
   padding: 8px 4px 220px 4px; 
   display: grid; 
@@ -69,7 +69,7 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
   gap: 4px; 
 }
 .tile-card { 
-  min-height: 80px; /* 高さを圧縮 */
+  min-height: 80px; 
   padding: 4px 3px; 
   border-radius: 4px; 
   background: #fff; 
@@ -78,51 +78,91 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
   flex-direction: column; 
   justify-content: space-between; 
   overflow: hidden;
+  border: 2px solid transparent; /* 枠線を確保 */
 }
+/* 選択中または編集中は黄色枠を表示 */
+.has-selection { border: 2px solid var(--accent) !important; }
+
 .tile-row { width: 100%; display: flex; align-items: center; line-height: 1.0; }
 .tile-row-top { justify-content: space-between; margin-bottom: 2px; }
-.tile-date-large { font-size: 11px !important; font-family: 'Oswald'; font-weight: 900; letter-spacing: -0.3px; }
-.tile-row-name span { 
-  display: inline-block; 
-  transform-origin: left; /* 左端を起点に縮小 */
-  width: 100%; 
-}
-.tile-row-name { font-size: 10px; font-weight: 900; text-align: left; margin-bottom: 1px; }
-.tile-row-no { font-family: 'Oswald'; font-size: 11px; font-weight: 700; text-align: left; color: #333; }
+
+/* 日付と台数は長体なしで大きく表示 */
+.tile-date-large { font-size: 11px !important; font-family: 'Oswald'; font-weight: 900; letter-spacing: -0.3px; white-space: nowrap; }
 .tile-row-count { 
   justify-content: flex-end; 
   font-family: 'Oswald'; 
   font-size: 14px; 
   font-weight: 900; 
-  margin-top: -1px;
+  white-space: nowrap;
 }
-/* 長体用スパン：左端起点 */
+
+/* ゾーン名とNoは左寄せ、はみ出し時のみ長体 */
+.tile-row-name { font-size: 10px; font-weight: 900; text-align: left; margin-bottom: 1px; }
+.tile-row-no { font-family: 'Oswald'; font-size: 11px; font-weight: 700; text-align: left; color: #333; }
 .condensed-span { display: inline-block; transform-origin: left; white-space: nowrap; width: 100%; }
 
-.status-bar-bg { height: 3px; margin-top: 2px; }
 /* リスト表示 */
 .zone-container-list { padding: 10px 10px 220px 10px; display: flex; flex-direction: column; gap: 10px; }
-.zone-row { border-radius: 8px; overflow: hidden; background: #fff; border: 2px solid transparent; color: #000; }
-.has-selection { border-color: var(--accent) !important; }
+.zone-row { border-radius: 8px; overflow: hidden; background: #fff; border: 2px solid transparent; color: #000; display: flex; flex-direction: column; }
 .zone-check-area { width: 60px; background: rgba(0,0,0,0.05); display: flex; justify-content: center; align-items: center; }
 .zone-main-content { flex: 1; padding: 12px; }
-.zone-main-content b + span { font-size: 16px !important; font-weight: 900; display: flex; align-items: center; color: #000 !important; }
-.zone-main-content span.f-oswald:last-child { font-size: 16px !important; font-weight: 700; color: #000 !important; }
 
-/* 点滅アニメーション */
-@keyframes flash-red {
-  0% { outline: 4px solid var(--danger); }
-  50% { outline: 4px solid transparent; }
-  100% { outline: 4px solid var(--danger); }
+/* 【履歴（ログ）表示】 */
+.log-card { 
+  background: var(--card); 
+  padding: 15px; 
+  margin: 12px; 
+  border-radius: 12px; 
+  border-left: 6px solid var(--accent); 
+  position: relative;
 }
-.last-work-highlight {
-  outline: 4px solid var(--danger) !important;
-  outline-offset: -4px;
-  animation: flash-red 0.5s ease 3; 
+.log-type-badge { 
+  display: inline-block; 
+  background: var(--accent); 
+  color: #000; 
+  padding: 2px 8px; 
+  border-radius: 4px; 
+  font-size: 10px; 
+  font-weight: 900; 
+  margin-bottom: 8px; 
 }
+.log-main-info { font-size: 18px; font-weight: 900; color: #fff; margin: 4px 0; }
+.log-sub-info { font-size: 12px; color: var(--text-dim); }
+
+/* 履歴の台数：登録画面と同じ黄色巨大文字スタイル */
+.log-unit-large { 
+  font-family: 'Oswald'; 
+  color: var(--accent); 
+  font-size: 32px; 
+  font-weight: 700; 
+  display: flex; 
+  align-items: baseline; 
+  gap: 2px; 
+}
+.log-unit-large::after { 
+  content: "台"; 
+  font-size: 12px; 
+  color: var(--accent); 
+  font-weight: 900; 
+}
+
+/* 編集・削除ボタンの間隔を広く */
+.log-action-row { display: flex; justify-content: space-between; margin-top: 15px; gap: 20px; }
+.btn-log-edit, .btn-log-del { 
+  flex: 1; 
+  padding: 10px; 
+  border-radius: 6px; 
+  font-weight: 900; 
+  font-size: 13px; 
+  border: none; 
+  text-align: center;
+  cursor: pointer;
+}
+.btn-log-edit { background: #4b5263; color: var(--accent); border: 1px solid var(--accent); }
+.btn-log-del { background: #4b5263; color: var(--danger); border: 1px solid var(--danger); }
 
 /* 共通パーツ */
-.status-bar-bg { background: rgba(0,0,0,0.1); height: 4px; margin-top: 4px; display: flex; gap: 1px; width: 100%; }
+.status-bar-bg { background: rgba(0,0,0,0.1); height: 3px; margin-top: 2px; display: flex; gap: 1px; width: 100%; }
 .p-seg { flex: 1; height: 100%; }
 .p-seg.active { background: var(--accent) !important; }
 
@@ -145,3 +185,15 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
 .btn-cancel { background: #4b5263; color: #eceff4; }
 
 .f-oswald { font-family: 'Oswald', sans-serif; }
+
+/* 点滅アニメーション */
+@keyframes flash-red {
+  0% { outline: 4px solid var(--danger); }
+  50% { outline: 4px solid transparent; }
+  100% { outline: 4px solid var(--danger); }
+}
+.last-work-highlight {
+  outline: 4px solid var(--danger) !important;
+  outline-offset: -4px;
+  animation: flash-red 0.5s ease 3; 
+}
