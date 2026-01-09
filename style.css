@@ -90,7 +90,12 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background:
 
 /* リスト表示 */
 .zone-container-list { padding: 10px; display: flex; flex-direction: column; gap: 10px; }
-.zone-row { border-radius: 10px; overflow: hidden; position: relative; }
+/* zone-row内の中身も強制的に黒にする */
+.zone-row b, 
+.zone-row span, 
+.zone-row div { 
+  color: #000 !important; 
+}
 
 /* タイル表示 */
 .zone-container-tile { padding: 8px 6px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
