@@ -273,19 +273,49 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
   animation: flash-red 0.5s ease 3; 
 }
 
-/* 初期状態ではメインコンテンツを隠す */
+/* --- ちらつき防止設定：初期状態 --- */
+
+/* ログイン後のメイン要素を初期状態で非表示にする */
 #view-work, #view-log, .footer, .header, .nav-row, .type-bar, #view-mode-controls {
-  display: none;
+  display: none !important;
+  opacity: 0;
 }
 
-/* 準備完了後に付与するクラス */
-.ready #view-work, 
-.ready .header, 
-.ready .nav-row, 
-.ready .type-bar, 
-.ready #view-mode-controls {
-  display: block; /* headerなどはflexなど元の設定に合わせてください */
+/* --- 準備完了後に付与するクラス (.ready) --- */
+
+/* 1. 基本的な表示への切り替え */
+body.ready #view-work, 
+body.ready #view-log, 
+body.ready .nav-row, 
+body.ready .type-bar, 
+body.ready #view-mode-controls {
+  display: block !important;
+  opacity: 1;
 }
-.ready .footer {
-  display: flex;
+
+/* 2. Flexレイアウトを使用する要素の復元 */
+body.ready .header {
+  display: flex !important;
+  opacity: 1;
+}
+
+body.ready .footer {
+  display: flex !important;
+  opacity: 1;
+}
+
+/* 3. ログイン画面（オーバーレイ）は最初から見えるように保証 */
+#login-overlay {
+  display: flex !important;
+  opacity: 1 !important;
+}
+
+/* 4. ふわっと表示させたい場合はこれを追加（任意） */
+body.ready .header, 
+body.ready .nav-row, 
+body.ready .type-bar, 
+body.ready #view-mode-controls, 
+body.ready main, 
+body.ready .footer {
+  transition: opacity 0.3s ease;
 }
