@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KIKI PRO V13 操作マニュアル</title>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #1a1c23; --card: #2d313d; --header-bg: #111318;
+            --accent: #facc15; --text: #e5e9f0; --text-dim: #9ca3af; --danger: #bf616a; --blue: #5e81ac;
+        }
+        body {
+            font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: var(--text);
+            margin: 0; padding-bottom: 50px; line-height: 1.6;
+        }
+        .container { max-width: 500px; margin: 0 auto; padding: 20px; }
+        header { text-align: center; padding: 30px 0; border-bottom: 1px solid var(--card); }
+        .logo { font-family: 'Oswald'; font-size: 32px; color: var(--accent); font-weight: 900; }
+        
+        h2 { border-left: 5px solid var(--accent); padding-left: 15px; margin-top: 40px; font-size: 20px; }
+        h3 { color: var(--accent); font-size: 16px; margin-top: 25px; }
+
+        .card { background: var(--card); border-radius: 12px; padding: 20px; margin: 15px 0; border: 1px solid #3a3f4d; }
+        .point { font-weight: bold; color: var(--accent); }
+        
+        /* シミュレーション表示 */
+        .mock-zone {
+            border: 3px solid var(--accent); border-radius: 8px; background: #fff; color: #000;
+            padding: 10px; margin: 10px 0; box-shadow: 0 0 10px rgba(250,204,21,0.3);
+        }
+        .mock-badge { background: var(--accent); color: #000; font-weight: 900; font-size: 10px; padding: 2px 8px; border-radius: 4px; display: inline-block; }
+        
+        .btn-sample {
+            display: inline-block; padding: 10px 20px; border-radius: 6px; 
+            font-weight: 900; font-size: 14px; text-decoration: none; margin: 5px 0;
+        }
+        .btn-exec { background: var(--blue); color: #fff; }
+        .btn-all { border: 2px solid var(--accent); color: var(--accent); }
+
+        .unit-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-top: 10px; }
+        .unit { background: #333; color: #fff; text-align: center; padding: 5px; border-radius: 4px; font-family: 'Oswald'; font-size: 12px; }
+        .unit.active { background: var(--accent); color: #000; font-weight: bold; }
+
+        footer { text-align: center; font-size: 12px; color: var(--text-dim); margin-top: 50px; padding: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div class="logo">KIKI PRO V13</div>
+        <p style="font-size: 14px;">現場スタッフ向け操作ガイド</p>
+    </header>
+
+    <section>
+        <h2>1. ログイン</h2>
+        <div class="card">
+            <p>渡されたIDとパスワードでログインします。</p>
+            <ul>
+                <li><span class="point">自動ログイン:</span> チェックを入れると明日から入力を省略できます。</li>
+                <li><span class="point">共有:</span> 右上のQRアイコンから仲間にアプリを教えられます。</li>
+            </ul>
+        </div>
+    </section>
+
+    <section>
+        <h2>2. 作業の登録（入力）</h2>
+        <p>「入力」タブで行うメインの操作です。</p>
+        
+        <h3>① 種別を選択</h3>
+        <p>画面一番上のバーで「通常」「セル盤」などを選びます。</p>
+
+        <h3>② ゾーン・台を選択</h3>
+        <div class="card">
+            <p>やり方は2つあります：</p>
+            <ol>
+                <li><span class="point">チェックボックス:</span> ゾーン丸ごと選択。</li>
+                <li><span class="point">中央タップ:</span> 台番号チップが開き、個別に選べます。</li>
+            </ol>
+            <div class="mock-zone">
+                <div style="display:flex; justify-content:space-between; font-weight:bold;">
+                    <span>サンプルゾーン</span>
+                    <span style="font-family:Oswald;">🚩1/9(金)</span>
+                </div>
+                <div class="unit-grid">
+                    <div class="unit active">101</div>
+                    <div class="unit">102</div>
+                    <div class="unit active">103</div>
+                </div>
+            </div>
+            <p style="font-size:12px; color:var(--text-dim);">※選択されたゾーンは上記のように<span class="point">黄色い太枠</span>になります。</p>
+        </div>
+
+        <h3>③ 便利な機能</h3>
+        <div class="card">
+            <p><span class="point">全選択/解除:</span> 一気に全部の台を選べます。</p>
+            <p><span class="point">最終🚩:</span> 最後に作業した場所へ自動でジャンプして点滅します。</p>
+        </div>
+
+        <h3>④ 登録実行</h3>
+        <div class="btn-sample btn-exec">登録実行</div>
+        <p>最後にこのボタンを押せば完了です！</p>
+    </section>
+
+    <section>
+        <h2>3. 履歴の確認・修正</h2>
+        <p>「履歴」タブをタップします。</p>
+        <div class="card" style="border-left: 6px solid var(--accent);">
+            <div class="mock-badge">通常</div>
+            <div style="font-size: 18px; font-weight: 900;">Aゾーン</div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                <div style="font-size: 12px; color: var(--text-dim);">No.1-20</div>
+                <div style="font-family: 'Oswald'; color: var(--accent); font-size: 32px; font-weight: 700;">20<small style="font-size:12px;">台</small></div>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <div style="flex:1; border: 1px solid var(--accent); color: var(--accent); text-align:center; padding:5px; border-radius:4px; font-weight:bold; font-size:12px;">編集</div>
+                <div style="flex:1; border: 1px solid var(--danger); color: var(--danger); text-align:center; padding:5px; border-radius:4px; font-weight:bold; font-size:12px;">削除</div>
+            </div>
+        </div>
+        <p><span class="point">編集ボタン:</span> 間違えて登録しても、ここから修正して上書きできます。</p>
+    </section>
+
+    <footer>
+        &copy; 2026 KIKI PRO Project. All Rights Reserved.
+    </footer>
+</div>
+
+</body>
+</html>
