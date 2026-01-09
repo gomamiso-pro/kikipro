@@ -37,20 +37,21 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
 .top-tab.active-work { background: #5e81ac !important; color: #fff !important; }
 .top-tab.active-log { background: #d08770 !important; color: #fff !important; }
 .type-bar { display: grid; grid-template-columns: repeat(5, 1fr); background: var(--panel); }
-.type-btn { background: var(--header-bg); border: none; color: var(--text-dim); padding: 10px 0; font-size: 10px; font-weight: 700; outline: none; transition: background 0.5s; }
+.type-btn { background: var(--header-bg); border: none; color: var(--text-dim); padding: 10px 0; font-size: 10px; font-weight: 700; transition: background 0.5s; }
 .type-btn.active { background: var(--accent) !important; color: #000 !important; }
 
-/* 表示切替ボタン（押し感 0.5s） */
+/* 表示切替・全選択・最終🚩（0.5秒戻りフィードバック） */
 .view-mode-bar { display:flex; background:var(--bg); padding:8px 10px; gap:8px; border-bottom: 1px solid var(--panel); }
 .view-mode-bar button {
   flex: 1; padding: 10px; border-radius: 6px; border: 2px solid transparent; 
   background: var(--card); color: var(--text-dim); font-weight: 900; font-size: 12px; 
-  transition: all 0.5s ease; /* 戻る時間を0.5秒に設定 */
+  transition: all 0.5s ease;
 }
 .view-mode-bar button:active {
-  transform: scale(0.95);
-  background: var(--panel) !important;
-  transition: all 0.05s; /* 押した時は一瞬 */
+  transform: scale(0.92);
+  background: var(--accent) !important;
+  color: #000 !important;
+  transition: all 0.05s;
 }
 .view-mode-bar button.active {
   background: transparent !important; 
@@ -60,33 +61,32 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
 
 #view-work, #view-log { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 
-/* 全体表示（タイル）幅固定・長体対応 */
+/* 全体表示（タイル）4列固定 */
 .zone-container-tile { 
   padding: 8px 8px 220px 8px; 
   display: grid; 
-  grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); /* 4列を維持しつつ幅を安定化 */
-  gap: 6px; 
+  grid-template-columns: repeat(4, 1fr); 
+  gap: 4px; 
 }
 .tile-card { 
-  min-height: 100px; padding: 6px 4px; border-radius: 6px; border: 2px solid transparent; 
+  min-height: 95px; padding: 4px 2px; border-radius: 6px; border: 2px solid transparent; 
   background: #fff; color: #000; display: flex; flex-direction: column; justify-content: space-between; 
+  overflow: hidden;
 }
 .tile-row { width: 100%; display: flex; align-items: center; line-height: 1.1; }
-.tile-row-top { justify-content: space-between; font-size: 10px; font-family: 'Oswald'; font-weight: 900; }
+.tile-row-top { justify-content: space-between; font-size: 9px; font-family: 'Oswald'; font-weight: 900; }
 .tile-row-name { 
-  font-size: 11px; font-weight: 900; text-align: center; justify-content: center;
-  white-space: nowrap; overflow: hidden;
+  font-size: 10px; font-weight: 900; text-align: center; justify-content: center;
+  white-space: nowrap; overflow: visible;
 }
-/* 長体（文字数が多い時）のコンテナ */
-.condensed { display: inline-block; transform-origin: center; width: 100%; }
+.tile-row-name span { display: inline-block; transform-origin: center; width: 100%; }
 
-.tile-row-no { font-family: 'Oswald'; font-size: 13px; font-weight: 700; justify-content: center; }
-.tile-row-count { justify-content: flex-end; font-family: 'Oswald'; font-size: 11px; font-weight: 700; margin-top: 2px; }
+.tile-row-no { font-family: 'Oswald'; font-size: 12px; font-weight: 700; justify-content: center; }
+.tile-row-count { justify-content: flex-end; font-family: 'Oswald'; font-size: 10px; font-weight: 700; }
 
 /* リスト表示 */
 .zone-container-list { padding: 10px 10px 220px 10px; display: flex; flex-direction: column; gap: 10px; }
-.zone-row { border-radius: 8px; overflow: hidden; background: #fff; border: 2px solid transparent; color: #000; transition: transform 0.1s; }
-.zone-row:active { transform: scale(0.98); }
+.zone-row { border-radius: 8px; overflow: hidden; background: #fff; border: 2px solid transparent; color: #000; }
 .has-selection { border-color: var(--accent) !important; }
 .zone-check-area { width: 60px; background: rgba(0,0,0,0.05); display: flex; justify-content: center; align-items: center; }
 .zone-main-content { flex: 1; padding: 12px; }
@@ -106,7 +106,7 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
 }
 
 /* 共通パーツ */
-.status-bar-bg { background: rgba(0,0,0,0.1); height: 5px; margin-top: 4px; display: flex; gap: 1px; width: 100%; border-radius: 2px; overflow: hidden; }
+.status-bar-bg { background: rgba(0,0,0,0.1); height: 4px; margin-top: 4px; display: flex; gap: 1px; width: 100%; }
 .p-seg { flex: 1; height: 100%; }
 .p-seg.active { background: var(--accent) !important; }
 
@@ -122,28 +122,10 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
 .date-container { background: var(--panel); padding: 5px 15px; border-radius: 6px; color: var(--accent); }
 #date-label { font-family: 'Oswald'; font-size: 24px; font-weight: 900; }
 .footer-btns { display: flex; flex-direction: column; gap: 8px; }
-.btn-exec, .btn-cancel { width: 100%; padding: 14px; border-radius: 8px; font-weight: 900; font-size: 16px; border: none; transition: 0.2s; }
+.btn-exec, .btn-cancel { width: 100%; padding: 14px; border-radius: 8px; font-weight: 900; font-size: 16px; border: none; }
 .btn-exec:active, .btn-cancel:active { transform: scale(0.96); opacity: 0.8; }
 .btn-exec { background: #5e81ac; color: #fff; }
-.btn-exec:disabled { opacity: 0.3; transform: none; }
+.btn-exec:disabled { opacity: 0.3; }
 .btn-cancel { background: #4b5263; color: #eceff4; }
 
-/* ログ */
-.log-unit-badge { font-family: 'Oswald'; color: var(--accent) !important; font-size: 20px; font-weight: 700; display: flex; align-items: baseline; gap: 2px; }
-.log-unit-badge::after { content: "台"; font-size: 10px; color: var(--text-dim); }
-
-.qr-content-wrapper { transform: scale(0.9); animation: qrPop 0.3s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-@keyframes qrPop { to { transform: scale(1); } }
-
-/* 全選択/解除・最終ボタン等の押し感 (0.5s戻り) */
-#toggle-all-btn, button[onclick="scrollToLastWork()"] {
-  transition: all 0.5s ease;
-}
-#toggle-all-btn:active, button[onclick="scrollToLastWork()"]:active {
-  transform: scale(0.9);
-  background-color: var(--accent) !important;
-  color: #000 !important;
-  transition: all 0.05s;
-}
-
-
+.f-oswald { font-family: 'Oswald', sans-serif; }
