@@ -111,7 +111,8 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 /* ★選択・編集時の黄色枠★ */
 .has-selection { 
   border: 3px solid var(--accent) !important; 
-  box-shadow: 0 0 12px rgba(250, 204, 21, 0.5); 
+  box-shadow: 0 0 15px rgba(250, 204, 21, 0.6) !important; 
+  background: rgba(250, 204, 21, 0.05) !important; /* ほんのり中も黄色く */
 }
 
 .tile-row { width: 100%; display: flex; align-items: center; line-height: 1.0; }
@@ -160,13 +161,13 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
   transition: all 0.1s;
   box-shadow: 0 2px 0 rgba(0,0,0,0.3); /* 少し立体感 */
 }
-/* ★ここが重要：選択された状態の黄色★ */
+/* 個別チップの黄色 */
 .unit-chip.active { 
   background: var(--accent) !important; 
   color: #000 !important; 
-  font-weight: 900; 
-  border-color: #000;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); /* 押し込まれたような影 */
+  font-weight: 900 !important; 
+  border-color: #000 !important;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.3) !important;
 }
 /* チップをタップした瞬間のフィードバック */
 .unit-chip:active {
