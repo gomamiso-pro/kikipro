@@ -2,10 +2,10 @@
  * api.js - KIKI PRO V13 通信モジュール
  */
 
-// 1. 【重要】GASでデプロイしたウェブアプリURLをここに貼り付けてください
+// 1. GASウェブアプリURL
 const GAS_URL = "https://script.google.com/macros/s/AKfycbwTCb8e6CXka9Y6Pa4zI3MUvjQSuUTIi2ZtOeBajSbipm6bW97k9Qedo1m1VknvJVQlzQ/exec";
 
-// 2. 【重要】GAS側の SECRET_API_KEY と同じ文字列にしてください
+// 2. GAS側の SECRET_API_KEY
 const SECRET_API_KEY = "kiki-secure-2026";
 
 // 認証情報を保持するグローバル変数
@@ -14,11 +14,13 @@ let authPass = "";
 
 /**
  * GASとの通信を管理するメイン関数
- * @param {string} methodName - GAS側で実行するメソッド名
- * @param {object} params - 送信するパラメータ
+ * 全通信でLoading表示を強制するように修正
  */
 async function callGAS(methodName, params = {}) {
-  // GASの doPost(e) 内の request.method / request.apiKey / request.data に対応
+  // 通信開始時にLoadingオーバーレイを表示
+  const loader = document.getElementById('loading');
+  if (loader) loader.style.display = 'flex';
+
   const payload = {
     method: methodName,
     apiKey: SECRET_API_KEY,
@@ -34,7 +36,7 @@ async function callGAS(methodName, params = {}) {
       method: "POST",
       body: JSON.stringify(payload),
       headers: {
-        "Content-Type": "text/plain;charset=utf-8" // GASのCORS回避のための標準設定
+        "Content-Type": "text/plain;charset=utf-8"
       }
     });
 
@@ -44,7 +46,6 @@ async function callGAS(methodName, params = {}) {
 
     const result = await response.json();
 
-    // GAS側から {status: "error", message: "..."} が返ってきた場合の処理
     if (result.status === "error") {
       throw new Error(result.message);
     }
@@ -52,11 +53,15 @@ async function callGAS(methodName, params = {}) {
     return result;
   } catch (error) {
     console.error("GAS Call Error:", error);
-    // Failed to fetch が出る場合は、GASの公開設定が「全員(Anyone)」か確認が必要
     if (error.message === "Failed to fetch") {
-      throw new Error("GASへの接続に失敗しました。URLまたは公開設定(全員)を確認してください。");
+      throw new Error("GASへの接続に失敗しました。URLまたは公開設定を確認してください。");
     }
     throw error;
+  } finally {
+    // 通信終了時にLoadingを非表示（app.js側で制御が続く場合を除く）
+    // ただし、ログイン後などはapp.js側の処理が終わるまで表示させたい場合があるため、
+    // ここで一括で消す設定にしています。
+    if (loader) loader.style.display = 'none';
   }
 }
 
