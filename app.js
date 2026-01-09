@@ -9,19 +9,18 @@ let expandedZoneId = null;
 let editingLogRow = null;
 let isSignUpMode = false;
 
-// ★アイコンURL（必要に応じて変更）
 const ICON_URL = "https://raw.githubusercontent.com/gomamiso-pro/kikipro/main/Ki.png";
-
 const TYPE_MAP = { "通常":3, "セル盤":4, "計数機":5, "ユニット":6, "説明書":7 };
 const DATE_COL_MAP = { "通常":8, "セル盤":9, "計数機":10, "ユニット":11, "説明書":12 };
 
 window.onload = () => {
-  silentLogin(); // api.js
+  silentLogin(); 
   const d = new Date();
   document.getElementById('work-date').value = d.toISOString().split('T')[0];
   updateDateDisplay();
 };
 
+// --- 認証UI操作 ---
 function toggleAuthMode() {
   isSignUpMode = !isSignUpMode;
   const title = document.getElementById('auth-title');
@@ -29,7 +28,6 @@ function toggleAuthMode() {
   const toggleBtn = document.getElementById('auth-toggle-btn');
   const toggleMsg = document.getElementById('auth-toggle-msg');
 
-  // login-nick（ニックネーム欄）は常に表示するので display 操作は不要です
   if (isSignUpMode) {
     title.innerText = "KIKI SIGN UP";
     submitBtn.innerText = "REGISTER & LOGIN";
@@ -43,9 +41,7 @@ function toggleAuthMode() {
   }
 }
 
-
 async function handleAuth() {
-  // ニックネームをIDとして使用
   const nick = document.getElementById('login-nick').value;
   const pass = document.getElementById('login-pass').value;
   const autoLogin = document.getElementById('auto-login').checked;
@@ -55,26 +51,18 @@ async function handleAuth() {
   document.getElementById('loading').style.display = 'flex';
   try {
     const method = isSignUpMode ? "signUp" : "getInitialData";
-    // authIDにニックネームをセット
-    const res = await callGAS(method, { 
-      authID: nick, 
-      authPass: pass, 
-      nickname: nick 
-    });
+    const res = await callGAS(method, { authID: nick, authPass: pass, nickname: nick });
     
     if (res.status === "error") {
       alert(res.message);
       return;
     }
-
     authID = nick;
     authPass = pass;
-
     if (autoLogin || isSignUpMode) {
       localStorage.setItem('kiki_authID', authID);
       localStorage.setItem('kiki_authPass', authPass);
     }
-
     document.getElementById('login-overlay').style.display = 'none';
     DATA = res;
     document.getElementById('user-display').innerText = DATA.user.toUpperCase();
@@ -98,19 +86,20 @@ function renderAll() {
 
 function changeType(t) { activeType = t; expandedZoneId = null; if(!editingLogRow) selectedUnits.clear(); renderAll(); }
 
-function handleZoneCheckAll() {
-  const btn = document.getElementById('toggle-all-btn');
-  
-  // 押した瞬間の演出：クラスを追加
-  btn.style.transform = "scale(0.9)";
-  btn.style.opacity = "0.7";
-
-  // 0.15秒後に元に戻す（これで「カチッ」とした動きになります）
+// ボタンの押し感を演出するためのラッパー
+function applyClickFeedback(elementId) {
+  const el = document.getElementById(elementId);
+  if (!el) return;
+  el.style.backgroundColor = "rgba(255, 255, 255, 0.4)";
+  el.style.transform = "scale(0.95)";
   setTimeout(() => {
-    btn.style.transform = "scale(1)";
-    btn.style.opacity = "1";
-  }, 150);
+    el.style.backgroundColor = "";
+    el.style.transform = "";
+  }, 500); // 0.5秒のフィードバック
+}
 
+function handleZoneCheckAll() {
+  applyClickFeedback('toggle-all-btn');
   const tIdx = TYPE_MAP[activeType];
   const allIds = DATA.master.filter(m => Number(m[tIdx]) === 1).map(m => Number(m[0]));
   const isEverythingSelected = allIds.every(id => selectedUnits.has(id));
@@ -123,18 +112,15 @@ function handleZoneCheckAll() {
   renderAll();
 }
 
-
 function scrollToLastWork() {
+  // 最終🚩ボタンへのフィードバック（ボタン自体にIDがある前提、またはインラインで色変え）
   const finalIdx = getFinalWorkZoneIndex();
   if (finalIdx === -1) return;
   const target = document.getElementById(`zone-card-${finalIdx}`);
   if (target) {
     target.scrollIntoView({ behavior: 'smooth', block: 'center' });
     target.classList.add('last-work-highlight');
-    // 0.5s×3回 = 1.5s なので 1.6s後にクラス削除
-    setTimeout(() => { 
-      target.classList.remove('last-work-highlight'); 
-    }, 1600);
+    setTimeout(() => { target.classList.remove('last-work-highlight'); }, 1600);
   }
 }
 
@@ -185,7 +171,7 @@ function renderList() {
 
 function renderTile() {
   const container = document.getElementById('zone-display');
-  container.className = "zone-container-tile";
+  container.className = "zone-container-tile"; // CSSで grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)) を推奨
   const tIdx = TYPE_MAP[activeType];
   const finalIdx = getFinalWorkZoneIndex();
   const activeZones = DATA.cols.filter(z => DATA.master.some(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1));
@@ -196,18 +182,24 @@ function renderTile() {
     const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
     const isAllSelected = zoneUnits.length > 0 && zoneUnits.every(m => selectedUnits.has(Number(m[0])));
 
+    // ゾーン名の長体処理: 6文字を超える場合は圧縮
+    const rawName = z.name.replace('ゾーン', '');
+    const scale = rawName.length > 6 ? Math.max(0.6, 6 / rawName.length) : 1;
+    const transformStyle = scale < 1 ? `style="transform: scaleX(${scale}); display: inline-block; width: 100%; white-space: nowrap;"` : '';
+
     return `
       <div id="zone-card-${originalIdx}" class="tile-card ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" style="background:${z.bg};" onclick="handleZoneAction(event, ${originalIdx})">
         <div class="tile-row tile-row-top">
           <div onclick="handleZoneCheck(event, ${originalIdx})"><input type="checkbox" ${isAllSelected ? 'checked' : ''} style="pointer-events:none; transform:scale(0.8);"></div>
-          <span>
-            ${originalIdx === finalIdx ? '🚩' : ''}
-            ${formatLastDate(z)}
+          <span class="f-oswald" style="font-size:10px;">
+            ${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z)}
           </span>
         </div>
-        <div class="tile-row tile-row-name">${z.name.replace('ゾーン', '')}</div>
-        <div class="tile-row tile-row-no">No.${z.s}-${z.e}</div>
-        <div class="tile-row tile-row-count">${selCount}/${zoneUnits.length}</div>
+        <div class="tile-row tile-row-name">
+          <span ${transformStyle}>${rawName}</span>
+        </div>
+        <div class="tile-row tile-row-no f-oswald">No.${z.s}-${z.e}</div>
+        <div class="tile-row tile-row-count f-oswald">${selCount}/${zoneUnits.length}</div>
         <div class="status-bar-bg">
           ${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}
         </div>
