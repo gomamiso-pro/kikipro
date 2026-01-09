@@ -263,7 +263,10 @@ function renderLogs() {
         <div class="log-unit-large">${l.count}</div>
       </div>
       <div class="log-action-row">
-        <button class="btn-log-edit" onclick="startEdit(${l.row}, '${l.ids}', '${l.date}', '${l.type}')">編集</button>
+<button class="btn-log-edit" 
+        onclick="console.log('Edit Clicked'); startEdit(${l.row}, '${l.ids}', '${l.date}', '${l.type}')">
+  編集
+</button>
         <button class="btn-log-del" onclick="handleDelete(${l.row})">削除</button>
       </div>
     </div>`;
