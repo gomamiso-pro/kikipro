@@ -3,8 +3,8 @@
  */
 const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyCPm9p34lzDRYX_ra4mYdLrXm2pnnUJ5yn4_dO6VCtdynLLAkiH4I8jehjbV4cYIDkRg/exec";
 
-// ★【重要】あなただけが決めた適当な文字列に変更してください
-const SECRET_API_KEY = "kiki_private_access_key_2026"; 
+// ★必ずGAS側の SECRET_API_KEY と一致させてください
+const SECRET_API_KEY = "kiki-secure-2026"; 
 
 let authID = "";
 let authPass = "";
@@ -13,13 +13,11 @@ let authPass = "";
  * GASとの通信を共通化
  */
 async function callGAS(method, data = {}) {
-  // dataにauth情報がなければ現在の変数をセット
   if(!data.authID) data.authID = authID;
   if(!data.authPass) data.authPass = authPass;
   
   const res = await fetch(GAS_API_URL, { 
     method: "POST", 
-    // ★ bodyの中に apiKey を追加して送信
     body: JSON.stringify({ 
       method, 
       data, 
@@ -53,10 +51,19 @@ async function silentLogin() {
       return;
     }
     
-    document.getElementById('login-overlay').style.display = 'none';
+    // 1. データのセット
     DATA = res;
-    document.getElementById('user-display').innerText = DATA.user.toUpperCase();
+    
+    // 2. 画面の構築を行う（この時点ではまだCSSで隠れている）
     renderAll();
+    document.getElementById('user-display').innerText = DATA.user.toUpperCase();
+    
+    // 3. 全ての構築が終わったら、bodyにreadyクラスを付けて一気に表示
+    document.body.classList.add('ready');
+    
+    // 4. 最後にログイン画面とローディングを消す
+    document.getElementById('login-overlay').style.display = 'none';
+
   } catch (e) { 
     document.getElementById('login-overlay').style.display = 'flex';
   } finally { 
