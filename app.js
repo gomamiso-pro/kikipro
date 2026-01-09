@@ -192,15 +192,22 @@ function updateDateDisplay() {
   document.getElementById('date-label').innerText = `${d.getMonth()+1}/${d.getDate()}(${["日","月","火","水","木","金","土"][d.getDay()]})`;
 }
 function setMode(m) { displayMode = m; document.getElementById('mode-list-btn').classList.toggle('active', m === 'list'); document.getElementById('mode-tile-btn').classList.toggle('active', m === 'tile'); renderAll(); }
-function switchView(v) {
-  const isWork = (v === 'work');
-  cancelEdit();
-  document.getElementById('view-work').style.display = isWork ? 'block' : 'none';
-  document.getElementById('view-log').style.display = isWork ? 'none' : 'block';
-  document.getElementById('view-mode-controls').style.display = isWork ? 'block' : 'none';
-  document.getElementById('tab-work').className = 'top-tab ' + (isWork ? 'active-work' : '');
-  document.getElementById('tab-log').className = 'top-tab ' + (!isWork ? 'active-log' : '');
-  renderAll();
+function switchView(view) {
+  // すべての表示エリアを一度隠す
+  document.getElementById('work-view').style.display = 'none';
+  document.getElementById('log-view').style.display = 'none';
+  if(document.getElementById('manual-view')) document.getElementById('manual-view').style.display = 'none';
+
+  // 指定された画面だけ出す
+  document.getElementById(view + '-view').style.display = 'flex';
+
+  // タブの見た目を更新
+  document.querySelectorAll('.top-tab').forEach(t => t.classList.remove('active-work', 'active-log'));
+  if (view === 'work') document.getElementById('tab-work').classList.add('active-work');
+  if (view === 'log') document.getElementById('tab-log').classList.add('active-log');
+  
+  // ★重要★ ここに「selectedUnits = new Set()」のような初期化コードが入っていたら削除してください！
+  // 編集モードで引き継いだデータが消えてしまいます。
 }
 function formatLastDate(z) {
   const tCol = DATE_COL_MAP[activeType];
