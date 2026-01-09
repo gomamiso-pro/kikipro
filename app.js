@@ -120,12 +120,13 @@ function scrollToLastWork() {
     // 赤色点滅クラスを付与
     target.classList.add('last-work-highlight');
     
-    // 2.5秒後に点滅を終了させる
+    // 3回の点滅が終わった頃（約1.6秒後）にクラスを削除
     setTimeout(() => { 
       target.classList.remove('last-work-highlight'); 
-    }, 2500);
+    }, 1600);
   }
 }
+
 
 
 function renderList() {
