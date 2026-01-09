@@ -376,3 +376,16 @@ async function handleDelete(row) {
 
 function showQR() { const target = document.getElementById("qr-target"); target.innerHTML = ""; new QRCode(target, { text: window.location.href, width: 200, height: 200 }); document.getElementById("qr-overlay").style.display = "flex"; }
 function hideQR() { document.getElementById("qr-overlay").style.display = "none"; }
+
+// --- 説明書ポップアップ制御 ---
+function showManual() {
+  const modal = document.getElementById('manual-overlay');
+  modal.style.display = 'flex';
+  // 常に最新を読み込むためにリロード
+  const iframe = document.getElementById('manual-iframe');
+  iframe.src = iframe.src;
+}
+
+function hideManual() {
+  document.getElementById('manual-overlay').style.display = 'none';
+}
