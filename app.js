@@ -41,7 +41,6 @@ function toggleAuthMode() {
   }
 }
 
-// app.js の handleAuth 関数（イメージ）
 async function handleAuth() {
   const id = document.getElementById('login-nick').value;
   const pass = document.getElementById('login-pass').value;
@@ -67,14 +66,13 @@ async function handleAuth() {
     renderAll();
     document.getElementById('user-display').innerText = DATA.user.toUpperCase();
 
-    // ★ 成功が確定してから初めて画面を表示する
+    // ★ 成功が確定してから画面を表示する
     document.body.classList.add('ready');
     document.getElementById('login-overlay').style.display = 'none';
+    document.getElementById('app-content').style.display = 'block'; // 追加
 
   } catch (e) {
-    // 認証失敗や通信エラーはすべてここに来る
     alert("ログインに失敗しました: " + e.message);
-    // 失敗した場合は情報をクリアして先に進ませない
     authID = "";
     authPass = "";
   } finally {
@@ -87,7 +85,6 @@ function renderAll() {
   const types = ["通常", "セル盤", "計数機", "ユニット", "説明書"];
   document.getElementById('type-tabs').innerHTML = types.map(t => `<button class="type-btn ${t===activeType?'active':''}" onclick="changeType('${t}')">${t}</button>`).join('');
   
-  // 全選択ボタンの状態（色とテキスト）を更新
   updateToggleAllBtnState();
 
   if(document.getElementById('view-work').style.display !== 'none') {
@@ -105,7 +102,6 @@ function changeType(t) {
   renderAll(); 
 }
 
-// 全選択ボタンの状態制御
 function updateToggleAllBtnState() {
   const btn = document.getElementById('toggle-all-btn');
   if (!btn) return;
@@ -135,7 +131,7 @@ function handleZoneCheckAll() {
   renderAll();
 }
 
-// --- リスト表示 ---
+// --- 表示切り替えロジック ---
 function renderList() {
   const container = document.getElementById('zone-display');
   container.className = "zone-container-list";
@@ -180,7 +176,6 @@ function renderList() {
   }).join('');
 }
 
-// --- タイル表示 (4列) ---
 function renderTile() {
   const container = document.getElementById('zone-display');
   container.className = "zone-container-tile";
@@ -211,23 +206,18 @@ function renderTile() {
           </div>
           <span class="tile-date-large">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z)}</span>
         </div>
-        
         <div class="tile-row tile-row-name">
           <span class="condensed-span" style="transform: scaleX(${nameScale});">${rawName}</span>
         </div>
-        
         <div class="tile-row tile-row-no">
           <span class="condensed-span" style="transform: scaleX(${noScale});">${noText}</span>
         </div>
-        
         <div class="tile-row tile-row-count f-oswald">
           ${selCount}<span style="font-size:10px; margin:0 2px;">/</span>${zoneUnits.length}
         </div>
-        
         <div class="status-bar-bg" style="height:4px; margin-bottom: ${isExpanded ? '4px' : '0'};">
           ${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}
         </div>
-
         <div class="expand-box" onclick="event.stopPropagation()">
           <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:5px; padding:6px;">
             ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${m[0]})">${m[0]}</div>`).join('')}
@@ -237,7 +227,7 @@ function renderTile() {
   }).join('');
 }
 
-// --- 操作イベント ---
+// --- 操作・更新系 ---
 function handleZoneAction(e, idx) { e.stopPropagation(); expandedZoneId = (expandedZoneId === idx) ? null : idx; renderAll(); }
 
 function handleZoneCheck(e, idx) {
@@ -282,7 +272,6 @@ function switchView(v) {
   renderAll();
 }
 
-// --- データ処理補助 ---
 function formatLastDate(z) {
   const tCol = DATE_COL_MAP[activeType];
   const units = DATA.master.filter(m => Number(m[0])>=Math.min(z.s,z.e) && Number(m[0])<=Math.max(z.s,z.e));
@@ -311,7 +300,6 @@ function scrollToLastWork() {
   }
 }
 
-// --- GAS通信・保存 ---
 async function upload() {
   if (selectedUnits.size === 0) return;
   document.getElementById('loading').style.display = 'flex';
@@ -329,7 +317,6 @@ async function upload() {
 
 function cancelEdit() { editingLogRow = null; selectedUnits.clear(); expandedZoneId = null; renderAll(); }
 
-// --- 履歴表示 ---
 function renderLogs() {
   const filtered = DATA.logs.filter(l => l.type === activeType);
   document.getElementById('log-list').innerHTML = filtered.map(l => `
@@ -350,25 +337,18 @@ function renderLogs() {
     </div>`).join('') + `<div style="height:200px;"></div>`;
 }
 
-// 履歴から編集
 function startEdit(row, ids, date, type) {
   editingLogRow = row;
   selectedUnits = new Set(ids.split(',').map(Number));
   activeType = type;
-  
-  // 修正：編集時は強制的にタイル（全体表示）モードにする
   setMode('tile'); 
-  
   document.getElementById('work-date').value = date.replace(/\//g, '-');
   updateDateDisplay();
-  
-  // 画面表示を「作業」に切り替え
   document.getElementById('view-work').style.display = 'block';
   document.getElementById('view-log').style.display = 'none';
   document.getElementById('view-mode-controls').style.display = 'block';
   document.getElementById('tab-work').className = 'top-tab active-work';
   document.getElementById('tab-log').className = 'top-tab';
-  
   renderAll();
   setTimeout(() => scrollToLastWork(), 300);
 }
@@ -381,46 +361,29 @@ async function handleDelete(row) {
     renderAll();
   } 
 }
+
 function showQR() {
   const target = document.getElementById("qr-target");
   target.innerHTML = "";
-  
-  // URLを直接指定
   const shareUrl = "https://kikipro.vercel.app/";
-  
   new QRCode(target, {
-    text: shareUrl,
-    width: 200,
-    height: 200,
-    colorDark : "#000000",
-    colorLight : "#ffffff",
-    correctLevel : QRCode.CorrectLevel.H
+    text: shareUrl, width: 200, height: 200, colorDark : "#000000", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.H
   });
-  
   document.getElementById("qr-overlay").style.display = "flex";
 }
-//function showQR() { const target = document.getElementById("qr-target"); target.innerHTML = ""; new QRCode(target, { text: window.location.href, width: 200, height: 200 }); document.getElementById("qr-overlay").style.display = "flex"; }
+
 function hideQR() { document.getElementById("qr-overlay").style.display = "none"; }
 
-// --- 説明書ポップアップ制御 ---
 function showManual() {
   const modal = document.getElementById('manual-overlay');
   modal.style.display = 'flex';
-  
-  // ログイン画面もマニュアルも overlay クラスなので、
-  // マニュアルを開いている間、ログイン画面が消えないように z-index を調整
-  modal.style.zIndex = "20001"; 
-  
+  modal.style.zIndex = "200001"; 
   const iframe = document.getElementById('manual-iframe');
   iframe.src = iframe.src;
 }
 
 function hideManual() {
   document.getElementById('manual-overlay').style.display = 'none';
-  
-  // ★ ここが修正ポイント ★
-  // もし ready クラスを持っていない（＝まだログイン完了していない）なら、
-  // 強制的にログイン画面を表示したままにする
   if (!document.body.classList.contains('ready')) {
     document.getElementById('login-overlay').style.display = 'flex';
   }
