@@ -44,9 +44,6 @@ body.ready #app-content { display: flex !important; }
 .header-logo { font-family: 'Oswald'; color: var(--accent); font-size: 22px; font-weight: 900; letter-spacing: 1px; }
 .header-right { display: flex; align-items: center; gap: 15px; }
 
-.user-wrapper { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-.user-profile { font-size: 10px; font-weight: 900; color: var(--text); background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 10px; }
-
 /* --- タブ・バー --- */
 .nav-row { display: flex; background: var(--header-bg); border-bottom: 1px solid var(--panel); flex-shrink: 0; }
 .top-tab { flex: 1; padding: 14px; text-align: center; font-size: 14px; font-weight: 700; color: var(--text-dim); cursor: pointer; }
@@ -59,10 +56,6 @@ body.ready #app-content { display: flex !important; }
   padding: 24px 0 10px 0; font-size: 14px; font-weight: 900; border-right: 1px solid var(--panel); cursor: pointer;
 }
 .type-btn.active { background: var(--accent) !important; color: #000 !important; }
-.type-last-badge {
-  position: absolute; top: 4px; left: 50%; transform: translateX(-50%);
-  background: #fff; color: #000; font-size: 9px; padding: 1px 5px; border-radius: 3px; font-weight: 900; border: 1px solid var(--accent); white-space: nowrap;
-}
 
 /* --- コントロールバー（おしゃれボタン） --- */
 .view-mode-bar { display: flex; align-items: center; justify-content: space-between; padding: 10px; gap: 8px; border-bottom: 1px solid var(--panel); flex-shrink: 0; background: var(--bg); }
@@ -81,70 +74,87 @@ body.ready #app-content { display: flex !important; }
   letter-spacing: 0.5px;
 }
 .action-toggle-btn.all-selected {
-  background: var(--accent);
-  color: #000;
-  box-shadow: 0 4px 0 #b8970f !important;
+  background: var(--accent); color: #000; box-shadow: 0 4px 0 #b8970f !important;
 }
 
 .btn-final-jump { 
-  background: #5e81ac; 
-  color: #fff; 
-  border: 1px solid #81a1c1; 
-  border-radius: 8px; 
-  font-weight: 900; 
-  font-size: 11px; 
-  padding: 8px 12px;
+  background: #5e81ac; color: #fff; border: 1px solid #81a1c1; border-radius: 8px; font-weight: 900; font-size: 11px; padding: 8px 12px;
   box-shadow: 0 6px 0 #3b4455, 0 8px 15px rgba(0,0,0,0.4) !important;
 }
 
 /* --- メインエリア --- */
 main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background: var(--bg); padding-bottom: 200px; }
 
-/* リスト・タイル共通背景色 */
-.zone-row, .tile-card { background: var(--card) !important; }
+/* 共通：背景色はJavaScriptから注入され、文字は黒 */
+.zone-row, .tile-card { color: #000 !important; border: 2px solid transparent; }
 
 /* リスト表示 */
 .zone-container-list { padding: 10px; display: flex; flex-direction: column; gap: 10px; }
-.zone-row { border-radius: 10px; overflow: hidden; color: #fff; border: 2px solid transparent; transition: 0.2s; position: relative; }
+.zone-row { border-radius: 10px; overflow: hidden; position: relative; }
 
-/* タイル表示（5段レイアウト） */
+/* タイル表示 */
 .zone-container-tile { padding: 8px 6px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
-.tile-card { 
-  min-height: 115px; padding: 6px; border-radius: 8px; color: #fff; border: 2px solid transparent; 
-  display: flex; flex-direction: column; justify-content: space-between; position: relative;
-}
+.tile-card { min-height: 115px; padding: 6px; border-radius: 8px; display: flex; flex-direction: column; justify-content: space-between; position: relative; }
 
-/* タイル内テキスト：大きく設定 */
-.tile-row-1 { text-align: right; font-size: 13px; font-weight: 900; color: var(--accent); line-height: 1; }
-.tile-row-2 { text-align: left; font-size: 14px; font-weight: 900; line-height: 1.2; margin-top: 2px; }
-.tile-row-3 { text-align: left; font-size: 16px; font-weight: 700; font-family: 'Oswald'; line-height: 1; margin-top: 2px; }
-.tile-row-4 { text-align: right; font-size: 18px; font-weight: 900; color: var(--accent); line-height: 1; margin-top: auto; }
+/* タイル内テキスト：大きく */
+.tile-row-1 { display: flex; justify-content: space-between; align-items: center; width: 100%; font-size: 13px; font-weight: 900; line-height: 1; }
+.tile-row-2 { text-align: left; font-size: 15px; font-weight: 900; line-height: 1.2; margin-top: 2px; }
+.tile-row-3 { text-align: left; font-size: 18px; font-weight: 700; font-family: 'Oswald'; line-height: 1; margin-top: 2px; }
+.tile-row-4 { text-align: right; font-size: 20px; font-weight: 900; line-height: 1; margin-top: auto; }
 .tile-row-5 { margin-top: 4px; }
 
-/* 選択・展開状態 */
-.has-selection { border-color: var(--accent) !important; box-shadow: 0 4px 15px rgba(250, 204, 21, 0.3); }
-.expanded { grid-column: span 4 !important; height: auto !important; z-index: 100; }
+/* --- 展開状態（モーダル風ポップアップ） --- */
+.expanded {
+  position: fixed !important;
+  top: 50% !important; left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: 90vw !important; max-width: 400px !important;
+  height: auto !important; max-height: 85vh !important;
+  z-index: 10000 !important;
+  box-shadow: 0 0 0 100vmax rgba(0,0,0,0.85), 0 20px 40px rgba(0,0,0,0.5) !important;
+  border-radius: 15px !important;
+  padding: 20px !important;
+  display: flex !important; flex-direction: column !important;
+  border: 3px solid var(--accent) !important;
+}
 
-/* チップ表示：タップ時のみ表示 */
-.expand-box { display: none; width: 100%; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 10px; }
+.expand-box { display: none; overflow-y: auto; width: 100%; margin-top: 15px; }
 .expanded .expand-box { display: block; }
 
-.status-bar-bg { display: flex; height: 5px; background: rgba(0,0,0,0.3); width: 100%; gap: 1px; border-radius: 2px; overflow: hidden; }
-.p-seg { flex: 1; height: 100%; background: rgba(255,255,255,0.05); }
-.p-seg.active { background: var(--accent); }
+.unit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; padding: 5px; }
 
+/* チップ */
 .unit-chip { 
-  background: #1a1c23; color: #fff; border-radius: 6px; text-align: center; 
-  font-family: 'Oswald'; font-size: 16px; padding: 12px 0; border: 1px solid #444; 
-  box-shadow: 0 3px 0 rgba(0,0,0,0.4);
+  background: #f0f0f0; color: #000; border-radius: 8px; text-align: center; 
+  font-family: 'Oswald'; font-size: 18px; padding: 12px 0; border: 1px solid #ccc; 
+  box-shadow: 0 3px 0 rgba(0,0,0,0.15);
 }
-.unit-chip.active { background: var(--accent) !important; color: #000 !important; font-weight: 900; border-color: #fff; }
+.unit-chip.active { background: var(--accent) !important; font-weight: 900; border-color: #000; box-shadow: 0 3px 0 var(--accent-dim); }
+
+.btn-close-expand {
+  background: #333; color: #fff; border: none; padding: 15px; border-radius: 10px; font-weight: 900; margin-top: 20px; width: 100%;
+}
+
+/* ゲージ */
+.status-bar-bg { display: flex; height: 6px; background: rgba(0,0,0,0.1); width: 100%; gap: 1px; border-radius: 3px; overflow: hidden; }
+.p-seg { flex: 1; height: 100%; background: rgba(0,0,0,0.05); }
+.p-seg.active { background: #000; } /* 黒基調のカードなのでアクティブは黒 */
 
 /* --- 履歴 --- */
 .log-card { background: var(--card); padding: 15px; margin: 0 12px 12px 12px; border-radius: 12px; border-left: 6px solid var(--accent); color: #fff; }
 .log-date-badge { font-weight: 900; font-size: 13px; margin-bottom: 5px; color: var(--text); }
 .log-range { font-size: 20px; font-weight: 700; color: var(--accent); margin: 2px 0; }
 .log-unit-large { font-family: 'Oswald'; color: var(--accent); font-size: 44px; font-weight: 700; line-height: 1; }
+
+.log-action-row { display: flex; gap: 10px; margin-top: 15px; }
+.btn-log-edit { 
+  background: linear-gradient(145deg, #5e81ac, #4c566a); color: #fff; border: 1px solid #81a1c1; 
+  font-weight: 900; padding: 10px; border-radius: 8px; flex: 1; 
+}
+.btn-log-del { 
+  background: linear-gradient(145deg, #bf616a, #88444a); color: #fff; border: 1px solid #d08770; 
+  font-weight: 900; padding: 10px; border-radius: 8px; flex: 1; 
+}
 
 /* --- フッター --- */
 .footer { 
@@ -159,5 +169,4 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background:
 .btn-exec { background: #5e81ac; color: #fff; width: 100%; padding: 18px; border-radius: 12px; font-weight: 900; font-size: 20px; border: none; box-shadow: 0 5px 0 #3b526d; }
 .btn-cancel { background: var(--danger); color: #fff; width: 100%; padding: 12px; border-radius: 8px; font-weight: 900; border: none; margin-bottom: 10px; box-shadow: 0 4px 0 #8a3d45; }
 
-/* ユーティリティ */
 .f-oswald { font-family: 'Oswald', sans-serif; }
