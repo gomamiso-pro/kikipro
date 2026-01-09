@@ -76,12 +76,28 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
 .tile-row { width: 100%; display: flex; align-items: center; line-height: 1.1; }
 .tile-row-top { justify-content: space-between; font-size: 9px; font-family: 'Oswald'; font-weight: 900; }
 .tile-row-name { 
-  font-size: 10px; font-weight: 900; text-align: center; justify-content: center;
-  white-space: nowrap; overflow: visible;
+  font-size: 11px; 
+  font-weight: 900; 
+  text-align: left; /* 左寄せ */
+  justify-content: flex-start; 
+  white-space: nowrap; 
+  overflow: visible;
+  width: 100%;
+  padding-left: 2px; /* 少し余白を足す */
 }
-.tile-row-name span { display: inline-block; transform-origin: center; width: 100%; }
-
-.tile-row-no { font-family: 'Oswald'; font-size: 12px; font-weight: 700; justify-content: center; }
+.tile-row-name span { 
+  display: inline-block; 
+  transform-origin: left; /* 左端を起点に縮小 */
+  width: 100%; 
+}
+.tile-row-no { 
+  font-family: 'Oswald'; 
+  font-size: 12px; 
+  font-weight: 700; 
+  justify-content: flex-start; /* 左寄せ */
+  text-align: left;
+  padding-left: 2px;
+}
 .tile-row-count { justify-content: flex-end; font-family: 'Oswald'; font-size: 10px; font-weight: 700; }
 
 /* リスト表示 */
