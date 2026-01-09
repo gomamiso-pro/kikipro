@@ -249,63 +249,55 @@ async function upload() {
   }
 }
 function cancelEdit() { editingLogRow = null; selectedUnits.clear(); expandedZoneId = null; renderAll(); }
+// app.js 内の renderLogs 関数
 function renderLogs() {
   const filtered = DATA.logs.filter(l => l.type === activeType);
   document.getElementById('log-list').innerHTML = filtered.map(l => {
-    // ids は "1,2,3" のようなカンマ区切り文字列であることを想定
+    // 確実に文字列として扱うため、各引数をエスケープ気味に指定
     return `
     <div class="log-card">
       <div class="log-type-badge">${l.type}</div>
-      <div class="log-sub-info">${l.date} (${l.day}) - ${l.user}</div>
+      <div class="log-sub-info">${l.date} - ${l.user}</div>
       <div style="display:flex; justify-content:space-between; align-items:flex-end;">
-        <div><div class="log-main-info">${l.zone}</div><div class="log-sub-info">No.${l.s}-${l.e}</div></div>
+        <div><div class="log-main-info">${l.zone}</div></div>
         <div class="log-unit-large">${l.count}</div>
       </div>
       <div class="log-action-row">
-        <button class="btn-log-edit" onclick="startEdit(${l.row}, '${l.ids}', '${l.date}', '${l.type}')">
-          編集
-        </button>
+        <button class="btn-log-edit" onclick="startEdit(${l.row}, '${l.ids}', '${l.date}', '${l.type}')">編集</button>
         <button class="btn-log-del" onclick="handleDelete(${l.row})">削除</button>
       </div>
     </div>`;
   }).join('') + `<div style="height:200px;"></div>`;
 }
 // 編集モード開始
+// app.js 内
 function startEdit(row, ids, date, type) {
-  console.log("Editing row:", row, "IDs:", ids); // デバッグ用
-
-  // 1. 編集対象の行番号を保持
+  // 1. 状態のリセットとデータセット
   editingLogRow = row; 
+  
+  // idsが undefined や null の場合のガード
+  const idStr = ids ? String(ids) : "";
+  selectedUnits = new Set(idStr.split(',').filter(x => x.trim() !== "").map(Number));
 
-  // 2. 文字列のIDsを数値のSetに変換（ここが不一致だとチップが黄色くならない）
-  // "101,102" -> [101, 102] -> Set
-  if (ids) {
-    const idArray = String(ids).split(',').map(n => Number(n.trim()));
-    selectedUnits = new Set(idArray);
-  } else {
-    selectedUnits = new Set();
-  }
-
-  // 3. タイプと日付を復元
+  // 2. 日付とタイプの復元
   activeType = type;
-  // 日付のフォーマット調整 (yyyy/mm/dd -> yyyy-mm-dd)
-  if (date) {
-    document.getElementById('work-date').value = date.replace(/\//g, '-');
-  }
+  const formattedDate = date ? date.replace(/\//g, '-') : "";
+  document.getElementById('work-date').value = formattedDate;
   updateDateDisplay(); 
 
-  // 4. 表示モードを「全体（タイル）」に強制変更
-  displayMode = 'tile'; 
-  document.getElementById('mode-list-btn').classList.remove('active');
+  // 3. 表示モードを「タイル（全体）」に固定
+  displayMode = 'tile';
+  
+  // 4. 表示の切り替え（HTML上のID 'work-view' と 'log-view' を想定）
+  // switchView の中身が displayMode を上書きしないよう注意
+  switchView('work'); 
+  
+  // 5. ボタンの活性化状態（アクティブクラス）を直接操作
+  document.querySelectorAll('.view-mode-bar button').forEach(b => b.classList.remove('active'));
   document.getElementById('mode-tile-btn').classList.add('active');
 
-  // 5. 入力（work）画面に切り替え
-  switchView('work');
-
-  // 6. 最後に強制再描画（これでチップが黄色くなる）
+  // 6. 最後に再描画
   renderAll();
-
-  // 7. 編集のキャンセルボタンを表示させるためにカウント更新
   updateCount();
 }
 async function handleDelete(row) { if(confirm("削除？")) { document.getElementById('loading').style.display='flex'; await callGAS("deleteLog",{row}); await silentLogin(); renderAll(); } }
