@@ -22,6 +22,16 @@
   </div>
 </div>
 
+<div id="manual-overlay" class="overlay" onclick="hideManual()" style="display:none; background:rgba(0,0,0,0.85); backdrop-filter:blur(5px); z-index: 20000;">
+  <div class="manual-content" onclick="event.stopPropagation()" style="width: 95%; max-width: 500px; height: 85vh; background: #fff; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; position: relative; border: 2px solid var(--accent);">
+    <div class="manual-header" style="background: var(--header-bg); padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent);">
+      <div style="font-family: 'Oswald'; color: var(--accent); font-weight: 900; font-size: 18px; letter-spacing: 1px;">KIKI MANUAL</div>
+      <button onclick="hideManual()" style="background: none; border: none; color: #fff; font-size: 32px; cursor: pointer; line-height: 1;">&times;</button>
+    </div>
+    <iframe id="manual-iframe" src="https://gomamiso-pro.github.io/kikipro/manual.html" style="flex: 1; border: none; width: 100%;"></iframe>
+  </div>
+</div>
+
 <div id="qr-overlay" class="overlay" onclick="hideQR()" style="display:none; background:rgba(0,0,0,0.85); backdrop-filter:blur(4px);">
   <div class="qr-content-wrapper" onclick="event.stopPropagation()" style="background:#fff; padding:25px; border-radius:12px; text-align:center;">
     <div id="qr-target" style="border:10px solid #fff;"></div>
@@ -30,7 +40,12 @@
 </div>
 
 <div id="login-overlay" class="overlay" style="display: none; background: var(--bg);">
-  <div class="auth-box">
+  <div class="auth-box" style="position: relative;">
+    <div onclick="showManual()" style="position: absolute; top: 15px; right: 15px; cursor: pointer; color: var(--accent); display: flex; flex-direction: column; align-items: center; gap: 2px;">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+      <span style="font-size: 8px; font-weight: 900;">MANUAL</span>
+    </div>
+
     <div id="auth-title" style="font-family:'Oswald'; color:var(--accent); font-size:28px; font-weight:900; margin-bottom:20px; text-align:center; letter-spacing:2px;">KIKI LOGIN</div>
     <div id="login-fields">
       <input type="text" id="login-nick" placeholder="NICKNAME (LOGIN ID)" class="auth-input">
@@ -56,6 +71,10 @@
   </div>
   
   <div style="display:flex; align-items:center; gap:12px;">
+    <div onclick="showManual()" style="cursor:pointer; color:var(--accent); display:flex; align-items:center;">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+    </div>
+
     <div class="qr-btn" onclick="showQR()" style="cursor:pointer; color:#fff; display:flex; align-items:center;">
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
     </div>
