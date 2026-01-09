@@ -217,10 +217,10 @@ function renderTile() {
     
     const bgColor = (z.color || z.bg) && (z.color || z.bg) !== "" ? (z.color || z.bg) : "#ffffff";
     const rawName = z.name.replace('ゾーン', '');
-    const noStr = `${z.s}-${z.e}`; // "No."を削って短縮
+    const noStr = `${z.s}-${z.e}`;
 
     return `
-      <div id="zone-card-${originalIdx}" class="tile-card ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" 
+      <div id="zone-card-${originalIdx}" class="tile-card ${selCount > 0 ? 'has-selection' : ''}" 
            style="background-color: ${bgColor} !important;" onclick="handleZoneAction(event, ${originalIdx})">
         
         <div class="tile-row-1">
@@ -230,15 +230,25 @@ function renderTile() {
           <div class="f-oswald">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z, true)}</div>
         </div>
 
-        <div class="tile-row-2"><b>${fitText(rawName, 4)}</b></div>
-        <div class="tile-row-3 f-oswald">${fitText(noStr, 8)}</div>
+        <div class="tile-row-2"><b>${fitText(rawName, 5)}</b></div>
+        <div class="tile-row-3 f-oswald">${fitText(noStr, 10)}</div>
         <div class="tile-row-4 f-oswald">${selCount}<small style="font-size:10px;">/${zoneUnits.length}</small></div>
 
         <div class="tile-row-5 status-bar-bg">
           ${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}
         </div>
         
-        </div>`;
+        <div class="expand-box" style="display:none;" onclick="event.stopPropagation()">
+          <h3 style="margin:0 0 10px 0; font-size:16px;">${z.name} - 選択</h3>
+          <div class="unit-grid">
+            ${zoneUnits.map(m => `
+              <div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" 
+                   onclick="toggleUnit(${Number(m[0])})">${m[0]}</div>
+            `).join('')}
+          </div>
+          <button class="btn-close-expand" onclick="closeExpand(event)">閉じる</button>
+        </div>
+      </div>`;
   }).join('');
 }
 
