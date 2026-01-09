@@ -22,7 +22,6 @@ window.onload = () => {
   updateDateDisplay();
 };
 
-// --- 認証UI操作 ---
 function toggleAuthMode() {
   isSignUpMode = !isSignUpMode;
   const title = document.getElementById('auth-title');
@@ -30,6 +29,7 @@ function toggleAuthMode() {
   const toggleBtn = document.getElementById('auth-toggle-btn');
   const toggleMsg = document.getElementById('auth-toggle-msg');
 
+  // login-nick（ニックネーム欄）は常に表示するので display 操作は不要です
   if (isSignUpMode) {
     title.innerText = "KIKI SIGN UP";
     submitBtn.innerText = "REGISTER & LOGIN";
@@ -42,6 +42,7 @@ function toggleAuthMode() {
     toggleBtn.innerText = "新規登録はこちら";
   }
 }
+
 
 async function handleAuth() {
   // ニックネームをIDとして使用
