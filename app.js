@@ -318,7 +318,6 @@ function renderLogs() {
       <div class="log-sub-info">${l.date} (${l.day}) - ${l.user}</div>
       <div style="display:flex; justify-content:space-between; align-items:flex-end;">
         <div>
-          <div class="log-sub-info">最終日: ${l.lastDate || '未'}</div>
           <div class="log-main-info">${l.zone}</div>
           <div class="log-sub-info">No.${l.s}-${l.e}</div>
         </div>
