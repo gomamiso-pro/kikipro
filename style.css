@@ -1,332 +1,202 @@
+/* ==========================================
+   1. 変数・全体設定
+   ========================================== */
 :root { 
-  --bg: #1a1c23; --card: #2d313d; --header-bg: #111318; --panel: #3a3f4d;
-  --accent: #facc15; --accent-dim: #b8970f; --text: #e5e9f0; --text-dim: #9ca3af; --danger: #bf616a;
+  --bg: #1a1c23; 
+  --card: #2d313d; 
+  --header-bg: #111318; 
+  --panel: #3a3f4d;
+  --accent: #facc15; 
+  --accent-dim: #b8970f; 
+  --text: #e5e9f0; 
+  --text-dim: #9ca3af; 
+  --danger: #bf616a;
 }
-* { box-sizing: border-box; }
-body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; }
 
-/* ユーザー表示 */
-.user-profile { display: flex; flex-direction: column; align-items: center; color: #fff !important; }
-#user-display { font-size: 10px; font-weight: 700; color: #fff !important; }
+* { 
+  box-sizing: border-box; 
+  -webkit-tap-highlight-color: transparent; /* タップ時の青枠防止 */
+}
+
+body { 
+  font-family: 'Noto Sans JP', sans-serif; 
+  background: var(--bg); 
+  color: var(--text); 
+  margin: 0; 
+  display: flex; 
+  flex-direction: column; 
+  height: 100dvh; /* 動的ビューポート高さ */
+  overflow: hidden; 
+}
+
+/* ==========================================
+   2. ちらつき・レイアウト崩れ防止（重要）
+   ========================================== */
+
+/* アプリ本体：ログイン成功まで完全に消去 */
+#app-content {
+  display: none;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+/* ログイン完了後 (.ready) の表示復元 */
+body.ready #app-content {
+  display: flex !important;
+}
+
+body.ready #login-overlay {
+  display: none !important;
+}
+
+/* スクロール領域の設定 */
+main {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ==========================================
+   3. 認証・ログイン画面
+   ========================================== */
+.overlay { 
+  position: fixed; 
+  inset: 0; 
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+  z-index: 10000; 
+}
+
+#login-overlay { background: var(--bg); }
+
+.auth-box { 
+  width: 85%; 
+  max-width: 340px; 
+  background: var(--header-bg); 
+  padding: 30px; 
+  border-radius: 12px; 
+  border: 1px solid var(--panel); 
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.auth-input { 
+  width: 100%; 
+  padding: 14px; 
+  margin-bottom: 12px; 
+  border-radius: 6px; 
+  border: 1px solid var(--panel); 
+  background: var(--bg); 
+  color: #fff; 
+  font-size: 16px; /* モバイルでのズーム防止 */
+}
+
+.auth-btn { 
+  width: 100%; 
+  padding: 14px; 
+  background: var(--accent); 
+  color: #000; 
+  border: none; 
+  border-radius: 6px; 
+  font-weight: 900; 
+  font-size: 16px; 
+  letter-spacing: 1px;
+}
+
+/* ==========================================
+   4. ヘッダー・ナビゲーション
+   ========================================== */
+.header { 
+  flex-shrink: 0; 
+  height: 60px; 
+  background: var(--header-bg); 
+  border-bottom: 1px solid var(--panel); 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  padding: 0 15px; 
+}
+
+.user-profile { display: flex; flex-direction: column; align-items: center; }
+#user-display { font-size: 10px; font-weight: 700; color: #fff; }
 .logout-btn { background: var(--danger); color: #fff; border: none; padding: 6px 10px; border-radius: 4px; font-size: 10px; font-weight: 900; }
 
-/* ログイン画面 */
-.auth-box { 
-  width: 85%; max-width: 320px; background: var(--header-bg); padding: 30px; 
-  border-radius: 12px; border: 1px solid var(--panel); box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-}
-.auth-input { 
-  width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 6px; border: 1px solid var(--panel); 
-  background: var(--bg); color: #fff; font-size: 14px;
-}
-.auth-btn { 
-  width: 100%; padding: 14px; background: var(--accent); color: #000; border: none; 
-  border-radius: 6px; font-weight: 900; font-size: 16px; letter-spacing: 1px;
-}
-
-/* 共通オーバーレイ */
-.overlay { position: fixed; inset: 0; display: flex; justify-content: center; align-items: center; z-index: 10000; }
-#loading { background: rgba(0,0,0,0.8); flex-direction: column; }
-.spinner { width: 40px; height: 40px; border: 4px solid rgba(250,204,21,0.2); border-top: 4px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* ヘッダー・ナビ */
-.header { flex-shrink: 0; height: 60px; background: var(--header-bg); border-bottom: 1px solid var(--panel); display: flex; justify-content: space-between; align-items: center; padding: 0 15px; }
-.nav-row { display: flex; background: var(--header-bg); border-bottom: 1px solid var(--panel); }
+.nav-row { display: flex; flex-shrink: 0; background: var(--header-bg); border-bottom: 1px solid var(--panel); }
 .top-tab { flex: 1; padding: 12px; text-align: center; font-size: 13px; font-weight: 700; color: var(--text-dim); }
 .top-tab.active-work { background: #5e81ac !important; color: #fff !important; }
 .top-tab.active-log { background: #d08770 !important; color: #fff !important; }
 
-.type-bar { display: grid; grid-template-columns: repeat(5, 1fr); background: var(--panel); }
-.type-btn { background: var(--header-bg); border: none; color: var(--text-dim); padding: 10px 0; font-size: 10px; font-weight: 700; transition: background 0.5s; }
+.type-bar { display: grid; grid-template-columns: repeat(5, 1fr); background: var(--panel); flex-shrink: 0; }
+.type-btn { background: var(--header-bg); border: none; color: var(--text-dim); padding: 10px 0; font-size: 10px; font-weight: 700; }
 .type-btn.active { background: var(--accent) !important; color: #000 !important; }
 
-/* 表示切替・全選択ボタン */
+/* ==========================================
+   5. 作業画面（タイル・リスト）
+   ========================================== */
 .view-mode-bar { display:flex; background:var(--bg); padding:8px 10px; gap:8px; border-bottom: 1px solid var(--panel); }
 .view-mode-bar button {
   flex: 1; padding: 10px; border-radius: 6px; border: 2px solid transparent; 
-  background: var(--card); color: var(--text-dim); font-weight: 900; font-size: 12px; 
-  transition: all 0.5s ease;
+  background: var(--card); color: var(--text-dim); font-weight: 900; font-size: 12px;
 }
-.view-mode-bar button.active {
-  background: transparent !important; 
-  border: 2px solid var(--accent) !important; 
-  color: var(--accent) !important; 
-}
-/* 全選択ボタンが「全解除（選択あり）」状態のときの色 */
-#toggle-all-btn.all-selected {
-  background: var(--accent) !important;
-  color: #000 !important;
-}
+.view-mode-bar button.active { border: 2px solid var(--accent) !important; color: var(--accent) !important; background: transparent; }
 
-#view-work, #view-log { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-
-/* 【全体表示（タイル）4列固定】 */
-.zone-container-tile { 
-  padding: 8px 4px 220px 4px; 
-  display: grid; 
-  grid-template-columns: repeat(4, 1fr); 
-  gap: 4px; 
-}
+/* タイル表示 (4列) */
+.zone-container-tile { padding: 8px 4px 180px 4px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
 .tile-card { 
-  min-height: 80px; 
-  padding: 4px 3px; 
-  border-radius: 6px; /* 少し角を丸く */
-  background: #fff; 
-  color: #000; 
-  display: flex; 
-  flex-direction: column; 
-  justify-content: flex-start; /* 展開時に下に伸びるよう変更 */
-  overflow: hidden;
-  border: 3px solid transparent; /* 枠線をあらかじめ確保 */
-  transition: transform 0.2s;
+  min-height: 80px; padding: 4px 3px; border-radius: 6px; background: #fff; color: #000; 
+  display: flex; flex-direction: column; overflow: hidden; border: 3px solid transparent; 
 }
-/* 展開（Expand）時の挙動 */
-.tile-card.expanded {
-  grid-column: span 2; /* 2列分使ってチップを押しやすくする */
-  height: auto;
-  z-index: 10;
-  background: #f8f9fa; /* 展開時のみ背景をわずかに変える */
-}
+.tile-card.expanded { grid-column: span 2; height: auto; z-index: 10; background: #f8f9fa; }
+.has-selection { border: 3px solid var(--accent) !important; }
 
-.expand-box { 
-  display: none; 
-  width: 100%; 
-  background: rgba(0,0,0,0.05); 
-  border-radius: 4px; 
-  margin-top: 5px;
-}
-.tile-card.expanded .expand-box { display: block; }
-
-/* 選択中または編集中は黄色枠を表示 */
-.has-selection { 
-  border: 3px solid var(--accent) !important; 
-  box-shadow: 0 0 8px rgba(250, 204, 21, 0.3); /* わずかに光らせて視認性アップ */
-}
-.tile-row { width: 100%; display: flex; align-items: center; line-height: 1.0; }
-.tile-row-top { justify-content: space-between; margin-bottom: 2px; }
-
-/* 日付と台数は長体なしで大きく表示 */
-.tile-date-large { font-size: 11px !important; font-family: 'Oswald'; font-weight: 900; letter-spacing: -0.3px; white-space: nowrap; }
-.tile-row-count { 
-  justify-content: flex-end; 
-  font-family: 'Oswald'; 
-  font-size: 14px; 
-  font-weight: 900; 
-  white-space: nowrap;
-}
-
-/* ゾーン名とNoは左寄せ、はみ出し時のみ長体 */
-.tile-row-name { font-size: 10px; font-weight: 900; text-align: left; margin-bottom: 1px; }
-.tile-row-no { font-family: 'Oswald'; font-size: 11px; font-weight: 700; text-align: left; color: #333; }
-.condensed-span { display: inline-block; transform-origin: left; white-space: nowrap; width: 100%; }
+/* 台番号チップ */
+.expand-box { display: none; width: 100%; margin-top: 5px; }
+.expanded .expand-box { display: block; }
+.unit-chip { background: #333; color: #fff; border-radius: 4px; text-align: center; font-family: 'Oswald'; font-size: 11px; padding: 6px 0; border: 1px solid #444; }
+.unit-chip.active { background: var(--accent) !important; color: #000 !important; font-weight: 900; }
 
 /* リスト表示 */
-.zone-container-list { padding: 10px 10px 220px 10px; display: flex; flex-direction: column; gap: 10px; }
+.zone-container-list { padding: 10px 10px 180px 10px; display: flex; flex-direction: column; gap: 10px; }
 .zone-row { border-radius: 8px; overflow: hidden; background: #fff; border: 2px solid transparent; color: #000; display: flex; flex-direction: column; }
-.zone-check-area { width: 60px; background: rgba(0,0,0,0.05); display: flex; justify-content: center; align-items: center; }
-.zone-main-content { flex: 1; padding: 12px; }
 
-/* 【履歴（ログ）表示】 */
-.log-card { 
-  background: var(--card); 
-  padding: 15px; 
-  margin: 12px; 
-  border-radius: 12px; 
-  border-left: 6px solid var(--accent); 
-  position: relative;
-}
-.log-type-badge { 
-  display: inline-block; 
-  background: var(--accent); 
-  color: #000; 
-  padding: 2px 8px; 
-  border-radius: 4px; 
-  font-size: 10px; 
-  font-weight: 900; 
-  margin-bottom: 8px; 
-}
-.log-main-info { font-size: 18px; font-weight: 900; color: #fff; margin: 4px 0; }
-.log-sub-info { font-size: 12px; color: var(--text-dim); }
+/* ==========================================
+   6. 履歴表示（ログ）
+   ========================================== */
+.log-card { background: var(--card); padding: 15px; margin: 12px; border-radius: 12px; border-left: 6px solid var(--accent); }
+.log-type-badge { display: inline-block; background: var(--accent); color: #000; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 900; }
+.log-main-info { font-size: 18px; font-weight: 900; color: #fff; }
+.log-unit-large { font-family: 'Oswald'; color: var(--accent); font-size: 32px; font-weight: 700; }
 
-/* 履歴の台数：登録画面と同じ黄色巨大文字スタイル */
-.log-unit-large { 
-  font-family: 'Oswald'; 
-  color: var(--accent); 
-  font-size: 32px; 
-  font-weight: 700; 
-  display: flex; 
-  align-items: baseline; 
-  gap: 2px; 
+/* ==========================================
+   7. フッター（固定）
+   ========================================== */
+.footer { 
+  flex-shrink: 0;
+  background: var(--header-bg); 
+  padding: 12px 15px calc(12px + env(safe-area-inset-bottom)); /* iPhoneのノッチ対応 */
+  border-top: 1px solid var(--panel); 
+  z-index: 2000; 
 }
-.log-unit-large::after { 
-  content: "台"; 
-  font-size: 12px; 
-  color: var(--accent); 
-  font-weight: 900; 
-}
-/* 履歴カード内のチップ表示エリア */
-.log-unit-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
-  gap: 6px;
-  margin-top: 12px;
-  background: rgba(0, 0, 0, 0.2);
-  padding: 10px;
-  border-radius: 8px;
-}
-
-/* 履歴用の台番号チップ（目立つように強調） */
-.log-unit-chip {
-  background: var(--accent); /* 基本を黄色に */
-  color: #000;
-  border-radius: 4px;
-  text-align: center;
-  font-family: 'Oswald';
-  font-size: 13px;
-  font-weight: 900;
-  padding: 4px 0;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-  border: 1px solid #000;
-}
-.log-target-ids {
-  font-size: 20px;          /* 大きく */
-  font-weight: 900;         /* 極太 */
-  color: var(--accent);    /* 黄色 */
-  letter-spacing: 1px;
-  margin: 5px 0;
-  word-break: break-all;    /* 折り返し設定 */
-  line-height: 1.2;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.5); /* 読みやすく */
-}
-.log-range-info {
-  font-size: 16px;
-  font-weight: 700;
-  color: #ffffff; /* 白文字 */
-  margin-top: 4px;
-  letter-spacing: 0.5px;
-}
-
-/* 編集・削除ボタンの間隔を広く */
-.log-action-row { display: flex; justify-content: space-between; margin-top: 15px; gap: 20px; }
-.btn-log-edit, .btn-log-del { 
-  flex: 1; 
-  padding: 10px; 
-  border-radius: 6px; 
-  font-weight: 900; 
-  font-size: 13px; 
-  border: none; 
-  text-align: center;
-  cursor: pointer;
-}
-.btn-log-edit { background: #4b5263; color: var(--accent); border: 1px solid var(--accent); }
-.btn-log-del { background: #4b5263; color: var(--danger); border: 1px solid var(--danger); }
-
-/* 共通パーツ */
-.status-bar-bg { background: rgba(0,0,0,0.1); height: 3px; margin-top: 2px; display: flex; gap: 1px; width: 100%; }
-.p-seg { flex: 1; height: 100%; }
-.p-seg.active { background: var(--accent) !important; }
-
-.expand-box { display: none; width: 100%; padding: 10px 0; background: #111; grid-column: 1 / -1; }
-.expanded .expand-box { display: block; }
-/* 台数チップのスタイル */
-.unit-chip { 
-  background: #333; 
-  color: #fff; 
-  border-radius: 4px; 
-  text-align: center; 
-  border: 1px solid #444; 
-  font-family: 'Oswald'; 
-  font-size: 11px;
-  padding: 6px 0;
-}
-.unit-chip.active { 
-  background: var(--accent) !important; 
-  color: #000 !important; 
-  font-weight: 900; 
-  border-color: #000;
-}
-/* フッター */
-.footer { background: var(--header-bg); padding: 12px 15px 30px; position: fixed; bottom: 0; width: 100%; z-index: 2000; border-top: 1px solid var(--panel); }
 .footer-main-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 #u-total { font-family: 'Oswald'; font-size: 32px; color: var(--accent); font-weight: 700; }
 .date-container { background: var(--panel); padding: 5px 15px; border-radius: 6px; color: var(--accent); }
 #date-label { font-family: 'Oswald'; font-size: 24px; font-weight: 900; }
-.footer-btns { display: flex; flex-direction: column; gap: 8px; }
-.btn-exec, .btn-cancel { width: 100%; padding: 14px; border-radius: 8px; font-weight: 900; font-size: 16px; border: none; }
-.btn-exec:active, .btn-cancel:active { transform: scale(0.96); opacity: 0.8; }
-.btn-exec { background: #5e81ac; color: #fff; }
+.btn-exec { width: 100%; padding: 14px; border-radius: 8px; font-weight: 900; font-size: 16px; border: none; background: #5e81ac; color: #fff; }
 .btn-exec:disabled { opacity: 0.3; }
-.btn-cancel { background: #4b5263; color: #eceff4; }
 
+/* ==========================================
+   8. その他ユーティリティ
+   ========================================== */
 .f-oswald { font-family: 'Oswald', sans-serif; }
+.spinner { width: 40px; height: 40px; border: 4px solid rgba(250,204,21,0.2); border-top: 4px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
-/* 点滅アニメーション */
+.status-bar-bg { background: rgba(0,0,0,0.1); height: 3px; display: flex; gap: 1px; width: 100%; }
+.p-seg.active { background: var(--accent) !important; }
+
 @keyframes flash-red {
-  0% { outline: 4px solid var(--danger); }
+  0%, 100% { outline: 4px solid var(--danger); }
   50% { outline: 4px solid transparent; }
-  100% { outline: 4px solid var(--danger); }
 }
-.last-work-highlight {
-  outline: 4px solid var(--danger) !important;
-  outline-offset: -4px;
-  animation: flash-red 0.5s ease 3; 
-}
-
-/* --- ちらつき防止設定：初期状態 --- */
-
-/* メイン要素は準備ができるまで完全に無効化し、奥へ配置 */
-#view-work, #view-log, .footer, .header, .nav-row, .type-bar, #view-mode-controls {
-  display: none !important;
-  opacity: 0;
-  pointer-events: none; /* クリックを完全にスルーさせる */
-  z-index: 1;
-}
-
-/* ログイン画面は常に最前面でクリック可能にする */
-#login-overlay {
-  display: flex !important;
-  opacity: 1 !important;
-  z-index: 99999 !important; /* 他の何よりも上に配置 */
-  pointer-events: auto !important; /* クリックを確実に有効化 */
-}
-
-/* ボタンのカーソルを指マークに固定 */
-.auth-btn, #auth-toggle-btn, .logout-btn, .qr-btn {
-  cursor: pointer !important;
-}
-
-/* --- 準備完了後 (.ready) の表示復元 --- */
-
-body.ready #view-work, 
-body.ready #view-log, 
-body.ready .nav-row, 
-body.ready .type-bar, 
-body.ready #view-mode-controls {
-  display: block !important;
-  opacity: 1;
-  pointer-events: auto;
-}
-
-body.ready .header, 
-body.ready .footer {
-  display: flex !important;
-  opacity: 1;
-  pointer-events: auto;
-}
-
-/* ログイン後は念のため最背面へ送るか非表示にする */
-body.ready #login-overlay {
-  display: none !important;
-  pointer-events: none;
-}
-
-/* 表示時のアニメーション */
-body.ready .header, 
-body.ready .nav-row, 
-body.ready .type-bar, 
-body.ready #view-mode-controls, 
-body.ready main, 
-body.ready .footer {
-  transition: opacity 0.3s ease;
-}
+.last-work-highlight { outline: 4px solid var(--danger); outline-offset: -4px; animation: flash-red 0.5s ease 3; }
