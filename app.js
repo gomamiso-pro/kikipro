@@ -20,7 +20,6 @@ window.onload = () => {
   updateDateDisplay();
 };
 
-// --- 認証UI操作 ---
 function toggleAuthMode() {
   isSignUpMode = !isSignUpMode;
   const title = document.getElementById('auth-title');
@@ -74,7 +73,6 @@ async function handleAuth() {
   }
 }
 
-// --- 描画・操作系 ---
 function renderAll() {
   const types = ["通常", "セル盤", "計数機", "ユニット", "説明書"];
   document.getElementById('type-tabs').innerHTML = types.map(t => `<button class="type-btn ${t===activeType?'active':''}" onclick="changeType('${t}')">${t}</button>`).join('');
@@ -86,20 +84,7 @@ function renderAll() {
 
 function changeType(t) { activeType = t; expandedZoneId = null; if(!editingLogRow) selectedUnits.clear(); renderAll(); }
 
-// ボタンの押し感を演出するためのラッパー
-function applyClickFeedback(elementId) {
-  const el = document.getElementById(elementId);
-  if (!el) return;
-  el.style.backgroundColor = "rgba(255, 255, 255, 0.4)";
-  el.style.transform = "scale(0.95)";
-  setTimeout(() => {
-    el.style.backgroundColor = "";
-    el.style.transform = "";
-  }, 500); // 0.5秒のフィードバック
-}
-
 function handleZoneCheckAll() {
-  applyClickFeedback('toggle-all-btn');
   const tIdx = TYPE_MAP[activeType];
   const allIds = DATA.master.filter(m => Number(m[tIdx]) === 1).map(m => Number(m[0]));
   const isEverythingSelected = allIds.every(id => selectedUnits.has(id));
@@ -113,7 +98,6 @@ function handleZoneCheckAll() {
 }
 
 function scrollToLastWork() {
-  // 最終🚩ボタンへのフィードバック（ボタン自体にIDがある前提、またはインラインで色変え）
   const finalIdx = getFinalWorkZoneIndex();
   if (finalIdx === -1) return;
   const target = document.getElementById(`zone-card-${finalIdx}`);
@@ -147,8 +131,7 @@ function renderList() {
             <div style="display:flex; justify-content:space-between;">
               <b>${z.name}</b>
               <span class="f-oswald">
-                ${originalIdx === finalIdx ? '🚩' : ''}
-                ${formatLastDate(z)}
+                ${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z)}
               </span>
             </div>
             <div style="display:flex; justify-content:space-between; margin-top:5px;">
@@ -171,7 +154,7 @@ function renderList() {
 
 function renderTile() {
   const container = document.getElementById('zone-display');
-  container.className = "zone-container-tile"; // CSSで grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)) を推奨
+  container.className = "zone-container-tile";
   const tIdx = TYPE_MAP[activeType];
   const finalIdx = getFinalWorkZoneIndex();
   const activeZones = DATA.cols.filter(z => DATA.master.some(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1));
@@ -182,23 +165,23 @@ function renderTile() {
     const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
     const isAllSelected = zoneUnits.length > 0 && zoneUnits.every(m => selectedUnits.has(Number(m[0])));
 
-    // ゾーン名の長体処理: 6文字を超える場合は圧縮
     const rawName = z.name.replace('ゾーン', '');
-    const scale = rawName.length > 6 ? Math.max(0.6, 6 / rawName.length) : 1;
-    const transformStyle = scale < 1 ? `style="transform: scaleX(${scale}); display: inline-block; width: 100%; white-space: nowrap;"` : '';
+    let scale = 1;
+    if (rawName.length >= 5) { scale = Math.max(0.5, 4.5 / rawName.length); }
+    const transformStyle = scale < 1 ? `style="transform: scaleX(${scale});"` : '';
 
     return `
       <div id="zone-card-${originalIdx}" class="tile-card ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" style="background:${z.bg};" onclick="handleZoneAction(event, ${originalIdx})">
         <div class="tile-row tile-row-top">
-          <div onclick="handleZoneCheck(event, ${originalIdx})"><input type="checkbox" ${isAllSelected ? 'checked' : ''} style="pointer-events:none; transform:scale(0.8);"></div>
-          <span class="f-oswald" style="font-size:10px;">
+          <div onclick="handleZoneCheck(event, ${originalIdx})"><input type="checkbox" ${isAllSelected ? 'checked' : ''} style="pointer-events:none; transform:scale(0.75);"></div>
+          <span class="f-oswald">
             ${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z)}
           </span>
         </div>
         <div class="tile-row tile-row-name">
           <span ${transformStyle}>${rawName}</span>
         </div>
-        <div class="tile-row tile-row-no f-oswald">No.${z.s}-${z.e}</div>
+        <div class="tile-row tile-row-no f-oswald">No.${z.s}</div>
         <div class="tile-row tile-row-count f-oswald">${selCount}/${zoneUnits.length}</div>
         <div class="status-bar-bg">
           ${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}
@@ -305,24 +288,15 @@ function startEdit(row, ids, date, type) {
   displayMode = "tile";
   document.getElementById('work-date').value = date.replace(/\//g, '-');
   updateDateDisplay();
-  
   document.getElementById('view-work').style.display = 'block';
   document.getElementById('view-log').style.display = 'none';
   document.getElementById('view-mode-controls').style.display = 'block';
   document.getElementById('tab-work').className = 'top-tab active-work';
   document.getElementById('tab-log').className = 'top-tab';
-  
   renderAll();
   setTimeout(() => scrollToLastWork(), 300);
 }
 
 async function handleDelete(row) { if(confirm("削除？")) { document.getElementById('loading').style.display='flex'; await callGAS("deleteLog",{row}); await silentLogin(); } }
-
-function showQR() {
-  const target = document.getElementById("qr-target");
-  target.innerHTML = "";
-  new QRCode(target, { text: window.location.href, width: 200, height: 200 });
-  document.getElementById("qr-overlay").style.display = "flex";
-}
-
+function showQR() { const target = document.getElementById("qr-target"); target.innerHTML = ""; new QRCode(target, { text: window.location.href, width: 200, height: 200 }); document.getElementById("qr-overlay").style.display = "flex"; }
 function hideQR() { document.getElementById("qr-overlay").style.display = "none"; }
