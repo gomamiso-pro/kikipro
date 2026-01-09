@@ -199,6 +199,13 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
   line-height: 1.2;
   text-shadow: 1px 1px 2px rgba(0,0,0,0.5); /* 読みやすく */
 }
+.log-range-info {
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff; /* 白文字 */
+  margin-top: 4px;
+  letter-spacing: 0.5px;
+}
 
 /* 編集・削除ボタンの間隔を広く */
 .log-action-row { display: flex; justify-content: space-between; margin-top: 15px; gap: 20px; }
