@@ -272,3 +272,20 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
   outline-offset: -4px;
   animation: flash-red 0.5s ease 3; 
 }
+
+/* 初期状態ではメインコンテンツを隠す */
+#view-work, #view-log, .footer, .header, .nav-row, .type-bar, #view-mode-controls {
+  display: none;
+}
+
+/* 準備完了後に付与するクラス */
+.ready #view-work, 
+.ready .header, 
+.ready .nav-row, 
+.ready .type-bar, 
+.ready #view-mode-controls {
+  display: block; /* headerなどはflexなど元の設定に合わせてください */
+}
+.ready .footer {
+  display: flex;
+}
