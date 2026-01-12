@@ -116,44 +116,43 @@ body {
 
 /* 展開（ユニット選択）ボックス */
 .expand-box {
-  position: absolute;
+  position: fixed; /* 画面に対して固定 */
   top: 0;
   left: 0;
-  width: 100vw; /* 画面の横幅いっぱい */
-  min-height: 100%;
-  background: #fdfdfd; /* 少し明るい背景 */
-  z-index: 2000;
-  padding: 15px;
-  box-shadow: 0 -5px 15px rgba(0,0,0,0.2);
+  width: 100vw;
+  height: 100dvh;
+  background: var(--bg); /* アプリ全体の背景色に合わせる */
+  z-index: 9999;
+  padding: 20px;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
 }
 .unit-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr); /* 4列で押しやすく */
-  gap: 10px;
-  margin-bottom: 70px; /* 完了ボタンとの余白 */
+  grid-template-columns: repeat(4, 1fr); /* 4列構成 */
+  gap: 12px;
+  margin-top: 10px;
+  padding-bottom: 100px; /* 下部ボタン用の余白 */
 }
 .unit-chip {
-  height: 54px; /* 指で押しやすい高さ */
+  height: 60px; /* リスト表示同様の押しやすい高さ */
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fff;
-  border: 2px solid #eee;
-  border-radius: 10px;
+  background: var(--card);
+  border: 2px solid var(--panel);
+  border-radius: 12px;
   font-family: 'Oswald', sans-serif;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
-  color: #333;
-  transition: all 0.2s;
+  color: var(--text);
+  transition: all 0.1s active;
 }
 .unit-chip.active {
   background: var(--accent) !important;
   border-color: var(--accent) !important;
   color: #000 !important;
-  transform: scale(0.95);
-  box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
 }
 .btn-close-expand {
   position: sticky;
@@ -168,8 +167,19 @@ body {
   font-size: 16px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
-.tile-card.expanded {
-  position: static !important; 
+.btn-close-expand {
+  position: fixed;
+  bottom: 20px;
+  left: 5%;
+  width: 90%;
+  padding: 18px;
+  background: #5e81ac; /* 入力中とわかる青系、またはアクセント色 */
+  color: #fff;
+  border: none;
+  border-radius: 15px;
+  font-weight: 900;
+  font-size: 18px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.4);
 }
 .zone-container-tile {
   position: relative;
