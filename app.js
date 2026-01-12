@@ -71,40 +71,32 @@ async function handleAuth() {
 }
 
 function renderAll() {
-  try {
-    const types = ["通常", "セル盤", "計数機", "ユニット", "説明書"];
-    const typeTabs = document.getElementById('type-tabs');
-    
-    if (typeTabs) {
-      typeTabs.innerHTML = types.map(t => {
-        const lastDate = getFinalDateByType(t);
-        const splitName = t.split('').map(char => `<span>${char}</span>`).join('');
-        return `
-          <button class="type-btn ${t === activeType ? 'active' : ''}" onclick="changeType('${t}')">
-            <div class="type-name-label">${splitName}</div>
-            <span class="type-last-badge">${lastDate}</span>
-          </button>`;
-      }).join('');
-    }
-    
-    updateToggleAllBtnState();
-
-    const viewWork = document.getElementById('view-work');
-    const viewLog = document.getElementById('view-log');
-
-    if (viewWork && viewWork.style.display !== 'none') {
-      displayMode === 'list' ? renderList() : renderTile();
-    } else if (viewLog) {
-      renderLogs();
-    }
-    
-    updateCount();
-  } catch (error) {
-    console.error("Render Error:", error);
-    // 万が一エラーが出ても、無理やりローディングだけは消す
-    const loader = document.getElementById('loading');
-    if (loader) loader.style.display = 'none';
+  const types = ["通常", "セル盤", "計数機", "ユニット", "説明書"];
+  
+  // タブ部分の描画
+  const typeTabs = document.getElementById('type-tabs');
+  if (typeTabs) {
+    typeTabs.innerHTML = types.map(t => {
+      const lastDate = getFinalDateByType(t);
+      return `
+        <button class="type-btn ${t === activeType ? 'active' : ''}" onclick="changeType('${t}')">
+          <span class="type-name-label">${t}</span>
+          <span class="type-last-badge">${lastDate}</span>
+        </button>`;
+    }).join('');
   }
+  
+  updateToggleAllBtnState();
+
+  // 表示モードの切り替え
+  const viewWork = document.getElementById('view-work');
+  if (viewWork && viewWork.style.display !== 'none') {
+    displayMode === 'list' ? renderList() : renderTile();
+  } else {
+    renderLogs();
+  }
+  
+  updateCount();
 }
 function getFinalDateByType(type) {
   const tCol = DATE_COL_MAP[type];
