@@ -162,10 +162,14 @@ function renderTile() {
         <div class="tile-row-4 f-oswald"><span>${selCount}</span><small>/${zoneUnits.length}</small></div>
         <div class="tile-row-5 status-bar-bg">${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}</div>
         
-        <div class="expand-box" style="display: ${expandedZoneId === originalIdx ? 'block' : 'none'};" onclick="event.stopPropagation()">
-          <div class="unit-grid">${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${Number(m[0])})">${m[0]}</div>`).join('')}</div>
-          <button class="btn-close-expand" onclick="closeExpand(event)">完了</button>
-        </div>
+// --- app.js の renderTile 内、expand-box部分を差し替え ---
+<div class="expand-box" style="display: ${expandedZoneId === originalIdx ? 'flex' : 'none'};" onclick="event.stopPropagation()">
+  <div style="font-size: 20px; font-weight: 900; color: var(--accent); margin-bottom: 15px; border-bottom: 2px solid var(--panel); padding-bottom: 10px;">
+    ${z.name} (No.${z.s}-${z.e})
+  </div>
+  <div class="unit-grid">${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${Number(m[0])})">${m[0]}</div>`).join('')}</div>
+  <button class="btn-close-expand" onclick="closeExpand(event)">入力を完了する</button>
+</div>
       </div>`;
   }).join('');
 }
