@@ -121,28 +121,36 @@ function renderList() {
     const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
     const isAll = zoneUnits.length > 0 && zoneUnits.every(m => selectedUnits.has(Number(m[0])));
     const bgColor = z.color || "#ffffff";
+    const isFinal = (originalIdx === finalIdx); // 最終作業フラグ
 
     return `
       <div id="zone-card-${originalIdx}" class="zone-row ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" 
-           style="background-color: ${bgColor} !important;" onclick="handleZoneAction(event, ${originalIdx})">
+           style="background-color: ${bgColor} !important;" onclick="handleZoneAction(event, originalIdx)">
         <div style="padding:15px; display:flex; align-items:center; justify-content:space-between;">
           <div style="display:flex; align-items:center; gap:15px;">
             <div onclick="handleZoneCheck(event, ${originalIdx})">
               <input type="checkbox" ${isAll ? 'checked' : ''} style="transform:scale(1.5); pointer-events:none;">
             </div>
             <div>
-              <div style="font-size:18px; font-weight:900;">${originalIdx === finalIdx ? '🚩' : ''}${z.name}</div>
-              <div class="f-oswald" style="font-size:14px;">No.${z.s} - ${z.e}</div>
+              <div style="font-size:20px; font-weight:900;">${z.name}</div>
+              <div class="f-oswald" style="font-size:18px; font-weight:700; opacity:0.8;">No.${z.s} - ${z.e}</div>
             </div>
           </div>
-          <div style="text-align:right;">
-            <div class="f-oswald" style="font-size:24px; font-weight:900;">${selCount}<span style="font-size:14px; opacity:0.6;">/${zoneUnits.length}</span></div>
-            <div class="f-oswald">${formatLastDate(z)}</div>
+
+          <div style="text-align:right; display:flex; flex-direction:column; justify-content:center;">
+            <div class="f-oswald" style="font-size:16px; font-weight:700; color:var(--text);">
+              ${isFinal ? '<span style="color:#ff3b3b; margin-right:2px;">🚩</span>' : ''}${formatLastDate(z)}
+            </div>
+            <div class="f-oswald" style="font-size:32px; font-weight:900; line-height:1.1; color:var(--accent);">
+              ${selCount}<span style="font-size:16px; opacity:0.6; color:var(--text);">/${zoneUnits.length}</span>
+            </div>
           </div>
         </div>
-        <div class="status-bar-bg" style="height:6px;">
+        
+        <div class="status-bar-bg" style="height:8px;">
           ${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}
         </div>
+
         <div class="expand-box" onclick="event.stopPropagation()">
           <div class="unit-grid">
             ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${Number(m[0])})">${m[0]}</div>`).join('')}
@@ -152,7 +160,6 @@ function renderList() {
       </div>`;
   }).join('');
 }
-
 function renderTile() {
   const container = document.getElementById('zone-display');
   container.className = "zone-container-tile";
