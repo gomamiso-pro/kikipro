@@ -112,10 +112,6 @@ function renderAll() {
   }
   updateCount();
 }
-
-/**
- * 【最終調整版】リスト表示：最新の最終作業ゾーン1箇所のみに🚩を表示
- */
 function renderList() {
   const container = document.getElementById('zone-display');
   if (!container) return;
@@ -123,7 +119,7 @@ function renderList() {
   container.className = "zone-container-list"; 
   
   const tIdx = TYPE_MAP[activeType];
-  // 最新の作業があった「一番最後のゾーン番号」を取得
+  // 最新の作業があった「一番最後のゾーンインデックス」を取得
   const finalIdx = getFinalWorkZoneIndex();
   
   const filteredZones = DATA.cols.filter(z => 
@@ -137,7 +133,7 @@ function renderList() {
     const isAll = zoneUnits.length > 0 && zoneUnits.every(m => selectedUnits.has(Number(m[0])));
     const bgColor = z.color || "#ffffff";
 
-    // 🚩を表示するかどうかの判定（最新日付かつ、該当する一番最後のゾーンのみ）
+    // 🚩を表示するかどうかの判定
     const isFinalZone = (originalIdx === finalIdx);
 
     return `
@@ -153,7 +149,7 @@ function renderList() {
               <input type="checkbox" ${isAll ? 'checked' : ''} style="transform: scale(1.6); pointer-events: none;">
             </div>
             <div style="line-height: 1.1;">
-              <div style="font-size: 15px; font-weight: 700; color: #555; margin-bottom: 2px;">${z.name}</div>
+              <div style="font-size: 14px; font-weight: 700; color: #666; margin-bottom: 2px;">${z.name}</div>
               <div class="f-oswald" style="font-size: 24px; font-weight: 900; color: #000; letter-spacing: -0.5px;">
                 No.${z.s} <span style="font-size:16px; opacity:0.5;">-</span> ${z.e}
               </div>
@@ -161,8 +157,8 @@ function renderList() {
           </div>
 
           <div style="text-align: right; min-width: 110px; display: flex; flex-direction: column; justify-content: center; gap: 4px;">
-            <div class="f-oswald" style="font-size: 14px; font-weight: 800; color: ${isFinalZone ? '#d32f2f' : '#444'}; background: ${isFinalZone ? 'rgba(211,47,47,0.1)' : 'rgba(0,0,0,0.05)'}; padding: 3px 8px; border-radius: 4px; display: inline-block; margin-left: auto;">
-              ${isFinalZone ? '🚩 ' : '📅 '}${formatLastDate(z)}
+            <div class="f-oswald" style="font-size: 14px; font-weight: 800; color: ${isFinalZone ? '#d32f2f' : '#555'}; background: ${isFinalZone ? 'rgba(211,47,47,0.1)' : 'transparent'}; padding: 3px 6px; border-radius: 4px; display: inline-block; margin-left: auto;">
+              ${isFinalZone ? '🚩 ' : ''}${formatLastDate(z)}
             </div>
             <div class="f-oswald" style="font-size: 28px; font-weight: 900; color: #000; line-height: 1;">
               ${selCount}<span style="font-size: 14px; opacity: 0.6; font-weight: 700; margin-left: 2px;">/ ${zoneUnits.length}</span>
@@ -219,12 +215,12 @@ function renderTile() {
           <div class="f-oswald" style="font-size:10px; opacity: 0.8;">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z, true)}</div>
         </div>
         
-        <div class="tile-row-2" style="text-align: left; padding-left: 2px; font-weight: 700; height: 21px; overflow: visible;">
-          <b>${getFitSpan(rawName, 19, 80)}</b>
+        <div class="tile-row-2" style="text-align: left; padding-left: 2px; font-weight: 650; height: 21px; overflow: visible;">
+          <b>${getFitSpan(rawName, 19, 75)}</b>
         </div>
         
-        <div class="tile-row-3 f-oswald" style="text-align: left; padding-left: 1px; color: #000 !important; font-weight: 700; height: 21px; overflow: visible;">
-          ${getFitSpan(`No.${z.s}-${z.e}`, 19, 82)}
+        <div class="tile-row-3 f-oswald" style="text-align: left; padding-left: 1px; color: #000 !important; font-weight: 650; height: 21px; overflow: visible;">
+          ${getFitSpan(`No.${z.s}-${z.e}`, 19, 80)}
         </div>
         
         <div class="tile-row-4 f-oswald" style="text-align: right; padding-right: 4px; margin-top: 2px;">
