@@ -218,12 +218,12 @@ function renderTile() {
           </div>
         </div>
         
-        <div class="tile-row-2" style="text-align: left; padding-left: 2px; font-weight: 700; height: 21px; overflow: visible;">
-          <b>${getFitSpan(rawName, 19, 75)}</b>
+        <div class="tile-row-2" style="text-align: left; padding-left: 3px; font-weight: 800; height: 21px; overflow: visible;">
+          <b>${getFitSpan(rawName, 19, 70)}</b>
         </div>
         
         <div class="tile-row-3 f-oswald" style="text-align: left; padding-left: 1px; color: #000 !important; font-weight: 700; height: 21px; overflow: visible;">
-          ${getFitSpan(`No.${z.s}-${z.e}`, 19, 80)}
+          ${getFitSpan(`No.${z.s}-${z.e}`, 19, 75)}
         </div>
         
         <div class="tile-row-4 f-oswald" style="text-align: right; padding-right: 4px; margin-top: 2px;">
