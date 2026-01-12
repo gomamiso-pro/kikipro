@@ -235,12 +235,12 @@ function renderTile() {
           <div class="f-oswald" style="font-size:10px; opacity: 0.8;">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z, true)}</div>
         </div>
         
-        <div class="tile-row-2" style="text-align: left; padding-left: 2px; height: 24px; overflow: hidden;">
-          <b>${getFitSpan(rawName, 19, 78)}</b>
+        <div class="tile-row-2" style="text-align: left; padding-left: 5px; height: 24px; overflow: hidden;">
+          <b>${getFitSpan(rawName, 19, 60)}</b>
         </div>
         
-        <div class="tile-row-3 f-oswald" style="text-align: left; padding-left: 2px; color: #000 !important; font-weight: 700; height: 18px; overflow: hidden;">
-          ${getFitSpan(`No.${z.s}-${z.e}`, 15, 78)}
+        <div class="tile-row-3 f-oswald" style="text-align: left; padding-left: 5px; color: #000 !important; font-weight: 700; height: 18px; overflow: hidden;">
+          ${getFitSpan(`No.${z.s}-${z.e}`, 15, 60)}
         </div>
         
         <div class="tile-row-4 f-oswald" style="text-align: right; padding-right: 2px; margin-top: 2px;">
@@ -261,7 +261,7 @@ function renderTile() {
   }).join('');
 }
 
-function getFitSpan(text, baseSize, limitWidth = 55) {
+function getFitSpan(text, baseSize, limitWidth = 60) {
   let estimatedWidth = 0;
   for (let char of String(text)) {
     // 半角は0.6倍、全角は1倍で幅を概算
