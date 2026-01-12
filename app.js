@@ -240,7 +240,7 @@ function renderTile() {
         </div>
         
         <div class="tile-row-3 f-oswald" style="text-align: left; padding-left: 5px; color: #000 !important; font-weight: 700; height: 18px; overflow: hidden;">
-          ${getFitSpan(`No.${z.s}-${z.e}`, 15, 60)}
+          ${getFitSpan(`No.${z.s}-${z.e}`, 15, 78)}
         </div>
         
         <div class="tile-row-4 f-oswald" style="text-align: right; padding-right: 2px; margin-top: 2px;">
