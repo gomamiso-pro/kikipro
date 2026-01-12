@@ -79,38 +79,40 @@ body.ready #app-content { display: flex !important; }
   background: var(--header-bg); 
   border: none; 
   color: var(--text-dim); 
-  padding: 10px 0; 
+  padding: 8px 0; 
   cursor: pointer; 
   display: flex; 
   flex-direction: column; 
   align-items: center; 
   justify-content: center;
-  transition: all 0.2s;
 }
 .type-btn.active { background: var(--accent) !important; color: #000 !important; }
-.type-btn.active .type-name-label { 
-  color: #000 !important; 
-}
+.type-btn.active .type-name-label { color: #000 !important; }
 .type-btn.active .type-last-badge { 
-  color: #000 !important; 
+  color: #000 !important; /* アクティブ時は完全な黒 */
   font-weight: 900;
-  opacity: 1;
 }
 .type-name-label { 
-  font-size: 14px; /* 元の12pxから+2px */
+  font-size: 14px; 
   font-weight: 900; 
-  width: 90%; /* 横幅いっぱいに広げるための基準 */
-  text-align: justify;
-  text-justify: inter-character; /* 文字間を均等に */
+  width: 80%; /* 均等配置の幅を指定 */
+  display: flex;
+  justify-content: space-between; /* 文字を両端に広げて均等にする */
   margin-bottom: 2px;
-  letter-spacing: 0.05em;
 }
 .type-last-badge { 
   font-family: 'Oswald', sans-serif; 
-  font-size: 12px; /* 元の9pxから拡大 */
+  font-size: 12px; 
   font-weight: 700;
-  opacity: 0.9;
-  color: var(--accent-dim);
+  color: #555; /* 非アクティブ時は視認性のあるグレー */
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.type-last-badge::before {
+  content: "🚩";
+  font-size: 8px;
+  vertical-align: middle;
 }
 
 /* --- コントロールバー --- */
