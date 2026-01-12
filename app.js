@@ -457,8 +457,10 @@ function hideManual() { document.getElementById('manual-overlay').style.display 
 /**
  * HTMLのボタン「GO TO 最終🚩」から呼び出される関数
  */
+/**
+ * 最終作業日（🚩マーク）のゾーンまでスクロールし、点滅させる
+ */
 function scrollToLastWork() {
-  // 最新の作業があるゾーンのインデックスを取得
   const finalIdx = getFinalWorkZoneIndex();
   
   if (finalIdx === -1) {
@@ -466,21 +468,27 @@ function scrollToLastWork() {
     return;
   }
 
-  // HTMLのID（zone-card-X）を指定して要素を取得
   const targetId = `zone-card-${finalIdx}`;
   const targetEl = document.getElementById(targetId);
 
   if (targetEl) {
-    // 画面中央へスムーズにスクロール
+    // スムーズにスクロール
     targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
     
-    // 視認性のための強調演出（クラス追加）
-    targetEl.classList.add('jump-highlight');
+    // 一旦クラスを消してから再度付与（連続押しに対応）
+    targetEl.classList.remove('jump-highlight');
+    
+    // わずかな遅延のあとクラスを付与してアニメーション開始
+    setTimeout(() => {
+      targetEl.classList.add('jump-highlight');
+    }, 100);
+
+    // アニメーション終了時間（1.5秒後）にクラスを除去
     setTimeout(() => {
       targetEl.classList.remove('jump-highlight');
-    }, 2500);
+    }, 1600);
+    
   } else {
-    // 現在の表示タイプ（通常/セル等）の中にそのゾーンがない場合
     alert("現在のタブ（" + activeType + "）には最終作業ゾーンが表示されていません。");
   }
 }
