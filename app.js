@@ -281,7 +281,7 @@ function fitText(text, fontSize) {
 /**
  * テキストを枠内に収める。収まる場合はそのまま、超える場合のみ左基点で圧縮。
  */
-function getFitSpan(text, baseSize, limitWidth = 70) {
+function getFitSpan(text, baseSize, limitWidth = 65) {
   let estimatedWidth = 0;
   for (let char of String(text)) {
     // 半角は0.6倍、全角は1倍で幅を概算
