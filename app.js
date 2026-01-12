@@ -3,8 +3,8 @@
  */
 
 // --- 1. グローバル変数の宣言 ---
-let authID = localStorage.getItem('kiki_authID') || "";
-let authPass = localStorage.getItem('kiki_authPass') || "";
+authID = localStorage.getItem('kiki_authID') || "";
+authPass = localStorage.getItem('kiki_authPass') || "";
 let DATA = {};
 let activeType = "通常";
 let displayMode = "list";
@@ -14,7 +14,6 @@ let editingLogRow = null;
 let isSignUpMode = false;
 
 // 共通設定
-const SECRET_API_KEY = "kiki-secure-2026";
 const TYPE_MAP = { "通常": 3, "セル盤": 4, "計数機": 5, "ユニット": 6, "説明書": 7 };
 const DATE_COL_MAP = { "通常": 8, "セル盤": 9, "計数機": 10, "ユニット": 11, "説明書": 12 };
 
@@ -32,37 +31,8 @@ window.onload = () => {
   }
 };
 
-// --- 3. 認証・データ取得コア (Loading停止対策済) ---
-async function callGAS(method, params = {}) {
-  const loader = document.getElementById('loading');
-  if (loader) loader.style.display = 'flex';
-
-  // GAS側が必要とする認証情報をセット
-  params.apiKey = SECRET_API_KEY;
-  if (!params.authID) params.authID = authID;
-  if (!params.authPass) params.authPass = authPass;
-
-  return new Promise((resolve, reject) => {
-    google.script.run
-      .withSuccessHandler(res => {
-        // 成功時も失敗時もまずはLoadingを消す
-        if (loader) loader.style.display = 'none';
-        
-        if (res && res.status === "error") {
-          alert("エラー: " + res.message);
-          reject(new Error(res.message));
-        } else {
-          resolve(res);
-        }
-      })
-      .withFailureHandler(err => {
-        if (loader) loader.style.display = 'none';
-        alert("通信失敗: GASへの接続を確認してください");
-        reject(err);
-      })
-      .doPostAction(method, params);
-  });
-}
+// --- 3. 認証・データ取得コア ---
+// ※ callGAS 本体は api.js で定義されているため、ここでは再定義しません。
 
 async function silentLogin() {
   if (!authID || !authPass) {
@@ -107,12 +77,14 @@ async function handleAuth() {
     document.getElementById('login-overlay').style.display = 'none';
     document.getElementById('app-content').style.display = 'flex';
   } catch (e) {
-    // エラー時はcallGAS内のalertで通知される
+    // api.js 内の alert でエラー表示済み
   }
 }
 
 // --- 4. 描画ロジック ---
 function renderAll() {
+  if (!DATA || !DATA.cols) return;
+
   const types = ["通常", "セル盤", "計数機", "ユニット", "説明書"];
   const tabContainer = document.getElementById('type-tabs');
   if (tabContainer) {
@@ -206,7 +178,7 @@ function renderTile() {
           </div>
           <div class="f-oswald">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z, true)}</div>
         </div>
-        <div class="tile-row-2"><b>${rawName.length > 5 ? fitText(rawName, 5) : rawName}</b></div>
+        <div class="tile-row-2"><b>${rawName}</b></div>
         <div class="tile-row-3 f-oswald">No.${z.s}-${z.e}</div>
         <div class="tile-row-4 f-oswald">${selCount}<small style="font-size:9px; opacity:0.7;">/${zoneUnits.length}</small></div>
         <div class="tile-row-5 status-bar-bg">
@@ -351,14 +323,6 @@ function formatLastDate(z, isShort = false) {
   return `${last.getMonth() + 1}/${last.getDate()}(${days[last.getDay()]})`;
 }
 
-function fitText(text, limit) {
-  if (text.length > limit) {
-    const scale = limit / text.length;
-    return `<span style="display:inline-block; transform:scaleX(${scale}); transform-origin:left; white-space:nowrap;">${text}</span>`;
-  }
-  return `<span>${text}</span>`;
-}
-
 function setMode(m) { 
   displayMode = m; 
   document.getElementById('mode-list-btn').classList.toggle('active', m === 'list'); 
@@ -396,9 +360,7 @@ async function upload() {
     await silentLogin();
     cancelEdit(); 
     switchView('log');
-  } catch (e) {
-    // callGAS内のalertで処理
-  }
+  } catch (e) { }
 }
 
 function cancelEdit() { editingLogRow = null; selectedUnits.clear(); expandedZoneId = null; renderAll(); }
