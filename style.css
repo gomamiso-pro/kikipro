@@ -354,3 +354,16 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background:
 .btn-cancel { background: var(--danger); color: #fff; width: 100%; padding: 12px; border-radius: 8px; font-weight: 900; border: none; margin-bottom: 10px; }
 
 .f-oswald { font-family: 'Oswald', sans-serif; }
+
+/* 最終作業ゾーンの点滅アニメーション */
+@keyframes blink-accent {
+  0% { outline: 4px solid var(--accent); background-color: var(--accent); color: #fff; }
+  50% { outline: 4px solid transparent; background-color: transparent; }
+  100% { outline: 4px solid var(--accent); background-color: var(--accent); color: #fff; }
+}
+
+.jump-highlight {
+  animation: blink-accent 0.5s ease-in-out 3; /* 0.5秒の点滅を3回繰り返す */
+  z-index: 100;
+  position: relative;
+}
