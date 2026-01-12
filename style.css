@@ -27,6 +27,12 @@ button:not(.top-tab):not(.switch-btn):not(.type-btn):active {
 /* --- システムパーツ --- */
 .overlay { position: fixed; inset: 0; display: none; justify-content: center; align-items: center; z-index: 100000; background: rgba(0,0,0,0.92); backdrop-filter: blur(4px); }
 
+/* ローディングは全要素の最前面に */
+#loading.overlay {
+  z-index: 999999 !important;
+  background: rgba(0, 0, 0, 0.85) !important;
+}
+
 .spinner {
   width: 40px; height: 40px;
   border: 4px solid rgba(250, 204, 21, 0.2);
@@ -51,9 +57,9 @@ button:not(.top-tab):not(.switch-btn):not(.type-btn):active {
 #app-content { display: none; flex-direction: column; height: 100%; width: 100%; }
 body.ready #app-content { display: flex !important; }
 
-/* --- ログイン画面 (Auth Section) 強制修正版 --- */
+/* --- ログイン画面 (Auth Section) --- */
 #login-overlay {
-  display: flex; /* 初期状態はJSが制御しますがCSSでも定義 */
+  display: flex;
   flex-direction: column;
   background: var(--bg) !important;
 }
@@ -140,10 +146,7 @@ body.ready #app-content { display: flex !important; }
   text-decoration: underline;
   cursor: pointer;
 }
-#loading.overlay {
-  z-index: 999999 !important; /* 他のどの要素よりも上に表示 */
-  background: rgba(0, 0, 0, 0.85) !important;
-}
+
 /* --- ヘッダー --- */
 .header { 
   flex-shrink: 0; height: 60px; background: var(--header-bg); border-bottom: 1px solid var(--panel); 
@@ -236,25 +239,28 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background:
 .has-selection { border: 4px solid var(--accent) !important; box-shadow: 0 0 10px rgba(250, 204, 21, 0.5); }
 .has-selection .list-date-top,
 .has-selection .tile-row-3 {
-  background: #000;               /* 選択中は背景を黒にしてより強調 */
-  border-color: var(--accent);    /* 枠線をアクセントカラーに */
+  background: #000 !important;
+  border-color: var(--accent) !important;
 }
+
 /* --- リスト表示修正 --- */
 .zone-container-list { padding: 10px; display: flex; flex-direction: column; gap: 8px; }
 .zone-row { border-radius: 10px; overflow: hidden; position: relative; background: #fff; }
 .list-zone-name { font-size: 18px; font-weight: 400; opacity: 0.8; }
 .list-range-no { font-size: 26px; font-weight: 900; line-height: 1.1; }
+
+/* 最終日の日付（リスト）: 枠囲み強調 */
 .list-date-top {
-  font-size: 16px;
-  font-weight: 900;
-  color: #fff !important;         /* 文字を白に */
-  background: #333;               /* 背景を濃いグレーに */
-  padding: 2px 8px;               /* 内側に余白 */
-  border-radius: 4px;             /* 角を少し丸める */
-  display: inline-block;          /* 枠を文字幅に合わせる */
+  font-size: 16px; font-weight: 900;
+  color: #fff !important;
+  background: #333;
+  padding: 2px 8px;
+  border-radius: 4px;
+  display: inline-block;
   margin-bottom: 4px;
-  border: 1px solid #000;         /* 細い枠線 */
+  border: 1px solid #000;
 }
+
 .list-count-bottom { font-size: 40px; font-weight: 900; line-height: 1; margin-top: 5px; }
 
 /* --- タイル表示修正（4列・高密度） --- */
@@ -266,18 +272,20 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background:
 .tile-row-1 { display: flex; justify-content: space-between; align-items: center; line-height: 1; }
 .tile-row-1 .f-oswald { font-size: 12px; font-weight: 900; }
 .tile-row-2 { font-size: 11px; font-weight: 900; line-height: 1; margin-top: 4px; }
+
+/* 最終日の日付（タイル）: 枠囲み強調 */
 .tile-row-3 {
-  font-size: 10px;
-  font-weight: 900;
-  color: #fff !important;         /* 文字を白に */
-  background: #555;               /* 背景をグレーに */
-  padding: 1px 4px;               /* 小さめの余白 */
+  font-size: 10px; font-weight: 900;
+  color: #fff !important;
+  background: #555;
+  padding: 1px 4px;
   border-radius: 3px;
   display: inline-block;
   margin-top: 4px;
-  opacity: 1 !important;          /* 透明度を解除してハッキリさせる */
+  opacity: 1 !important;
   line-height: 1;
 }
+
 .tile-row-4 { font-size: 24px; font-weight: 900; text-align: right; margin-top: auto; line-height: 1; padding-bottom: 2px; }
 
 /* --- 展開表示 --- */
