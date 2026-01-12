@@ -72,23 +72,32 @@ async function handleAuth() {
 
 function renderAll() {
   const types = ["通常", "セル盤", "計数機", "ユニット", "説明書"];
-  document.getElementById('type-tabs').innerHTML = types.map(t => {
-    const lastDate = getFinalDateByType(t);
-    // 文字を1文字ずつ分割してspanで囲むことで、CSSでの左右均等配置を可能にします
-    const splitName = t.split('').map(char => `<span>${char}</span>`).join('');
-    
-    return `
-      <button class="type-btn ${t === activeType ? 'active' : ''}" onclick="changeType('${t}')">
-        <div class="type-name-label">${splitName}</div>
-        <span class="type-last-badge">${lastDate}</span>
-      </button>`;
-  }).join('');
+  
+  // 修正：document.('...') ではなく getElementById を使用
+  const typeTabs = document.getElementById('type-tabs');
+  if (typeTabs) {
+    typeTabs.innerHTML = types.map(t => {
+      const lastDate = getFinalDateByType(t);
+      // 1文字ずつ分割してspanで囲む
+      const splitName = t.split('').map(char => `<span>${char}</span>`).join('');
+      
+      return `
+        <button class="type-btn ${t === activeType ? 'active' : ''}" onclick="changeType('${t}')">
+          <div class="type-name-label">${splitName}</div>
+          <span class="type-last-badge">${lastDate}</span>
+        </button>`;
+    }).join('');
+  }
   
   updateToggleAllBtnState();
+  
+  // 修正：こちらも getElementById に修正
   const viewWork = document.getElementById('view-work');
-  if (viewWork.style.display !== 'none') {
+  if (viewWork && viewWork.style.display !== 'none') {
     displayMode === 'list' ? renderList() : renderTile();
-  } else { renderLogs(); }
+  } else { 
+    renderLogs(); 
+  }
   updateCount();
 }
 
