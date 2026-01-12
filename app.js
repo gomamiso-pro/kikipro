@@ -1,10 +1,11 @@
 /**
- * KIKI PRO V14 - Main Application Logic
+ * KIKI PRO V14 - Complete Stable Edition
  */
 
-let authID = "";
-let authPass = "";
-let DATA = {}; // 既存の行
+// --- 1. グローバル変数の宣言 ---
+let authID = localStorage.getItem('kiki_authID') || "";
+let authPass = localStorage.getItem('kiki_authPass') || "";
+let DATA = {};
 let activeType = "通常";
 let displayMode = "list";
 let selectedUnits = new Set();
@@ -15,50 +16,43 @@ let isSignUpMode = false;
 const TYPE_MAP = { "通常": 3, "セル盤": 4, "計数機": 5, "ユニット": 6, "説明書": 7 };
 const DATE_COL_MAP = { "通常": 8, "セル盤": 9, "計数機": 10, "ユニット": 11, "説明書": 12 };
 
+// --- 2. 初期起動処理 ---
 window.onload = () => {
   silentLogin();
   const d = new Date();
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
-  document.getElementById('work-date').value = `${y}-${m}-${day}`;
-  updateDateDisplay();
+  const dateInput = document.getElementById('work-date');
+  if (dateInput) {
+    dateInput.value = `${y}-${m}-${day}`;
+    updateDateDisplay();
+  }
 };
 
+// --- 3. 認証・データ取得コア ---
 async function silentLogin() {
-  const savedID = localStorage.getItem('kiki_authID');
-  const savedPass = localStorage.getItem('kiki_authPass');
   const loader = document.getElementById('loading');
-
-  if (!savedID || !savedPass) {
+  if (!authID || !authPass) {
     if (loader) loader.style.display = 'none';
     document.getElementById('login-overlay').style.display = 'flex';
     return;
   }
 
-  // 自動ログイン開始
   if (loader) loader.style.display = 'flex';
 
   try {
-    // 【重要】ここで最上部で宣言した変数に代入する
-    authID = savedID; 
-    authPass = savedPass;
-
-    // callGAS を実行（method, パラメータの順序が重要）
-    // 第二引数に空のオブジェクト、または認証情報を明示的に渡す
-    const res = await callGAS("getInitialData", { authID: authID, authPass: authPass });
-    
+    const res = await callGAS("getInitialData");
     DATA = res;
+    
     document.getElementById('user-display').innerText = DATA.user.toUpperCase();
     renderAll();
-
-    // ログイン成功：画面を切り替える
+    
     document.body.classList.add('ready');
     document.getElementById('login-overlay').style.display = 'none';
     document.getElementById('app-content').style.display = 'flex';
-
   } catch (e) {
-    console.error("自動ログイン失敗:", e);
+    console.error("Auto Login Failed:", e);
     localStorage.removeItem('kiki_authID');
     localStorage.removeItem('kiki_authPass');
     document.getElementById('login-overlay').style.display = 'flex';
@@ -66,66 +60,202 @@ async function silentLogin() {
     if (loader) loader.style.display = 'none';
   }
 }
+
 async function handleAuth() {
   const nick = document.getElementById('login-nick').value;
   const pass = document.getElementById('login-pass').value;
+  const loader = document.getElementById('loading');
 
   if (!nick || !pass) return alert("入力してください");
-
-  const loading = document.getElementById('loading');
-  loading.style.display = 'flex';
+  if (loader) loader.style.display = 'flex';
 
   try {
     const method = isSignUpMode ? "signUp" : "getInitialData";
     const res = await callGAS(method, { authID: nick, authPass: pass, nickname: nick });
+    
+    authID = nick;
+    authPass = pass;
 
-    // グローバル変数にセット
-    window.authID = nick;
-    window.authPass = pass;
-
-    // 【重要】チェックボックスが入っていたら保存
     if (document.getElementById('auto-login').checked) {
-      localStorage.setItem('kiki_authID', nick);
-      localStorage.setItem('kiki_authPass', pass);
-    } else {
-      localStorage.removeItem('kiki_authID');
-      localStorage.removeItem('kiki_authPass');
+      localStorage.setItem('kiki_authID', authID);
+      localStorage.setItem('kiki_authPass', authPass);
     }
 
     DATA = res;
     renderAll();
-
     document.getElementById('user-display').innerText = DATA.user.toUpperCase();
     document.body.classList.add('ready');
     document.getElementById('login-overlay').style.display = 'none';
     document.getElementById('app-content').style.display = 'flex';
-
   } catch (e) {
-    alert(e.message);
+    alert("認証エラー: " + e.message);
   } finally {
-    loading.style.display = 'none';
+    if (loader) loader.style.display = 'none';
   }
 }
 
+async function callGAS(method, params = {}) {
+  if (!params.authID) params.authID = authID;
+  if (!params.authPass) params.authPass = authPass;
+
+  return new Promise((resolve, reject) => {
+    google.script.run
+      .withSuccessHandler(res => {
+        if (res && res.error) reject(new Error(res.error));
+        else resolve(res);
+      })
+      .withFailureHandler(err => reject(err))
+      .doPostAction(method, params);
+  });
+}
+
+// --- 4. 描画ロジック ---
 function renderAll() {
   const types = ["通常", "セル盤", "計数機", "ユニット", "説明書"];
-  document.getElementById('type-tabs').innerHTML = types.map(t => {
-    const lastDate = getFinalDateByType(t);
-    return `
-      <button class="type-btn ${t === activeType ? 'active' : ''}" onclick="changeType('${t}')">
-        <span class="type-name-label">${t}</span>
-        <span class="type-last-badge">${lastDate}</span>
-      </button>`;
-  }).join('');
+  const tabContainer = document.getElementById('type-tabs');
+  if (tabContainer) {
+    tabContainer.innerHTML = types.map(t => {
+      const lastDate = getFinalDateByType(t);
+      return `
+        <button class="type-btn ${t === activeType ? 'active' : ''}" onclick="changeType('${t}')">
+          ${t}
+          <span class="type-last-badge">${lastDate}</span>
+        </button>`;
+    }).join('');
+  }
   
   updateToggleAllBtnState();
   const viewWork = document.getElementById('view-work');
-  if (viewWork.style.display !== 'none') {
+  if (viewWork && viewWork.style.display !== 'none') {
     displayMode === 'list' ? renderList() : renderTile();
-  } else { renderLogs(); }
+  } else {
+    renderLogs();
+  }
   updateCount();
 }
 
+function renderList() {
+  const container = document.getElementById('zone-display');
+  container.className = "zone-container-list";
+  const tIdx = TYPE_MAP[activeType];
+  const finalIdx = getFinalWorkZoneIndex();
+  
+  container.innerHTML = DATA.cols.filter(z => 
+    DATA.master.some(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1)
+  ).map((z) => {
+    const originalIdx = DATA.cols.indexOf(z);
+    const zoneUnits = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1);
+    const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
+    const isAll = zoneUnits.length > 0 && zoneUnits.every(m => selectedUnits.has(Number(m[0])));
+    const bgColor = (z.color || z.bg) || "#ffffff";
+
+    return `
+      <div id="zone-card-${originalIdx}" class="zone-row ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" 
+           style="background-color: ${bgColor} !important;" onclick="handleZoneAction(event, ${originalIdx})">
+        <div style="padding:15px; display:flex; align-items:center; justify-content:space-between;">
+          <div style="display:flex; align-items:center; gap:15px;">
+            <div onclick="handleZoneCheck(event, ${originalIdx})">
+              <input type="checkbox" ${isAll ? 'checked' : ''} style="transform:scale(1.5); pointer-events:none;">
+            </div>
+            <div>
+              <div style="font-size:18px; font-weight:900;">${originalIdx === finalIdx ? '🚩' : ''}${z.name}</div>
+              <div class="f-oswald" style="font-size:14px;">No.${z.s} - ${z.e}</div>
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <div class="f-oswald" style="font-size:24px; font-weight:900;">${selCount}<span style="font-size:14px; opacity:0.6;">/${zoneUnits.length}</span></div>
+            <div class="f-oswald">${formatLastDate(z)}</div>
+          </div>
+        </div>
+        <div class="status-bar-bg" style="height:6px;">
+          ${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}
+        </div>
+        <div class="expand-box" onclick="event.stopPropagation()">
+          <div class="unit-grid">
+            ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${Number(m[0])})">${m[0]}</div>`).join('')}
+          </div>
+          <button class="btn-close-expand" onclick="closeExpand(event)">完了</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function renderTile() {
+  const container = document.getElementById('zone-display');
+  container.className = "zone-container-tile";
+  const tIdx = TYPE_MAP[activeType];
+  const finalIdx = getFinalWorkZoneIndex();
+  
+  container.innerHTML = DATA.cols.filter(z => 
+    DATA.master.some(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1)
+  ).map((z) => {
+    const originalIdx = DATA.cols.indexOf(z);
+    const zoneUnits = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1);
+    const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
+    const isAll = zoneUnits.length > 0 && zoneUnits.every(m => selectedUnits.has(Number(m[0])));
+    const bgColor = (z.color || z.bg) || "#ffffff";
+    const rawName = z.name.replace('ゾーン', '');
+
+    return `
+      <div id="zone-card-${originalIdx}" 
+           class="tile-card ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" 
+           style="background-color: ${bgColor} !important;" 
+           onclick="handleZoneAction(event, ${originalIdx})">
+        <div class="tile-row-1">
+          <div class="check-wrapper" onclick="handleZoneCheck(event, ${originalIdx})">
+            <input type="checkbox" ${isAll ? 'checked' : ''} style="pointer-events:none;">
+          </div>
+          <div class="f-oswald">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z, true)}</div>
+        </div>
+        <div class="tile-row-2"><b>${rawName.length > 5 ? fitText(rawName, 5) : rawName}</b></div>
+        <div class="tile-row-3 f-oswald">No.${z.s}-${z.e}</div>
+        <div class="tile-row-4 f-oswald">${selCount}<small style="font-size:9px; opacity:0.7;">/${zoneUnits.length}</small></div>
+        <div class="tile-row-5 status-bar-bg">
+          ${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}
+        </div>
+        <div class="expand-box" onclick="event.stopPropagation()">
+          <h3 style="margin:0 0 10px 0; font-size:16px;">${z.name}</h3>
+          <div class="unit-grid">
+            ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${Number(m[0])})">${m[0]}</div>`).join('')}
+          </div>
+          <button class="btn-close-expand" onclick="closeExpand(event)">完了</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function renderLogs() {
+  const filtered = DATA.logs ? DATA.logs.filter(l => l.type === activeType) : [];
+  document.getElementById('log-list').innerHTML = filtered.map(l => {
+    const ids = l.ids ? String(l.ids).split(',').map(Number).sort((a,b)=>a-b) : [];
+    const rangeStr = ids.length > 0 ? `${ids[0]}～${ids[ids.length-1]}` : '---';
+    let dateWithDay = l.date;
+    try {
+      const d = new Date(l.date.replace(/\//g, '-'));
+      const days = ["日","月","火","水","木","金","土"];
+      dateWithDay += `(${days[d.getDay()]})`;
+    } catch(e) {}
+
+    return `
+    <div class="log-card">
+      <div class="log-date-badge">${l.type} - ${dateWithDay}</div>
+      <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+        <div>
+          <div class="log-main-info" style="font-size:18px; font-weight:900; color:var(--accent);">${l.zone}</div>
+          <div class="f-oswald log-range">No.${rangeStr}</div>
+          <div style="font-size:11px; opacity:0.6;">登録者: ${l.user}</div>
+        </div>
+        <div class="log-unit-large">${l.count}<small style="font-size:12px;">台</small></div>
+      </div>
+      <div class="log-action-row" style="display:flex; gap:12px; margin-top:15px; border-top:1px solid rgba(255,255,255,0.1); padding-top:12px;">
+        <button class="btn-log-edit shadow-blue" onclick="startEdit(${l.row}, '${l.ids}', '${l.date}', '${l.type}')" style="flex:1;">編集</button>
+        <button class="btn-log-del shadow-red" onclick="handleDelete(${l.row})" style="flex:1;">削除</button>
+      </div>
+    </div>`;
+  }).join('') + `<div style="height:120px;"></div>`;
+}
+
+// --- 5. ユーティリティ & アクション ---
 function getFinalDateByType(type) {
   const tCol = DATE_COL_MAP[type];
   let last = null;
@@ -141,30 +271,6 @@ function getFinalDateByType(type) {
   return `${last.getMonth() + 1}/${last.getDate()}(${days[last.getDay()]})`;
 }
 
-function changeType(t) { 
-  activeType = t; expandedZoneId = null; 
-  if (!editingLogRow) selectedUnits.clear(); 
-  renderAll(); 
-}
-
-function updateToggleAllBtnState() {
-  const btn = document.getElementById('toggle-all-btn');
-  if (!btn) return;
-  const tIdx = TYPE_MAP[activeType];
-  const allIds = DATA.master.filter(m => Number(m[tIdx]) === 1).map(m => Number(m[0]));
-  const isAll = allIds.length > 0 && allIds.every(id => selectedUnits.has(id));
-  btn.innerText = isAll ? "全解除" : "全選択";
-  btn.classList.toggle('all-selected', isAll);
-}
-
-function handleZoneCheckAll() {
-  const tIdx = TYPE_MAP[activeType];
-  const allIds = DATA.master.filter(m => Number(m[tIdx]) === 1).map(m => Number(m[0]));
-  const isAll = allIds.every(id => selectedUnits.has(id));
-  allIds.forEach(id => isAll ? selectedUnits.delete(id) : selectedUnits.add(id));
-  renderAll();
-}
-
 function getFinalWorkZoneIndex() {
   const tCol = DATE_COL_MAP[activeType];
   let maxDate = null;
@@ -178,129 +284,18 @@ function getFinalWorkZoneIndex() {
   if (!maxDate) return -1;
   let lastUnitId = -1;
   DATA.master.forEach(m => {
-    if (m[tCol]) {
-      const d = new Date(m[tCol]);
-      if (d.getTime() === maxDate.getTime()) lastUnitId = Number(m[0]);
+    if (m[tCol] && new Date(m[tCol]).getTime() === maxDate.getTime()) {
+      lastUnitId = Number(m[0]);
     }
   });
   return DATA.cols.findIndex(z => lastUnitId >= Math.min(z.s, z.e) && lastUnitId <= Math.max(z.s, z.e));
 }
 
-function fitText(text, limit) {
-  if (text.length > limit) {
-    const scale = limit / text.length;
-    return `<span style="display:inline-block; transform:scaleX(${scale}); transform-origin:left; white-space:nowrap; width:100%;">${text}</span>`;
-  }
-  return `<span>${text}</span>`;
-}
-
-/**
- * リスト表示描画
- */
-function renderList() {
-  const container = document.getElementById('zone-display');
-  container.className = "zone-container-list";
-  const tIdx = TYPE_MAP[activeType];
-  const finalIdx = getFinalWorkZoneIndex();
-  
-  container.innerHTML = DATA.cols.filter(z => 
-    DATA.master.some(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1)
-  ).map((z) => {
-    const originalIdx = DATA.cols.indexOf(z);
-    const zoneUnits = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1);
-    const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
-    const isAll = zoneUnits.length > 0 && zoneUnits.every(m => selectedUnits.has(Number(m[0])));
-    const bgColor = (z.color || z.bg) && (z.color || z.bg) !== "" ? (z.color || z.bg) : "#ffffff";
-
-    return `
-      <div id="zone-card-${originalIdx}" class="zone-row ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" 
-           style="background-color: ${bgColor} !important;" onclick="handleZoneAction(event, ${originalIdx})">
-        <div style="padding:15px; display:flex; align-items:center; justify-content:space-between;">
-          <div style="display:flex; align-items:center; gap:15px;">
-            <div onclick="handleZoneCheck(event, ${originalIdx})">
-              <input type="checkbox" ${isAll ? 'checked' : ''} style="transform:scale(1.8); pointer-events:none;">
-            </div>
-            <div>
-              <div class="list-zone-name">${z.name}</div>
-              <div class="list-range-no f-oswald">No.${z.s} - ${z.e}</div>
-            </div>
-          </div>
-          <div style="text-align:right;">
-            <div class="list-date-top f-oswald">${formatLastDate(z, originalIdx === finalIdx)}</div>
-            <div class="list-count-bottom f-oswald">${selCount}<span style="font-size:16px; opacity:0.6;">/${zoneUnits.length}</span></div>
-          </div>
-        </div>
-        <div class="status-bar-bg">
-          ${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}
-        </div>
-        <div class="expand-box" onclick="event.stopPropagation()">
-          <h3 class="expand-title">${z.name}</h3>
-          <div class="unit-grid">
-            ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${Number(m[0])})">${m[0]}</div>`).join('')}
-          </div>
-          <button class="btn-close-expand" onclick="closeExpand(event)">完了</button>
-        </div>
-      </div>`;
-  }).join('');
-}
-
-/**
- * タイル表示描画
- */
-function renderTile() {
-  const container = document.getElementById('zone-display');
-  container.className = "zone-container-tile";
-  const tIdx = TYPE_MAP[activeType];
-  const finalIdx = getFinalWorkZoneIndex();
-  
-  container.innerHTML = DATA.cols.filter(z => 
-    DATA.master.some(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1)
-  ).map((z) => {
-    const originalIdx = DATA.cols.indexOf(z);
-    const zoneUnits = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1);
-    const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
-    const isAll = zoneUnits.length > 0 && zoneUnits.every(m => selectedUnits.has(Number(m[0])));
-    const bgColor = (z.color || z.bg) && (z.color || z.bg) !== "" ? (z.color || z.bg) : "#ffffff";
-    const rawName = z.name.replace('ゾーン', '');
-
-    return `
-      <div id="zone-card-${originalIdx}" class="tile-card ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" 
-           style="background-color: ${bgColor} !important;" onclick="handleZoneAction(event, ${originalIdx})">
-        <div class="tile-row-1">
-          <div class="check-wrapper" onclick="handleZoneCheck(event, ${originalIdx})">
-            <input type="checkbox" ${isAll ? 'checked' : ''} style="pointer-events:none;">
-          </div>
-          <div class="f-oswald">${formatLastDate(z, originalIdx === finalIdx)}</div>
-        </div>
-        <div class="tile-row-2"><b>${rawName.length > 5 ? fitText(rawName, 5) : rawName}</b></div>
-        <div class="tile-row-3 f-oswald">No.${z.s}-${z.e}</div>
-        <div class="tile-row-4 f-oswald">${selCount}<small style="font-size:10px; opacity:0.7;">/${zoneUnits.length}</small></div>
-        <div class="tile-row-5 status-bar-bg">
-          ${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}
-        </div>
-        <div class="expand-box" onclick="event.stopPropagation()">
-          <h3 class="expand-title">${z.name}</h3>
-          <div class="unit-grid">
-            ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${Number(m[0])})">${m[0]}</div>`).join('')}
-          </div>
-          <button class="btn-close-expand" onclick="closeExpand(event)">完了</button>
-        </div>
-      </div>`;
-  }).join('');
-}
-
 function handleZoneAction(event, index) {
-  if (event.target.type === 'checkbox' || event.target.closest('.check-wrapper')) return;
-  if (event.target.closest('.expand-box')) return;
+  if (event.target.type === 'checkbox' || event.target.closest('.check-wrapper') || event.target.closest('.expand-box')) return;
   event.stopPropagation();
   expandedZoneId = (expandedZoneId === index) ? null : index;
   displayMode === 'list' ? renderList() : renderTile();
-}
-
-function closeExpand(e) {
-  e.stopPropagation();
-  expandedZoneId = null;
-  renderAll();
 }
 
 function handleZoneCheck(e, idx) {
@@ -322,9 +317,14 @@ function toggleUnit(id) {
 function updateCount() {
   const count = selectedUnits.size;
   document.getElementById('u-total').innerText = count;
-  document.getElementById('send-btn').disabled = (count === 0);
-  document.getElementById('cancel-btn').style.display = (count > 0 || editingLogRow) ? "block" : "none";
+  const sendBtn = document.getElementById('send-btn');
+  if (sendBtn) sendBtn.disabled = (count === 0);
+  const cancelBtn = document.getElementById('cancel-btn');
+  if (cancelBtn) cancelBtn.style.display = (count > 0 || editingLogRow) ? "block" : "none";
 }
+
+function changeType(t) { activeType = t; expandedZoneId = null; if (!editingLogRow) selectedUnits.clear(); renderAll(); }
+function closeExpand(e) { e.stopPropagation(); expandedZoneId = null; renderAll(); }
 
 function updateDateDisplay() {
   const val = document.getElementById('work-date').value;
@@ -332,13 +332,6 @@ function updateDateDisplay() {
   const d = new Date(val);
   const days = ["日","月","火","水","木","金","土"];
   document.getElementById('date-label').innerText = `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
-}
-
-function setMode(m) { 
-  displayMode = m; 
-  document.getElementById('mode-list-btn').classList.toggle('active', m === 'list'); 
-  document.getElementById('mode-tile-btn').classList.toggle('active', m === 'tile'); 
-  renderAll(); 
 }
 
 function switchView(v) {
@@ -352,30 +345,57 @@ function switchView(v) {
   renderAll();
 }
 
-function formatLastDate(z, isFinal = false) {
+function formatLastDate(z, isShort = false) {
   const tCol = DATE_COL_MAP[activeType];
   const units = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e));
   let last = null;
   units.forEach(m => { if (m[tCol]) { const d = new Date(m[tCol]); if (!last || d > last) last = d; } });
   if (!last) return "未";
+  let globalMax = null;
+  DATA.master.forEach(m => { if (m[tCol]) { const d = new Date(m[tCol]); if (!globalMax || d > globalMax) globalMax = d; } });
+  const isFinal = (globalMax && last.getTime() === globalMax.getTime());
+  const style = isFinal ? 'style="color:red; font-size:1.1em; font-weight:900;"' : '';
   const days = ["日", "月", "火", "水", "木", "金", "土"];
-  const dateStr = `${last.getMonth() + 1}/${last.getDate()}(${days[last.getDay()]})`;
-  return isFinal ? `<span style="color:red; font-weight:900;">🚩${dateStr}</span>` : dateStr;
+  return `<span ${style}>${last.getMonth() + 1}/${last.getDate()}(${days[last.getDay()]})</span>`;
 }
 
-function scrollToLastWork() {
-  const finalIdx = getFinalWorkZoneIndex();
-  if (finalIdx === -1) return;
-  const target = document.getElementById(`zone-card-${finalIdx}`);
-  if (target) {
-    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    target.style.transform = "scale(1.05)";
-    setTimeout(() => target.style.transform = "", 300);
+function fitText(text, limit) {
+  if (text.length > limit) {
+    const scale = limit / text.length;
+    return `<span style="display:inline-block; transform:scaleX(${scale}); transform-origin:left; white-space:nowrap;">${text}</span>`;
   }
+  return `<span>${text}</span>`;
+}
+
+function setMode(m) { 
+  displayMode = m; 
+  document.getElementById('mode-list-btn').classList.toggle('active', m === 'list'); 
+  document.getElementById('mode-tile-btn').classList.toggle('active', m === 'tile'); 
+  renderAll(); 
+}
+
+function updateToggleAllBtnState() {
+  const btn = document.getElementById('toggle-all-btn');
+  if (!btn) return;
+  const tIdx = TYPE_MAP[activeType];
+  const allIds = DATA.master.filter(m => Number(m[tIdx]) === 1).map(m => Number(m[0]));
+  const isAll = allIds.length > 0 && allIds.every(id => selectedUnits.has(id));
+  btn.innerText = isAll ? "全解除" : "全選択";
+  btn.classList.toggle('all-selected', isAll);
+}
+
+function handleZoneCheckAll() {
+  const tIdx = TYPE_MAP[activeType];
+  const allIds = DATA.master.filter(m => Number(m[tIdx]) === 1).map(m => Number(m[0]));
+  const isAll = allIds.every(id => selectedUnits.has(id));
+  allIds.forEach(id => isAll ? selectedUnits.delete(id) : selectedUnits.add(id));
+  renderAll();
 }
 
 async function upload() {
   if (selectedUnits.size === 0) return;
+  const loader = document.getElementById('loading');
+  if (loader) loader.style.display = 'flex';
   try {
     await callGAS("addNewRecord", { 
       date: document.getElementById('work-date').value, 
@@ -383,47 +403,14 @@ async function upload() {
       ids: Array.from(selectedUnits), 
       editRow: editingLogRow 
     });
-    const reloadPromise = silentLogin();
+    await silentLogin();
     cancelEdit(); 
     switchView('log');
-    await reloadPromise;
   } catch (e) { alert("通信エラーが発生しました"); }
+  finally { if (loader) loader.style.display = 'none'; }
 }
 
-function cancelEdit() { 
-  editingLogRow = null; selectedUnits.clear(); expandedZoneId = null; 
-  renderAll(); 
-}
-
-function renderLogs() {
-  const filtered = DATA.logs.filter(l => l.type === activeType);
-  document.getElementById('log-list').innerHTML = filtered.map(l => {
-    const ids = l.ids ? String(l.ids).split(',').map(Number).sort((a,b)=>a-b) : [];
-    const rangeStr = ids.length > 0 ? `${ids[0]}～${ids[ids.length-1]}` : '---';
-    let dateWithDay = l.date;
-    try {
-      const d = new Date(l.date.replace(/\//g, '-'));
-      const days = ["日","月","火","水","木","金","土"];
-      dateWithDay += `(${days[d.getDay()]})`;
-    } catch(e) {}
-    return `
-    <div class="log-card">
-      <div class="log-date-badge">${l.type} - ${dateWithDay}</div>
-      <div style="display:flex; justify-content:space-between; align-items:flex-end; color:#fff;">
-        <div>
-          <div class="log-main-info" style="font-size:18px; font-weight:900;">${l.zone}</div>
-          <div class="f-oswald log-range">No.${rangeStr}</div>
-          <div style="font-size:11px; opacity:0.6;">登録者: ${l.user}</div>
-        </div>
-        <div class="log-unit-large">${l.count}<small style="font-size:12px;">台</small></div>
-      </div>
-      <div class="log-action-row">
-        <button class="btn-log-edit shadow-blue" onclick="startEdit(${l.row}, '${l.ids}', '${l.date}', '${l.type}')">編集</button>
-        <button class="btn-log-del shadow-red" onclick="handleDelete(${l.row})">削除</button>
-      </div>
-    </div>`;
-  }).join('') + `<div style="height:120px;"></div>`;
-}
+function cancelEdit() { editingLogRow = null; selectedUnits.clear(); expandedZoneId = null; renderAll(); }
 
 function startEdit(row, ids, date, type) {
   editingLogRow = row; 
@@ -444,6 +431,12 @@ async function handleDelete(row) {
   } 
 }
 
+function toggleAuthMode() {
+  isSignUpMode = !isSignUpMode;
+  document.getElementById('auth-title').innerText = isSignUpMode ? "KIKI SIGN UP" : "KIKI LOGIN";
+  document.getElementById('auth-submit').innerText = isSignUpMode ? "REGISTER & LOGIN" : "LOGIN";
+}
+
 function showQR() { 
   const target = document.getElementById("qr-target"); 
   if (!target) return;
@@ -454,8 +447,3 @@ function showQR() {
 function hideQR() { document.getElementById("qr-overlay").style.display = "none"; }
 function showManual() { document.getElementById('manual-overlay').style.display = 'flex'; }
 function hideManual() { document.getElementById('manual-overlay').style.display = 'none'; }
-function toggleAuthMode() {
-  isSignUpMode = !isSignUpMode;
-  document.getElementById('auth-title').innerText = isSignUpMode ? "KIKI SIGN UP" : "KIKI LOGIN";
-  document.getElementById('auth-submit').innerText = isSignUpMode ? "REGISTER & LOGIN" : "LOGIN";
-}
