@@ -74,7 +74,6 @@ async function handleAuth() {
 
   if (!nick || !pass) return alert("入力してください");
 
-  // --- ローディング表示を開始 ---
   const loading = document.getElementById('loading');
   loading.style.display = 'flex';
 
@@ -82,12 +81,17 @@ async function handleAuth() {
     const method = isSignUpMode ? "signUp" : "getInitialData";
     const res = await callGAS(method, { authID: nick, authPass: pass, nickname: nick });
 
-    authID = nick;
-    authPass = pass;
+    // グローバル変数にセット
+    window.authID = nick;
+    window.authPass = pass;
 
+    // 【重要】チェックボックスが入っていたら保存
     if (document.getElementById('auto-login').checked) {
-      localStorage.setItem('kiki_authID', authID);
-      localStorage.setItem('kiki_authPass', authPass);
+      localStorage.setItem('kiki_authID', nick);
+      localStorage.setItem('kiki_authPass', pass);
+    } else {
+      localStorage.removeItem('kiki_authID');
+      localStorage.removeItem('kiki_authPass');
     }
 
     DATA = res;
@@ -95,15 +99,12 @@ async function handleAuth() {
 
     document.getElementById('user-display').innerText = DATA.user.toUpperCase();
     document.body.classList.add('ready');
-    
-    // ログイン画面を隠し、コンテンツを表示
     document.getElementById('login-overlay').style.display = 'none';
     document.getElementById('app-content').style.display = 'flex';
 
   } catch (e) {
     alert(e.message);
   } finally {
-    // --- 成功しても失敗しても最後にローディングを隠す ---
     loading.style.display = 'none';
   }
 }
