@@ -203,6 +203,7 @@ function renderTile() {
     const isAll = zoneUnits.length > 0 && zoneUnits.every(m => selectedUnits.has(Number(m[0])));
     const bgColor = z.color || "#ffffff";
     const rawName = z.name.replace('ゾーン', '');
+    const isFinalZone = (originalIdx === finalIdx);
 
     return `
       <div id="zone-card-${originalIdx}" class="tile-card ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" 
@@ -212,14 +213,16 @@ function renderTile() {
           <div class="check-wrapper" onclick="handleZoneCheck(event, ${originalIdx})">
             <input type="checkbox" ${isAll ? 'checked' : ''} style="pointer-events:none; transform: scale(0.75);">
           </div>
-          <div class="f-oswald" style="font-size:10px; opacity: 0.8;">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z, true)}</div>
+          <div class="tile-date-box ${isFinalZone ? 'is-final' : ''}">
+            ${isFinalZone ? '🚩' : ''}${formatLastDate(z, true)}
+          </div>
         </div>
         
-        <div class="tile-row-2" style="text-align: left; padding-left: 2px; font-weight: 650; height: 21px; overflow: visible;">
+        <div class="tile-row-2" style="text-align: left; padding-left: 2px; font-weight: 700; height: 21px; overflow: visible;">
           <b>${getFitSpan(rawName, 19, 75)}</b>
         </div>
         
-        <div class="tile-row-3 f-oswald" style="text-align: left; padding-left: 1px; color: #000 !important; font-weight: 650; height: 21px; overflow: visible;">
+        <div class="tile-row-3 f-oswald" style="text-align: left; padding-left: 1px; color: #000 !important; font-weight: 700; height: 21px; overflow: visible;">
           ${getFitSpan(`No.${z.s}-${z.e}`, 19, 80)}
         </div>
         
