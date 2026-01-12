@@ -26,25 +26,45 @@ window.onload = () => {
 async function silentLogin() {
   const savedID = localStorage.getItem('kiki_authID');
   const savedPass = localStorage.getItem('kiki_authPass');
+
+  // ローディング画面を取得
+  const loader = document.getElementById('loading');
+
   if (!savedID || !savedPass) {
-    const loader = document.getElementById('loading');
-    if(loader) loader.style.display = 'none';
+    if (loader) loader.style.display = 'none';
     document.getElementById('login-overlay').style.display = 'flex';
     return;
   }
+
+  // 自動ログイン開始時にローディングを表示
+  if (loader) loader.style.display = 'flex';
+
   try {
-    authID = savedID;
-    authPass = savedPass;
+    // 【重要】ここで変数をグローバルまたは適切なスコープで定義/代入する
+    // authID と authPass が他で global 定義されていない場合は let/var が必要ですが、
+    // callGAS等で使っているはずなので、ここでは代入を確実に行います。
+    window.authID = savedID; 
+    window.authPass = savedPass;
+
     const res = await callGAS("getInitialData");
     DATA = res;
+
     document.getElementById('user-display').innerText = DATA.user.toUpperCase();
     renderAll();
+
+    // ログイン成功時のクラス付与と画面切り替え
     document.body.classList.add('ready');
+    document.getElementById('login-overlay').style.display = 'none'; // ログイン画面を隠す
     document.getElementById('app-content').style.display = 'flex';
   } catch (e) {
-    console.error(e);
-    localStorage.clear();
+    console.error("自動ログインエラー:", e);
+    // エラー時は保存情報を消してログイン画面へ
+    localStorage.removeItem('kiki_authID');
+    localStorage.removeItem('kiki_authPass');
     document.getElementById('login-overlay').style.display = 'flex';
+  } finally {
+    // 最後に必ずローディングを消す
+    if (loader) loader.style.display = 'none';
   }
 }
 
