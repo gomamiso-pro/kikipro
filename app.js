@@ -261,18 +261,25 @@ function renderTile() {
   }).join('');
 }
 
-function getFitSpan(text, baseSize, limitWidth = 65) {
+function getFitSpan(text, baseSize, limitWidth = 60) {
   let estimatedWidth = 0;
   for (let char of String(text)) {
     // 半角は0.6倍、全角は1倍で幅を概算
-    estimatedWidth += char.match(/[ -~]/) ? baseSize * 0.6 : baseSize;
+    estimatedWidth += char.match(/[ -~]/) ? baseSize * 0.7 : baseSize;
   }
   
   // 収まる場合はスケール1、超える場合のみ圧縮率を計算
   const scale = estimatedWidth > limitWidth ? limitWidth / estimatedWidth : 1;
   
   // transform-origin: left で左端を固定して縮小
-  return `<span class="tile-fit-inner" style="font-size:${baseSize}px; transform:scaleX(${scale}); transform-origin: left; display: inline-block; white-space: nowrap;">${text}</span>`;
+  return `<span class="tile-fit-inner" style="
+      font-size:${baseSize}px; 
+      transform:scaleX(${scale}); 
+      transform-origin: left; 
+      display: inline-block; 
+      white-space: nowrap;
+      letter-spacing: -0.5px; 
+    ">${text}</span>`;
 }
 function renderLogs() {
   const filtered = DATA.logs ? DATA.logs.filter(l => l.type === activeType) : [];
