@@ -3,11 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <link rel="icon" type="image/png" href="Ki.png">
-  <link rel="apple-touch-icon" href="Ki.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  
   <title>KIKI PRO V16</title>
   
   <link rel="stylesheet" href="style.css">
@@ -21,45 +18,21 @@
 
   <div id="loading" class="overlay" style="display: flex;">
     <div class="spinner"></div>
-    <div style="color:var(--accent); font-weight:900; margin-top:15px; letter-spacing: 2px;">LOADING...</div>
-  </div>
-
-  <div id="manual-overlay" class="overlay" style="display:none; z-index: 250000; padding: 0;">
-    <div class="manual-content" style="width: 100%; height: 100%; display: flex; flex-direction: column; background: var(--bg);">
-      <div class="manual-header" style="display:flex; justify-content:space-between; align-items:center; padding: 15px; background: var(--header-bg); border-bottom: 1px solid var(--panel);">
-        <div style="font-family:'Oswald'; color:var(--accent); font-weight:900; font-size:20px;">KIKI MANUAL</div>
-        <button onclick="hideManual()" class="unified-close-btn">CLOSE</button>
-      </div>
-      <iframe id="manual-iframe" src="https://kikipro.vercel.app/manual.html" style="flex:1; border:none; width:100%;"></iframe>
-    </div>
-  </div>
-
-  <div id="qr-overlay" class="overlay" onclick="hideQR()" style="display:none; z-index: 260000;">
-    <div class="qr-content-wrapper" onclick="event.stopPropagation()" style="text-align:center;">
-      <div id="qr-target" style="background:#fff; padding:15px; border-radius:8px; display:inline-block;"></div>
-      <div class="qr-label" style="color:var(--accent); font-weight:900; margin-top:15px; font-family:'Oswald';">SCAN TO SHARE</div>
-      <button onclick="hideQR()" class="unified-close-btn" style="margin-top:20px;">CLOSE</button>
-    </div>
+    <div style="color:var(--accent); font-weight:900; margin-top:15px; font-family:'Oswald'; letter-spacing:2px;">LOADING...</div>
   </div>
 
   <div id="login-overlay" class="overlay">
     <div class="auth-box">
       <div id="auth-title">KIKI LOGIN</div>
-      
       <div id="login-fields">
-        <input type="text" id="login-nick" placeholder="NICKNAME" class="auth-input" autocomplete="username">
-        <input type="password" id="login-pass" placeholder="PASSWORD" class="auth-input" autocomplete="current-password">
+        <input type="text" id="login-nick" placeholder="NICKNAME" class="auth-input">
+        <input type="password" id="login-pass" placeholder="PASSWORD" class="auth-input">
       </div>
-
       <div class="auto-login-wrap">
-        <input type="checkbox" id="auto-login" checked>
-        <label for="auto-login">次回から自動ログイン</label>
+        <input type="checkbox" id="auto-login" checked> <label for="auto-login">次回から自動ログイン</label>
       </div>
-
-      <button id="auth-submit" onclick="handleAuth()" class="auth-btn">LOGIN</button>
-
+      <button onclick="handleAuth()" class="auth-btn">LOGIN</button>
       <div class="auth-switch">
-        <span id="auth-toggle-msg">アカウントをお持ちでない方</span><br>
         <a href="javascript:void(0)" onclick="toggleAuthMode()" id="auth-toggle-btn">新規登録はこちら</a>
       </div>
     </div>
@@ -69,64 +42,58 @@
     <header class="header">
       <div class="header-logo">KIKI PRO V16</div>
       <div class="header-right">
-        <div onclick="showManual()" class="header-icon-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg></div>
-        <div onclick="showQR()" class="header-icon-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg></div>
-        
-        <div class="user-info-chip">
-          <span id="user-display">---</span>
-        </div>
-
-        <button onclick="logout()" class="logout-btn">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-        </button>
+        <div onclick="showQR()" class="header-icon">QR</div>
+        <div id="user-display" class="user-chip">---</div>
+        <button onclick="logout()" class="logout-btn">OFF</button>
       </div>
     </header>
 
     <nav class="nav-row">
-      <div class="top-tab active-work" id="tab-work" onclick="switchView('work')">入力</div>
-      <div class="top-tab" id="tab-log" onclick="switchView('log')">履歴</div>
+      <div id="tab-work" class="top-tab active-work" onclick="switchView('work')">入力</div>
+      <div id="tab-log" class="top-tab" onclick="switchView('log')">履歴</div>
     </nav>
 
-    <div class="type-bar" id="type-tabs"></div>
+    <div id="type-tabs" class="type-bar"></div>
 
     <div id="view-mode-controls" class="view-mode-bar">
       <div class="switch-group">
         <button id="mode-list-btn" class="switch-btn" onclick="setMode('list')">リスト</button>
-        <button id="mode-tile-btn" class="switch-btn" onclick="setMode('tile')">全体</button>
+        <button id="mode-tile-btn" class="switch-btn active" onclick="setMode('tile')">全体</button>
       </div>
-      <button id="toggle-all-btn" class="action-toggle-btn" onclick="handleZoneCheckAll()">全選択</button>
-      <button class="btn-final-jump" onclick="scrollToLastWork()">
-        <span style="font-size:10px;">GO TO</span><br>最終🚩
-      </button>
+      <button id="toggle-all-btn" class="action-btn" onclick="handleZoneCheckAll()">全選択</button>
+      <button class="jump-btn" onclick="scrollToLastWork()">最終🚩</button>
     </div>
 
-    <main id="view-work">
-      <div id="zone-display"></div>
+    <main id="main-area">
+      <div id="view-work">
+        <div id="zone-display"></div>
+      </div>
+      <div id="view-log" style="display:none;">
+        <div id="log-list"></div>
+      </div>
     </main>
 
-    <main id="view-log" style="display:none;">
-      <div id="log-list"></div>
-    </main>
-
-    <footer class="footer" id="main-footer">
-      <div id="footer-content-wrap">
-        <div class="footer-main-row">
-          <div class="total-wrap">
-            <span id="u-total">0</span><small>台</small>
-          </div>
-          
-          <div class="date-display-box" onclick="document.getElementById('work-date').showPicker()">
-            <span id="date-label">--/--(--)</span>
-            <input type="date" id="work-date" onchange="updateDateDisplay()" style="position:absolute; opacity:0; pointer-events:none; width:1px;">
-          </div>
-        </div>
-        
-        <div class="footer-btns">
-          <button class="btn-cancel" id="cancel-btn" onclick="cancelEdit()" style="display:none;">キャンセル</button>
-          <button class="btn-exec" id="send-btn" onclick="upload()" disabled>登録実行</button>
+    <footer class="footer">
+      <div class="footer-upper">
+        <div class="total-wrap"><span id="u-total">0</span><small>台</small></div>
+        <div class="date-display" onclick="document.getElementById('work-date').showPicker()">
+          <span id="date-label">--/--(--)</span>
+          <input type="date" id="work-date" onchange="updateDateDisplay()" style="opacity:0;position:absolute;width:1px;">
         </div>
       </div>
+      <div class="footer-lower">
+        <button class="btn-cancel" id="cancel-btn" onclick="cancelEdit()" style="display:none;">キャンセル</button>
+        <button class="btn-exec" id="send-btn" onclick="upload()" disabled>登録実行</button>
+      </div>
     </footer>
+  </div>
+
+  <div id="expanded-overlay" class="overlay" onclick="closeExpand(event)">
+    <div class="expanded-card" onclick="event.stopPropagation()">
+      <div id="expanded-title" class="exp-title">ZONE NAME</div>
+      <div id="expanded-grid" class="unit-grid"></div>
+      <button class="btn-close-exp" onclick="closeExpand(event)">入力を完了する</button>
+    </div>
   </div>
 
 </body>
