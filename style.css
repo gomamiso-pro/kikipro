@@ -133,3 +133,41 @@ body {
 .switch-btn { border: none; background: none; color: var(--text-dim); padding: 6px 12px; font-size: 12px; font-weight: 700; border-radius: 6px; }
 .switch-btn.active { background: var(--card); color: var(--accent); }
 .action-toggle-btn { margin-left: auto; background: var(--panel); color: var(--text); border: none; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; }
+
+
+.date-container-simple {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(250, 204, 21, 0.15); /* アクセント色の薄い背景 */
+  padding: 4px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--accent); /* 黄色の枠線 */
+  min-width: 100px;
+}
+#date-label {
+  font-family: 'Oswald', sans-serif;
+  font-size: 20px !important; /* サイズを大きく */
+  font-weight: 900 !important; /* 太字 */
+  color: var(--accent) !important; /* 台数と同じ黄色 */
+  letter-spacing: 1px;
+}
+/* フォームの配置調整（見た目は変わらず、クリック領域として機能） */
+#work-date {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* フッターのレイアウト調整（日付と台数を並べる） */
+.footer-main-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
