@@ -136,7 +136,7 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background:
   font-size: 10px !important; 
   font-weight: 800 !important; 
   color: #000 !important;
-  height: 13px !important; /* 高さを固定 */
+  height: 21px !important; /* 高さを固定 */
   line-height: 13px !important;
   margin-top: 1px !important;
   text-align: left;
@@ -147,7 +147,7 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background:
 /* No（9px・重なり防止） */
 .tile-row-3 { 
   font-size: 9px !important; 
-  font-weight: 700 !important; 
+  font-weight: 800 !important; 
   color: #333 !important;
   height: 12px !important; /* 高さを固定 */
   line-height: 12px !important;
