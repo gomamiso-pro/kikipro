@@ -247,10 +247,25 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background:
 .list-count-bottom { font-size: 40px; font-weight: 900; line-height: 1; margin-top: 5px; }
 
 /* --- タイル表示修正（4列・高密度） --- */
-.zone-container-tile { padding: 5px; width:95%;display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
-.tile-card { 
-  min-height: 100px; padding: 6px 4px; border-radius: 6px; 
-  display: flex; flex-direction: column; position: relative; background: #fff;
+.zone-container-tile {
+  display: grid;
+  /* 強制的に4列（1fr × 4）に設定 */
+  grid-template-columns: repeat(4, 1fr); 
+  /* 隙間を詰めすぎず、かつ広すぎない6pxに設定 */
+  gap: 6px; 
+  padding: 6px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.tile-card {
+  /* 4列だと横幅が狭いので、パディングを少し削って中身のスペースを確保 */
+  padding: 6px 4px; 
+  min-height: 90px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-radius: 6px;
+  overflow: hidden; /* はみ出し防止 */
 }
 .tile-row-1 { display: flex; justify-content: space-between; align-items: center; line-height: 1; }
 .tile-row-1 .f-oswald { font-size: 12px; font-weight: 900; }
