@@ -40,7 +40,7 @@ body {
 .tile-row-3 { 
   font-size: 25px !important; /* フォントサイズを一箇所に集約 */
   font-weight: 900 !important; color: #000 !important;
-  height: 30px !important; line-height: 28px !important;
+  height: 30px !important; line-height: 30px !important;
   margin-top: 1px !important; text-align: left; white-space: nowrap;
 }
 
