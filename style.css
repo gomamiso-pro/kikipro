@@ -409,3 +409,39 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background:
   z-index: 100;
   position: relative;
 }
+
+/* --- 日付・最終フラグの表示カスタム --- */
+
+/* リスト表示内の日付エリア */
+.zone-date-box {
+  font-family: 'Oswald', sans-serif;
+  font-size: 15px;      /* 文字サイズを大きく */
+  font-weight: 800;     /* 太字 */
+  color: #000 !important; /* 何が何でも黒 */
+  padding: 3px 8px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-left: auto;
+  line-height: 1;
+}
+
+/* リスト表示：最新ゾーン（🚩付き）の背景を強調 */
+.zone-date-box.is-final {
+  background-color: rgba(211, 47, 47, 0.1); /* 🚩の時だけ薄い赤背景 */
+  color: #d32f2f !important; /* 🚩の時だけ文字を赤に（黒が良ければ #000 に変更） */
+}
+
+/* 全体表示（タイル）内の日付エリア */
+.tile-date-box {
+  font-family: 'Oswald', sans-serif;
+  font-size: 12px;      /* タイルの枠に合わせたサイズ */
+  font-weight: 900;     /* 極太 */
+  color: #000 !important; /* 黒固定 */
+  opacity: 1 !important;  /* 透明度を無効化してハッキリさせる */
+  line-height: 1;
+}
+
+/* タイル表示：最新ゾーンの🚩付き */
+.tile-date-box.is-final {
+  /* 必要に応じてタイル側の🚩付きの装飾を追加可能 */
+}
