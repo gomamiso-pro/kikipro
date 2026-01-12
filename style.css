@@ -144,6 +144,9 @@ body.ready #app-content { display: flex !important; }
   z-index: 999999 !important; /* 他のどの要素よりも上に表示 */
   background: rgba(0, 0, 0, 0.85) !important;
 }
+body.ready #login-overlay {
+  display: none !important;
+}
 /* --- ヘッダー --- */
 .header { 
   flex-shrink: 0; height: 60px; background: var(--header-bg); border-bottom: 1px solid var(--panel); 
