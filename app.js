@@ -1,5 +1,5 @@
 /**
- * KIKI PRO V14 - Complete Stable Edition
+ * KIKI PRO V15 - Complete Stable App Logic
  */
 
 // --- 1. グローバル変数の宣言 ---
@@ -13,6 +13,8 @@ let expandedZoneId = null;
 let editingLogRow = null;
 let isSignUpMode = false;
 
+// 共通設定
+const SECRET_API_KEY = "kiki-secure-2026";
 const TYPE_MAP = { "通常": 3, "セル盤": 4, "計数機": 5, "ユニット": 6, "説明書": 7 };
 const DATE_COL_MAP = { "通常": 8, "セル盤": 9, "計数機": 10, "ユニット": 11, "説明書": 12 };
 
@@ -30,44 +32,63 @@ window.onload = () => {
   }
 };
 
-// --- 3. 認証・データ取得コア ---
-async function silentLogin() {
+// --- 3. 認証・データ取得コア (Loading停止対策済) ---
+async function callGAS(method, params = {}) {
   const loader = document.getElementById('loading');
+  if (loader) loader.style.display = 'flex';
+
+  // GAS側が必要とする認証情報をセット
+  params.apiKey = SECRET_API_KEY;
+  if (!params.authID) params.authID = authID;
+  if (!params.authPass) params.authPass = authPass;
+
+  return new Promise((resolve, reject) => {
+    google.script.run
+      .withSuccessHandler(res => {
+        // 成功時も失敗時もまずはLoadingを消す
+        if (loader) loader.style.display = 'none';
+        
+        if (res && res.status === "error") {
+          alert("エラー: " + res.message);
+          reject(new Error(res.message));
+        } else {
+          resolve(res);
+        }
+      })
+      .withFailureHandler(err => {
+        if (loader) loader.style.display = 'none';
+        alert("通信失敗: GASへの接続を確認してください");
+        reject(err);
+      })
+      .doPostAction(method, params);
+  });
+}
+
+async function silentLogin() {
   if (!authID || !authPass) {
-    if (loader) loader.style.display = 'none';
     document.getElementById('login-overlay').style.display = 'flex';
     return;
   }
-
-  if (loader) loader.style.display = 'flex';
-
   try {
     const res = await callGAS("getInitialData");
     DATA = res;
-    
     document.getElementById('user-display').innerText = DATA.user.toUpperCase();
     renderAll();
-    
     document.body.classList.add('ready');
     document.getElementById('login-overlay').style.display = 'none';
     document.getElementById('app-content').style.display = 'flex';
   } catch (e) {
-    console.error("Auto Login Failed:", e);
+    console.error("Silent Login Failed:", e);
     localStorage.removeItem('kiki_authID');
     localStorage.removeItem('kiki_authPass');
     document.getElementById('login-overlay').style.display = 'flex';
-  } finally {
-    if (loader) loader.style.display = 'none';
   }
 }
 
 async function handleAuth() {
   const nick = document.getElementById('login-nick').value;
   const pass = document.getElementById('login-pass').value;
-  const loader = document.getElementById('loading');
-
   if (!nick || !pass) return alert("入力してください");
-  if (loader) loader.style.display = 'flex';
 
   try {
     const method = isSignUpMode ? "signUp" : "getInitialData";
@@ -75,12 +96,10 @@ async function handleAuth() {
     
     authID = nick;
     authPass = pass;
-
     if (document.getElementById('auto-login').checked) {
       localStorage.setItem('kiki_authID', authID);
       localStorage.setItem('kiki_authPass', authPass);
     }
-
     DATA = res;
     renderAll();
     document.getElementById('user-display').innerText = DATA.user.toUpperCase();
@@ -88,25 +107,8 @@ async function handleAuth() {
     document.getElementById('login-overlay').style.display = 'none';
     document.getElementById('app-content').style.display = 'flex';
   } catch (e) {
-    alert("認証エラー: " + e.message);
-  } finally {
-    if (loader) loader.style.display = 'none';
+    // エラー時はcallGAS内のalertで通知される
   }
-}
-
-async function callGAS(method, params = {}) {
-  if (!params.authID) params.authID = authID;
-  if (!params.authPass) params.authPass = authPass;
-
-  return new Promise((resolve, reject) => {
-    google.script.run
-      .withSuccessHandler(res => {
-        if (res && res.error) reject(new Error(res.error));
-        else resolve(res);
-      })
-      .withFailureHandler(err => reject(err))
-      .doPostAction(method, params);
-  });
 }
 
 // --- 4. 描画ロジック ---
@@ -118,8 +120,7 @@ function renderAll() {
       const lastDate = getFinalDateByType(t);
       return `
         <button class="type-btn ${t === activeType ? 'active' : ''}" onclick="changeType('${t}')">
-          ${t}
-          <span class="type-last-badge">${lastDate}</span>
+          ${t}<span class="type-last-badge">${lastDate}</span>
         </button>`;
     }).join('');
   }
@@ -147,7 +148,7 @@ function renderList() {
     const zoneUnits = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1);
     const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
     const isAll = zoneUnits.length > 0 && zoneUnits.every(m => selectedUnits.has(Number(m[0])));
-    const bgColor = (z.color || z.bg) || "#ffffff";
+    const bgColor = z.color || "#ffffff";
 
     return `
       <div id="zone-card-${originalIdx}" class="zone-row ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" 
@@ -193,14 +194,12 @@ function renderTile() {
     const zoneUnits = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1);
     const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
     const isAll = zoneUnits.length > 0 && zoneUnits.every(m => selectedUnits.has(Number(m[0])));
-    const bgColor = (z.color || z.bg) || "#ffffff";
+    const bgColor = z.color || "#ffffff";
     const rawName = z.name.replace('ゾーン', '');
 
     return `
-      <div id="zone-card-${originalIdx}" 
-           class="tile-card ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" 
-           style="background-color: ${bgColor} !important;" 
-           onclick="handleZoneAction(event, ${originalIdx})">
+      <div id="zone-card-${originalIdx}" class="tile-card ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" 
+           style="background-color: ${bgColor} !important;" onclick="handleZoneAction(event, ${originalIdx})">
         <div class="tile-row-1">
           <div class="check-wrapper" onclick="handleZoneCheck(event, ${originalIdx})">
             <input type="checkbox" ${isAll ? 'checked' : ''} style="pointer-events:none;">
@@ -214,7 +213,6 @@ function renderTile() {
           ${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}
         </div>
         <div class="expand-box" onclick="event.stopPropagation()">
-          <h3 style="margin:0 0 10px 0; font-size:16px;">${z.name}</h3>
           <div class="unit-grid">
             ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${Number(m[0])})">${m[0]}</div>`).join('')}
           </div>
@@ -229,16 +227,9 @@ function renderLogs() {
   document.getElementById('log-list').innerHTML = filtered.map(l => {
     const ids = l.ids ? String(l.ids).split(',').map(Number).sort((a,b)=>a-b) : [];
     const rangeStr = ids.length > 0 ? `${ids[0]}～${ids[ids.length-1]}` : '---';
-    let dateWithDay = l.date;
-    try {
-      const d = new Date(l.date.replace(/\//g, '-'));
-      const days = ["日","月","火","水","木","金","土"];
-      dateWithDay += `(${days[d.getDay()]})`;
-    } catch(e) {}
-
     return `
     <div class="log-card">
-      <div class="log-date-badge">${l.type} - ${dateWithDay}</div>
+      <div class="log-date-badge">${l.type} - ${l.date}</div>
       <div style="display:flex; justify-content:space-between; align-items:flex-end;">
         <div>
           <div class="log-main-info" style="font-size:18px; font-weight:900; color:var(--accent);">${l.zone}</div>
@@ -282,20 +273,18 @@ function getFinalWorkZoneIndex() {
     }
   });
   if (!maxDate) return -1;
-  let lastUnitId = -1;
+  let lastId = -1;
   DATA.master.forEach(m => {
-    if (m[tCol] && new Date(m[tCol]).getTime() === maxDate.getTime()) {
-      lastUnitId = Number(m[0]);
-    }
+    if (m[tCol] && new Date(m[tCol]).getTime() === maxDate.getTime()) lastId = Number(m[0]);
   });
-  return DATA.cols.findIndex(z => lastUnitId >= Math.min(z.s, z.e) && lastUnitId <= Math.max(z.s, z.e));
+  return DATA.cols.findIndex(z => lastId >= Math.min(z.s, z.e) && lastId <= Math.max(z.s, z.e));
 }
 
 function handleZoneAction(event, index) {
   if (event.target.type === 'checkbox' || event.target.closest('.check-wrapper') || event.target.closest('.expand-box')) return;
   event.stopPropagation();
   expandedZoneId = (expandedZoneId === index) ? null : index;
-  displayMode === 'list' ? renderList() : renderTile();
+  renderAll();
 }
 
 function handleZoneCheck(e, idx) {
@@ -316,14 +305,21 @@ function toggleUnit(id) {
 
 function updateCount() {
   const count = selectedUnits.size;
-  document.getElementById('u-total').innerText = count;
+  const countEl = document.getElementById('u-total');
+  if (countEl) countEl.innerText = count;
   const sendBtn = document.getElementById('send-btn');
   if (sendBtn) sendBtn.disabled = (count === 0);
   const cancelBtn = document.getElementById('cancel-btn');
   if (cancelBtn) cancelBtn.style.display = (count > 0 || editingLogRow) ? "block" : "none";
 }
 
-function changeType(t) { activeType = t; expandedZoneId = null; if (!editingLogRow) selectedUnits.clear(); renderAll(); }
+function changeType(t) { 
+  activeType = t; 
+  expandedZoneId = null; 
+  if (!editingLogRow) selectedUnits.clear(); 
+  renderAll(); 
+}
+
 function closeExpand(e) { e.stopPropagation(); expandedZoneId = null; renderAll(); }
 
 function updateDateDisplay() {
@@ -351,12 +347,8 @@ function formatLastDate(z, isShort = false) {
   let last = null;
   units.forEach(m => { if (m[tCol]) { const d = new Date(m[tCol]); if (!last || d > last) last = d; } });
   if (!last) return "未";
-  let globalMax = null;
-  DATA.master.forEach(m => { if (m[tCol]) { const d = new Date(m[tCol]); if (!globalMax || d > globalMax) globalMax = d; } });
-  const isFinal = (globalMax && last.getTime() === globalMax.getTime());
-  const style = isFinal ? 'style="color:red; font-size:1.1em; font-weight:900;"' : '';
   const days = ["日", "月", "火", "水", "木", "金", "土"];
-  return `<span ${style}>${last.getMonth() + 1}/${last.getDate()}(${days[last.getDay()]})</span>`;
+  return `${last.getMonth() + 1}/${last.getDate()}(${days[last.getDay()]})`;
 }
 
 function fitText(text, limit) {
@@ -394,8 +386,6 @@ function handleZoneCheckAll() {
 
 async function upload() {
   if (selectedUnits.size === 0) return;
-  const loader = document.getElementById('loading');
-  if (loader) loader.style.display = 'flex';
   try {
     await callGAS("addNewRecord", { 
       date: document.getElementById('work-date').value, 
@@ -406,8 +396,9 @@ async function upload() {
     await silentLogin();
     cancelEdit(); 
     switchView('log');
-  } catch (e) { alert("通信エラーが発生しました"); }
-  finally { if (loader) loader.style.display = 'none'; }
+  } catch (e) {
+    // callGAS内のalertで処理
+  }
 }
 
 function cancelEdit() { editingLogRow = null; selectedUnits.clear(); expandedZoneId = null; renderAll(); }
@@ -426,8 +417,10 @@ function startEdit(row, ids, date, type) {
 
 async function handleDelete(row) { 
   if (confirm("この履歴を削除しますか？")) { 
-    try { await callGAS("deleteLog", { row }); await silentLogin(); } 
-    catch (e) { alert("エラーが発生しました"); }
+    try { 
+      await callGAS("deleteLog", { row }); 
+      await silentLogin(); 
+    } catch (e) {}
   } 
 }
 
