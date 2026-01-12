@@ -239,8 +239,8 @@ function renderTile() {
           <b>${getFitSpan(rawName, 19, 60)}</b>
         </div>
         
-        <div class="tile-row-3 f-oswald" style="text-align: left; padding-left: 3px; color: #000 !important; font-weight: 700; height: 18px; overflow: hidden;">
-          ${getFitSpan(`No.${z.s}-${z.e}`, 20, 78)}
+        <div class="tile-row-3 f-oswald" style="text-align: left; padding-left: 3px; color: #000 !important; font-weight: 900; height: 20px; overflow: hidden;">
+          ${getFitSpan(`No.${z.s}-${z.e}`, 19, 78)}
         </div>
         
         <div class="tile-row-4 f-oswald" style="text-align: right; padding-right: 2px; margin-top: 2px;">
