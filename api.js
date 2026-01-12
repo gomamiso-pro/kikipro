@@ -1,8 +1,11 @@
 /**
- * api.js - KIKI PRO V15 通信モジュール
+ * api.js - KIKI PRO V16 通信モジュール
  */
 
+// 1. GASウェブアプリURL
 const GAS_URL = "https://script.google.com/macros/s/AKfycbxzXaK0VJmXEy2-t6-Wd-SLIYgugDiG_gbEP49zMCoHuU52RivtJ2FYleAUyf-QKXa7rg/exec";
+
+// 2. GAS側の SECRET_API_KEY
 const SECRET_API_KEY = "kiki-secure-2026";
 
 /**
@@ -12,20 +15,24 @@ async function callGAS(methodName, params = {}) {
   const loader = document.getElementById('loading');
   if (loader) loader.style.display = 'flex';
 
-  // ペイロード構築
+  // ローカルストレージまたは引数から認証情報を取得
+  const storedID = localStorage.getItem('kiki_authID') || "";
+  const storedPass = localStorage.getItem('kiki_authPass') || "";
+
   const payload = {
     method: methodName,
     apiKey: SECRET_API_KEY,
     data: {
-      authID: params.authID || (typeof authID !== 'undefined' ? authID : localStorage.getItem('kiki_authID') || ""),
-      authPass: params.authPass || (typeof authPass !== 'undefined' ? authPass : localStorage.getItem('kiki_authPass') || ""),
+      authID: params.authID || (typeof authID !== 'undefined' ? authID : storedID),
+      authPass: params.authPass || (typeof authPass !== 'undefined' ? authPass : storedPass),
       ...params
     }
   };
 
   try {
+    // タイムアウトを25秒に設定
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 25000); // 25秒でタイムアウト
+    const timeoutId = setTimeout(() => controller.abort(), 25000);
 
     const response = await fetch(GAS_URL, {
       method: "POST",
@@ -45,12 +52,13 @@ async function callGAS(methodName, params = {}) {
 
     const result = await response.json();
 
+    // GAS側でエラーが返ってきた場合
     if (result.status === "error") {
-      // 認証エラー時は情報をクリアしてログインへ
+      // 認証関連のエラーであればログアウト処理
       if (result.message.includes("認証") || result.message.includes("ログイン")) {
         localStorage.removeItem('kiki_authID');
         localStorage.removeItem('kiki_authPass');
-        alert("セッションが切れたか、認証に失敗しました。再度ログインしてください。");
+        alert("セッションが切れました。再度ログインしてください。");
         location.reload();
       }
       throw new Error(result.message);
@@ -62,13 +70,17 @@ async function callGAS(methodName, params = {}) {
     console.error("GAS Call Error:", error);
     
     let msg = error.message;
-    if (error.name === 'AbortError') msg = "通信タイムアウト：電波の良い場所で再試行してください。";
-    if (msg === "Failed to fetch") msg = "ネットワークに接続できません。オフラインの可能性があります。";
+    if (error.name === 'AbortError') {
+      msg = "通信タイムアウト：電波の良い場所で再試行してください。";
+    } else if (msg === "Failed to fetch") {
+      msg = "GASへの接続に失敗しました。オフラインか、スクリプトの公開設定を確認してください。";
+    }
     
     alert("【通信エラー】\n" + msg);
     throw error;
 
   } finally {
+    // 成功・失敗に関わらずLoadingを消す
     if (loader) loader.style.display = 'none';
   }
 }
