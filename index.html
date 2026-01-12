@@ -8,10 +8,10 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   
-  <title>KIKI PRO V13</title>
+  <title>KIKI PRO V14</title>
   
   <link rel="stylesheet" href="style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700;900&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="api.js"></script>
@@ -105,21 +105,23 @@
       <div id="log-list"></div>
     </main>
 
-    <footer class="footer">
-      <div class="footer-main-row">
-        <div class="total-wrap">
-          <span id="u-total">0</span><small style="font-size:14px; font-weight:900; color:var(--text-dim); margin-left:5px;">台</small>
+    <footer class="footer" id="main-footer">
+      <div id="footer-content-wrap">
+        <div class="footer-main-row">
+          <div class="total-wrap">
+            <span id="u-total">0</span><small style="font-size:14px; font-weight:900; color:var(--text-dim); margin-left:5px;">台</small>
+          </div>
+          
+          <div class="date-container-simple" onclick="document.getElementById('work-date').showPicker()">
+            <span id="date-label">--/--(--)</span>
+            <input type="date" id="work-date" onchange="updateDateDisplay()" style="position:absolute; opacity:0; pointer-events:none; width:1px;">
+          </div>
         </div>
         
-        <div class="date-container-simple" onclick="document.getElementById('work-date').showPicker()">
-          <span id="date-label">--/--(--)</span>
-          <input type="date" id="work-date" onchange="updateDateDisplay()" style="position:absolute; opacity:0; pointer-events:none; width:1px;">
+        <div class="footer-btns">
+          <button class="btn-cancel" id="cancel-btn" onclick="cancelEdit()" style="display:none;">選択をキャンセル</button>
+          <button class="btn-exec" id="send-btn" onclick="upload()" disabled>登録実行</button>
         </div>
-      </div>
-      
-      <div class="footer-btns">
-        <button class="btn-cancel" id="cancel-btn" onclick="cancelEdit()" style="display:none;">選択をキャンセル</button>
-        <button class="btn-exec" id="send-btn" onclick="upload()" disabled>登録実行</button>
       </div>
     </footer>
   </div>
