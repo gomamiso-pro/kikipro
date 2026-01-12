@@ -108,6 +108,7 @@ function getFinalDateByType(type) {
   });
   if (!last) return "未";
   const days = ["日","月","火","水","木","金","土"];
+  // ここではバッジ用なのでシンプルに
   return `${last.getMonth() + 1}/${last.getDate()}(${days[last.getDay()]})`;
 }
 
@@ -137,8 +138,40 @@ function handleZoneCheckAll() {
 }
 
 /**
- * 文字幅調整用ユーティリティ
+ * 最終フラグのインデックスを取得 (同日の場合は一番下のゾーン)
  */
+function getFinalWorkZoneIndex() {
+  const tCol = DATE_COL_MAP[activeType];
+  let maxDate = null;
+  let finalIdx = -1;
+
+  if (!DATA.master || !DATA.cols) return -1;
+
+  // 1. 全体の中から最新の日付を探す
+  DATA.master.forEach(m => {
+    if (m[tCol]) {
+      const d = new Date(m[tCol]);
+      if (!maxDate || d > maxDate) maxDate = d;
+    }
+  });
+
+  if (!maxDate) return -1;
+
+  // 2. その最新日付を持つユニットのうち、マスターデータの「最後（下側）」にあるユニットIDを特定
+  let lastUnitId = -1;
+  DATA.master.forEach(m => {
+    if (m[tCol]) {
+      const d = new Date(m[tCol]);
+      if (d.getTime() === maxDate.getTime()) {
+        lastUnitId = Number(m[0]);
+      }
+    }
+  });
+
+  // 3. そのユニットが含まれるゾーンのインデックスを返す
+  return DATA.cols.findIndex(z => lastUnitId >= Math.min(z.s, z.e) && lastUnitId <= Math.max(z.s, z.e));
+}
+
 function fitText(text, limit) {
   if (text.length > limit) {
     const scale = limit / text.length;
@@ -154,6 +187,7 @@ function renderList() {
   const container = document.getElementById('zone-display');
   container.className = "zone-container-list";
   const tIdx = TYPE_MAP[activeType];
+  const finalIdx = getFinalWorkZoneIndex();
   
   container.innerHTML = DATA.cols.filter(z => 
     DATA.master.some(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1)
@@ -173,13 +207,13 @@ function renderList() {
               <input type="checkbox" ${isAll ? 'checked' : ''} style="transform:scale(1.5); pointer-events:none;">
             </div>
             <div>
-              <div style="font-size:18px; font-weight:900;">${z.name}</div>
+              <div style="font-size:18px; font-weight:900;">${originalIdx === finalIdx ? '🚩' : ''}${z.name}</div>
               <div class="f-oswald" style="font-size:14px;">No.${z.s} - ${z.e}</div>
             </div>
           </div>
           <div style="text-align:right;">
             <div class="f-oswald" style="font-size:24px; font-weight:900;">${selCount}<span style="font-size:14px; opacity:0.6;">/${zoneUnits.length}</span></div>
-            <div class="f-oswald" style="font-size:12px;">${formatLastDate(z)}</div>
+            <div class="f-oswald">${formatLastDate(z)}</div>
           </div>
         </div>
         <div class="status-bar-bg" style="height:6px;">
@@ -199,7 +233,6 @@ function renderList() {
 /**
  * 全体（タイル）表示の描画
  */
-// 2. タイル描画関数の修正
 function renderTile() {
   const container = document.getElementById('zone-display');
   container.className = "zone-container-tile";
@@ -250,37 +283,19 @@ function renderTile() {
   }).join('');
 }
 
+function handleZoneAction(event, index) {
+  if (event.target.type === 'checkbox' || event.target.closest('.check-wrapper')) return;
+  if (event.target.closest('.expand-box')) return;
+  
+  event.stopPropagation();
+  expandedZoneId = (expandedZoneId === index) ? null : index;
+  displayMode === 'list' ? renderList() : renderTile();
+}
+
 function closeExpand(e) {
   e.stopPropagation();
   expandedZoneId = null;
   renderAll();
-}
-
-// 1. アクションハンドラを確実に動作させる
-function handleZoneAction(event, index) {
-  // 1-1. チェックボックス、またはそのラベル要素をクリックした場合は、
-  // チェックボックス側のイベント（handleZoneCheck）に任せるため、ここでは何もしない
-  if (event.target.type === 'checkbox' || event.target.closest('.check-wrapper')) {
-    return;
-  }
-
-  // 1-2. 展開パネル内の操作（ユニット選択など）は、親のタイルの展開/閉じる処理を動かさない
-  if (event.target.closest('.expand-box')) {
-    return;
-  }
-  
-  // 1-3. 伝播を止めて確実にIDをセット
-  event.stopPropagation();
-  
-  // 展開の切り替え
-  expandedZoneId = (expandedZoneId === index) ? null : index;
-
-  // 再描画
-  if (currentViewMode === 'tile') {
-    renderTile();
-  } else {
-    renderList();
-  }
 }
 
 function handleZoneCheck(e, idx) {
@@ -295,7 +310,9 @@ function handleZoneCheck(e, idx) {
 
 function toggleUnit(id) {
   selectedUnits.has(id) ? selectedUnits.delete(id) : selectedUnits.add(id);
-  renderAll(); 
+  updateCount();
+  // チップ選択時はexpanded状態を維持するため、そのまま再描画
+  displayMode === 'list' ? renderList() : renderTile();
 }
 
 function updateCount() {
@@ -325,11 +342,18 @@ function switchView(v) {
   document.getElementById('view-work').style.display = isWork ? 'block' : 'none';
   document.getElementById('view-log').style.display = isWork ? 'none' : 'block';
   document.getElementById('view-mode-controls').style.display = isWork ? 'flex' : 'none';
+  
+  // 履歴表示のときはフッターのコンテンツを非表示にする
+  document.getElementById('footer-content-wrap').style.display = isWork ? 'block' : 'none';
+  
   document.getElementById('tab-work').className = 'top-tab ' + (isWork ? 'active-work' : '');
   document.getElementById('tab-log').className = 'top-tab ' + (!isWork ? 'active-log' : '');
   renderAll();
 }
 
+/**
+ * 日付のフォーマット。最終フラグの日付と一致する場合は赤文字・大きく。
+ */
 function formatLastDate(z, isShort = false) {
   const tCol = DATE_COL_MAP[activeType];
   const units = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e));
@@ -344,27 +368,25 @@ function formatLastDate(z, isShort = false) {
 
   if (!last) return "未";
 
+  // 最新日付の特定
+  let globalMaxDate = null;
+  DATA.master.forEach(m => {
+    if (m[tCol]) {
+      const d = new Date(m[tCol]);
+      if (!globalMaxDate || d > globalMaxDate) globalMaxDate = d;
+    }
+  });
+
   const m = last.getMonth() + 1;
   const d = last.getDate();
   const days = ["日", "月", "火", "水", "木", "金", "土"];
   const day = days[last.getDay()];
 
-  // isShort (タイル表示) でも曜日を入れる。
-  // 4列表示で収まりを良くするため、スペースを詰めた表記に。
-  if (isShort) {
-    return `${m}/${d}(${day})`; 
-  }
+  // 最終日の場合は赤文字・大きく
+  const isFinalDate = (globalMaxDate && last.getTime() === globalMaxDate.getTime());
+  const style = isFinalDate ? 'style="color:red; font-size:1.1em; font-weight:900;"' : '';
 
-  // リスト表示など（通常）
-  return `${m}/${d}(${day})`;
-}
-
-function getFinalWorkZoneIndex() {
-  const tCol = DATE_COL_MAP[activeType];
-  let last = null, maxId = -1;
-  if (!DATA.master) return -1;
-  DATA.master.forEach(m => { if (m[tCol]) { const d = new Date(m[tCol]); if (!last || d > last) { last = d; maxId = Number(m[0]); } } });
-  return DATA.cols.findIndex(z => maxId >= Math.min(z.s, z.e) && maxId <= Math.max(z.s, z.e));
+  return `<span ${style}>${m}/${d}(${day})</span>`;
 }
 
 function scrollToLastWork() {
@@ -373,7 +395,6 @@ function scrollToLastWork() {
   const target = document.getElementById(`zone-card-${finalIdx}`);
   if (target) {
     target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    // ボタンの押し感を出すための視覚的フィードバック
     target.style.transform = "scale(1.05)";
     setTimeout(() => target.style.transform = "", 300);
   }
@@ -382,15 +403,22 @@ function scrollToLastWork() {
 async function upload() {
   if (selectedUnits.size === 0) return;
   try {
+    // 速度向上のため：upload後にsilentLoginを待つのではなく、成功したらすぐにUIを切り替える
     await callGAS("addNewRecord", { 
       date: document.getElementById('work-date').value, 
       type: activeType, 
       ids: Array.from(selectedUnits), 
       editRow: editingLogRow 
     });
+    
+    // データを再取得（バックグラウンドで走らせる）
+    const reloadPromise = silentLogin();
+    
     cancelEdit(); 
-    await silentLogin(); 
     switchView('log');
+    
+    // 再取得完了を待つ（一応）
+    await reloadPromise;
   } catch (e) { 
     alert("通信エラーが発生しました"); 
   }
@@ -409,7 +437,6 @@ function renderLogs() {
     const ids = l.ids ? String(l.ids).split(',').map(Number).sort((a,b)=>a-b) : [];
     const rangeStr = ids.length > 0 ? `${ids[0]}～${ids[ids.length-1]}` : '---';
     
-    // 日付に曜日を追加
     let dateWithDay = l.date;
     try {
       const d = new Date(l.date.replace(/\//g, '-'));
@@ -424,7 +451,7 @@ function renderLogs() {
         <div>
           <div class="log-main-info" style="font-size:18px; font-weight:900;">${l.zone}</div>
           <div class="f-oswald log-range">No.${rangeStr}</div>
-          <div style="font-size:11px; opacity:0.6;">担当: ${l.user}</div>
+          <div style="font-size:11px; opacity:0.6;">登録者: ${l.user}</div>
         </div>
         <div class="log-unit-large">${l.count}<small style="font-size:12px;">台</small></div>
       </div>
