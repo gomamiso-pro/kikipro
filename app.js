@@ -162,7 +162,6 @@ function renderList() {
 
 function renderTile() {
   const container = document.getElementById('zone-display');
-  if (!container) return;
   container.className = "zone-container-tile";
   const tIdx = TYPE_MAP[activeType];
   const finalIdx = getFinalWorkZoneIndex();
@@ -176,9 +175,7 @@ function renderTile() {
     const isAll = zoneUnits.length > 0 && zoneUnits.every(m => selectedUnits.has(Number(m[0])));
     const bgColor = z.color || "#ffffff";
     const rawName = z.name.replace('ゾーン', '');
-    const isFinal = (originalIdx === finalIdx);
 
-    // 修正ポイント: onclick="handleZoneAction(event, ${originalIdx})"
     return `
       <div id="zone-card-${originalIdx}" class="tile-card ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" 
            style="background-color: ${bgColor} !important;" onclick="handleZoneAction(event, ${originalIdx})">
@@ -186,13 +183,18 @@ function renderTile() {
           <div class="check-wrapper" onclick="handleZoneCheck(event, ${originalIdx})">
             <input type="checkbox" ${isAll ? 'checked' : ''} style="pointer-events:none;">
           </div>
-          <div class="f-oswald">
-            ${isFinal ? '🚩' : ''}${formatLastDate(z, true)}
-          </div>
+          <div class="f-oswald">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z, true)}</div>
         </div>
-        <div class="tile-row-2"><b>${rawName}</b></div>
-        <div class="tile-row-3 f-oswald">No.${z.s}-${z.e}</div>
-        <div class="tile-row-4 f-oswald" style="font-size:22px;">${selCount}<small style="font-size:12px; opacity:0.7;">/${zoneUnits.length}</small></div>
+        
+        <div class="tile-row-2 tile-fit-text">
+          <b>${getFitSpan(rawName, 20)}</b>
+        </div>
+        
+        <div class="tile-row-3 f-oswald tile-fit-text" style="color: #000 !important; font-weight: 700;">
+          ${getFitSpan(`No.${z.s}-${z.e}`, 16)}
+        </div>
+        
+        <div class="tile-row-4 f-oswald">${selCount}<small style="font-size:9px; opacity:0.7;">/${zoneUnits.length}</small></div>
         <div class="tile-row-5 status-bar-bg">
           ${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}
         </div>
@@ -205,6 +207,7 @@ function renderTile() {
       </div>`;
   }).join('');
 }
+
 function renderTile() {
   const container = document.getElementById('zone-display');
   if (!container) return;
@@ -277,6 +280,20 @@ function fitText(text, fontSize) {
     return `<span class="fit-text" style="font-size:${fontSize}px; transform:scaleX(${scale});">${text}</span>`;
   }
   return `<span class="fit-text" style="font-size:${fontSize}px;">${text}</span>`;
+}
+/**
+ * テキストを枠内に収めるためにスケールを計算する
+ */
+function getFitSpan(text, baseSize, limitWidth = 85) {
+  // 1文字あたりの目安幅からスケールを計算（全角はbaseSize、半角はその半分で計算）
+  let estimatedWidth = 0;
+  for (let char of String(text)) {
+    estimatedWidth += char.match(/[ -~]/) ? baseSize * 0.6 : baseSize;
+  }
+  
+  const scale = estimatedWidth > limitWidth ? limitWidth / estimatedWidth : 1;
+  
+  return `<span class="tile-fit-inner" style="font-size:${baseSize}px; transform:scaleX(${scale});">${text}</span>`;
 }
 function renderLogs() {
   const filtered = DATA.logs ? DATA.logs.filter(l => l.type === activeType) : [];
