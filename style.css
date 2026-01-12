@@ -51,9 +51,9 @@ button:not(.top-tab):not(.switch-btn):not(.type-btn):active {
 #app-content { display: none; flex-direction: column; height: 100%; width: 100%; }
 body.ready #app-content { display: flex !important; }
 
-/* --- ログイン画面 (Auth Section) 強制修正版 --- */
+/* --- ログイン画面 (Auth Section) --- */
 #login-overlay {
-  display: flex; /* 初期状態はJSが制御しますがCSSでも定義 */
+  display: flex;
   flex-direction: column;
   background: var(--bg) !important;
 }
@@ -141,12 +141,13 @@ body.ready #app-content { display: flex !important; }
   cursor: pointer;
 }
 #loading.overlay {
-  z-index: 999999 !important; /* 他のどの要素よりも上に表示 */
+  z-index: 999999 !important;
   background: rgba(0, 0, 0, 0.85) !important;
 }
 body.ready #login-overlay {
   display: none !important;
 }
+
 /* --- ヘッダー --- */
 .header { 
   flex-shrink: 0; height: 60px; background: var(--header-bg); border-bottom: 1px solid var(--panel); 
@@ -240,66 +241,96 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background:
 
 /* --- リスト表示修正 --- */
 .zone-container-list { padding: 10px; display: flex; flex-direction: column; gap: 8px; }
-.zone-row { border-radius: 10px; overflow: hidden; position: relative; background: #fff; }
+.zone-row { border-radius: 10px; overflow: hidden; position: relative; background: #fff; border: 1px solid rgba(0,0,0,0.1); }
 .list-zone-name { font-size: 18px; font-weight: 400; opacity: 0.8; }
 .list-range-no { font-size: 26px; font-weight: 900; line-height: 1.1; }
 .list-date-top { font-size: 18px; font-weight: 900; }
 .list-count-bottom { font-size: 40px; font-weight: 900; line-height: 1; margin-top: 5px; }
 
-/* --- タイル表示修正（4列・高密度） --- */
+/* --- タイル表示（4列・高密度圧縮版） --- */
 .zone-container-tile {
   display: grid;
-  /* 強制的に4列（1fr × 4）に設定 */
   grid-template-columns: repeat(4, 1fr); 
-  /* 隙間を詰めすぎず、かつ広すぎない6pxに設定 */
   gap: 6px; 
   padding: 6px;
   width: 100%;
   box-sizing: border-box;
 }
+
 .tile-card {
-  /* 4列だと横幅が狭いので、パディングを少し削って中身のスペースを確保 */
-  padding: 6px 4px; 
-  min-height: 90px;
+  padding: 2px 4px !important; /* パディング最小化 */
+  min-height: 72px !important; /* 高さを圧縮 */
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start !important; /* 上詰め */
+  gap: 0 !important; /* 隙間排除 */
   border-radius: 6px;
-  overflow: hidden; /* はみ出し防止 */
-}
-.tile-row-1 { display: flex; justify-content: space-between; align-items: center; line-height: 1; }
-.tile-row-1 .f-oswald { font-size: 12px; font-weight: 900; }
-.tile-row-2 { font-size: 11px;width: 100%;padding-right: 5px;box-sizing: border-box;overflow: visible;display: block;text-align: left; font-weight: 900; line-height: 1; margin-top: 4px; }
-.tile-row-3 { font-size: 10px;width: 100%;padding-right: 5px;box-sizing: border-box;overflow: visible;display: block;text-align: left; font-weight: 700; margin-top: 2px; opacity: 0.7; }
-.tile-row-4 { font-size: 24px; font-weight: 900; text-align: right; margin-top: auto; line-height: 1; padding-bottom: 2px; }
-
-/* タイル表示内の文字圧縮用 */
-.fit-container {
-  display: block;
-  width: 100%;
   overflow: hidden;
-  white-space: nowrap;
-  text-align: center;
+  background: #fff;
 }
 
-.fit-text {
-  display: inline-block;
-  transform-origin: center;
-  white-space: nowrap;
+/* タイル内の日付 */
+.tile-date-box {
+  font-family: 'Oswald', sans-serif;
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  color: #000 !important;
+  opacity: 1 !important;
+  line-height: 1;
 }
-.tile-fit-text {
+
+.tile-row-1 { display: flex; justify-content: space-between; align-items: center; height: 18px; line-height: 1; }
+
+/* ゾーン名（1px小さく 11px -> 10px） */
+.tile-row-2 { 
+  font-size: 10px !important; 
+  font-weight: 800 !important; 
+  color: #000 !important;
+  height: 14px !important;
+  line-height: 14px !important;
+  margin-top: 1px !important;
+  text-align: left;
   display: block;
-  width: 100%;
-  overflow: hidden;
-  white-space: nowrap;
-  text-align: center;
+  overflow: visible;
 }
+
+/* No（黒文字化・透明度解除） */
+.tile-row-3 { 
+  font-size: 10px !important; 
+  font-weight: 800 !important; 
+  color: #000 !important;
+  opacity: 1 !important;
+  height: 14px !important;
+  line-height: 14px !important;
+  margin-top: 0px !important;
+  text-align: left;
+}
+
+/* 台数（大きく、かつ詰める） */
+.tile-row-4 { 
+  font-size: 20px !important; 
+  font-weight: 900; 
+  text-align: right; 
+  color: #000 !important;
+  margin-top: -3px !important; 
+  line-height: 1; 
+  padding-right: 2px;
+}
+
+/* ステータスバー（細く） */
+.tile-row-5.status-bar-bg {
+  height: 3px !important;
+  margin-top: 1px !important;
+  background: rgba(0,0,0,0.05);
+}
+
+/* タイルフィット調整用 */
 .tile-fit-inner {
   display: inline-block;
   white-space: nowrap;
-  /* 左基点で伸縮するように設定 */
   transform-origin: left; 
 }
+
 /* --- 展開表示 --- */
 .expanded {
   position: fixed !important; top: 50% !important; left: 50% !important;
@@ -327,7 +358,7 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background:
   border-radius: 12px; font-weight: 900; font-size: 18px; margin-top: 20px;
 }
 
-/* ゲージ */
+/* ゲージ共通 */
 .status-bar-bg { display: flex; height: 6px; background: rgba(0,0,0,0.05); width: 100%; gap: 1px; margin-top: 3px; }
 .p-seg { flex: 1; height: 100%; background: rgba(0,0,0,0.05); }
 .p-seg.active { background: var(--accent) !important; }
@@ -346,37 +377,24 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background:
 .log-unit-large { font-family: 'Oswald'; color: var(--accent); font-size: 38px; font-weight: 900; }
 .log-action-row {
   display: flex;
-  gap: 15px;            /* ボタン同士の間隔を広めに設定 */
+  gap: 15px;
   margin-top: 15px;
   padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1); /* 区切り線 */
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 .btn-log-edit, .btn-log-del {
-  flex: 1;              /* 横並びで均等な幅に */
+  flex: 1;
   padding: 10px;
   border-radius: 8px;
   font-weight: 900;
   font-size: 13px;
   border: none;
   cursor: pointer;
-  transition: transform 0.05s, box-shadow 0.05s;
 }
-.btn-log-edit {
-  background: #5e81ac;
-  color: #fff;
-  box-shadow: 0 4px 0 #4a6688;
-}
-.btn-log-del {
-  background: var(--danger);
-  color: #fff;
-  box-shadow: 0 4px 0 #8a3d45;
-}
-.btn-log-edit:active, .btn-log-del:active {
-  transform: translateY(3px);
-  box-shadow: 0 1px 0 rgba(0,0,0,0.4) !important;
-}
+.btn-log-edit { background: #5e81ac; color: #fff; box-shadow: 0 4px 0 #4a6688; }
+.btn-log-del { background: var(--danger); color: #fff; box-shadow: 0 4px 0 #8a3d45; }
 
-/* --- フッターと点滅 --- */
+/* --- フッター --- */
 @keyframes footer-blink {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.7; transform: scale(0.98); }
@@ -395,53 +413,33 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background:
 .btn-exec { background: #5e81ac; color: #fff; width: 100%; padding: 18px; border-radius: 12px; font-weight: 900; font-size: 20px; border: none; }
 .btn-cancel { background: var(--danger); color: #fff; width: 100%; padding: 12px; border-radius: 8px; font-weight: 900; border: none; margin-bottom: 10px; }
 
-.f-oswald { font-family: 'Oswald', sans-serif; }
-
-/* 最終作業ゾーンの点滅アニメーション */
+/* --- 最終作業ゾーン点滅 --- */
 @keyframes blink-accent {
   0% { outline: 4px solid var(--accent); background-color: var(--accent); color: #fff; }
   50% { outline: 4px solid transparent; background-color: transparent; }
   100% { outline: 4px solid var(--accent); background-color: var(--accent); color: #fff; }
 }
-
 .jump-highlight {
-  animation: blink-accent 0.5s ease-in-out 3; /* 0.5秒の点滅を3回繰り返す */
+  animation: blink-accent 0.5s ease-in-out 3;
   z-index: 100;
   position: relative;
 }
 
-/* --- 日付・最終フラグの表示カスタム --- */
-
-/* リスト表示内の日付エリア */
+/* --- 日付・最終フラグ表示カスタム（最新版統合） --- */
 .zone-date-box {
   font-family: 'Oswald', sans-serif;
-  font-size: 15px;      /* 文字サイズを大きく */
-  font-weight: 800;     /* 太字 */
-  color: #000 !important; /* 何が何でも黒 */
-  padding: 3px 8px;
-  border-radius: 4px;
+  font-size: 15px;
+  font-weight: 800;
+  color: #000 !important;
+  padding: 2px 6px;
   display: inline-block;
   margin-left: auto;
   line-height: 1;
 }
-
-/* リスト表示：最新ゾーン（🚩付き）の背景を強調 */
 .zone-date-box.is-final {
-  background-color: rgba(211, 47, 47, 0.1); /* 🚩の時だけ薄い赤背景 */
-  color: #d32f2f !important; /* 🚩の時だけ文字を赤に（黒が良ければ #000 に変更） */
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+  color: #d32f2f !important;
 }
 
-/* 全体表示（タイル）内の日付エリア */
-.tile-date-box {
-  font-family: 'Oswald', sans-serif;
-  font-size: 12px;      /* タイルの枠に合わせたサイズ */
-  font-weight: 900;     /* 極太 */
-  color: #000 !important; /* 黒固定 */
-  opacity: 1 !important;  /* 透明度を無効化してハッキリさせる */
-  line-height: 1;
-}
-
-/* タイル表示：最新ゾーンの🚩付き */
-.tile-date-box.is-final {
-  /* 必要に応じてタイル側の🚩付きの装飾を追加可能 */
-}
+.f-oswald { font-family: 'Oswald', sans-serif; }
