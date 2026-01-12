@@ -114,10 +114,7 @@ function renderAll() {
 }
 
 /**
- * リスト表示の描画ロジック（横長・1列デザイン）
- */
-/**
- * 【最新版】リスト表示：番号・台数・最終日を大きく強調
+ * 【最終調整版】リスト表示：最新の最終作業ゾーン1箇所のみに🚩を表示
  */
 function renderList() {
   const container = document.getElementById('zone-display');
@@ -126,6 +123,7 @@ function renderList() {
   container.className = "zone-container-list"; 
   
   const tIdx = TYPE_MAP[activeType];
+  // 最新の作業があった「一番最後のゾーン番号」を取得
   const finalIdx = getFinalWorkZoneIndex();
   
   const filteredZones = DATA.cols.filter(z => 
@@ -138,6 +136,9 @@ function renderList() {
     const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
     const isAll = zoneUnits.length > 0 && zoneUnits.every(m => selectedUnits.has(Number(m[0])));
     const bgColor = z.color || "#ffffff";
+
+    // 🚩を表示するかどうかの判定（最新日付かつ、該当する一番最後のゾーンのみ）
+    const isFinalZone = (originalIdx === finalIdx);
 
     return `
       <div id="zone-card-${originalIdx}" 
@@ -153,17 +154,17 @@ function renderList() {
             </div>
             <div style="line-height: 1.1;">
               <div style="font-size: 15px; font-weight: 700; color: #555; margin-bottom: 2px;">${z.name}</div>
-              <div class="f-oswald" style="font-size: 22px; font-weight: 900; color: #000; letter-spacing: -0.5px;">
+              <div class="f-oswald" style="font-size: 24px; font-weight: 900; color: #000; letter-spacing: -0.5px;">
                 No.${z.s} <span style="font-size:16px; opacity:0.5;">-</span> ${z.e}
               </div>
             </div>
           </div>
 
-          <div style="text-align: right; min-width: 100px; display: flex; flex-direction: column; justify-content: center; gap: 2px;">
-            <div class="f-oswald" style="font-size: 14px; font-weight: 800; color: #444; background: rgba(0,0,0,0.05); padding: 2px 6px; border-radius: 4px; display: inline-block; margin-left: auto;">
-              ${originalIdx === finalIdx ? '🚩' : '📅'} ${formatLastDate(z)}
+          <div style="text-align: right; min-width: 110px; display: flex; flex-direction: column; justify-content: center; gap: 4px;">
+            <div class="f-oswald" style="font-size: 14px; font-weight: 800; color: ${isFinalZone ? '#d32f2f' : '#444'}; background: ${isFinalZone ? 'rgba(211,47,47,0.1)' : 'rgba(0,0,0,0.05)'}; padding: 3px 8px; border-radius: 4px; display: inline-block; margin-left: auto;">
+              ${isFinalZone ? '🚩 ' : '📅 '}${formatLastDate(z)}
             </div>
-            <div class="f-oswald" style="font-size: 28px; font-weight: 900; color: var(--accent, #d32f2f); line-height: 1;">
+            <div class="f-oswald" style="font-size: 28px; font-weight: 900; color: #000; line-height: 1;">
               ${selCount}<span style="font-size: 14px; opacity: 0.6; font-weight: 700; margin-left: 2px;">/ ${zoneUnits.length}</span>
             </div>
           </div>
@@ -174,16 +175,16 @@ function renderList() {
         </div>
 
         <div class="expand-box" style="display: ${expandedZoneId === originalIdx ? 'block' : 'none'}; padding: 12px; background: rgba(255,255,255,0.6);" onclick="event.stopPropagation()">
-          <div class="unit-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(55px, 1fr)); gap: 8px;">
+          <div class="unit-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 8px;">
             ${zoneUnits.map(m => `
               <div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" 
-                   style="padding: 10px 0; text-align: center; border-radius: 6px; font-size: 16px; font-weight: 900; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1);"
+                   style="padding: 12px 0; text-align: center; border-radius: 6px; font-size: 18px; font-weight: 900; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1);"
                    onclick="toggleUnit(${Number(m[0])})">
                 ${m[0]}
               </div>`).join('')}
           </div>
           <button class="btn-close-expand" 
-                  style="width: 100%; margin-top: 12px; padding: 12px; border-radius: 8px; border: none; background: #444; color: white; font-weight: 900; font-size: 16px;"
+                  style="width: 100%; margin-top: 12px; padding: 12px; border-radius: 8px; border: none; background: #333; color: white; font-weight: 900; font-size: 16px;"
                   onclick="closeExpand(event)">完了</button>
         </div>
       </div>`;
