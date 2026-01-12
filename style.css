@@ -283,7 +283,7 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background:
 
 /* ゾーン名（1px小さく 11px -> 10px） */
 .tile-row-2 { 
-  font-size: 10px !important; 
+  font-size: 9px !important; 
   font-weight: 800 !important; 
   color: #000 !important;
   height: 14px !important;
@@ -296,7 +296,7 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background:
 
 /* No（黒文字化・透明度解除） */
 .tile-row-3 { 
-  font-size: 10px !important; 
+  font-size: 9px !important; 
   font-weight: 800 !important; 
   color: #000 !important;
   opacity: 1 !important;
