@@ -153,7 +153,12 @@ function renderTile() {
           <div class="tile-date-box ${isFinalZone ? 'is-final' : ''}">${isFinalZone ? '🚩' : ''}${formatLastDate(z)}</div>
         </div>
         <div class="tile-row-2">${getFitSpan(rawName, 9, 85)}</div>
-        <div class="tile-row-3 f-oswald">${getFitSpan(`No.${z.s}-${z.e}`, 22, 88)}</div>
+        
+        <div class="tile-row-3 f-oswald">
+          <span class="tile-no-label">No.</span>
+          <span class="tile-main-number">${z.s}-${z.e}</span>
+        </div>
+        
         <div class="tile-row-4 f-oswald"><span>${selCount}</span><small>/${zoneUnits.length}</small></div>
         <div class="tile-row-5 status-bar-bg">${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}</div>
         
@@ -173,7 +178,6 @@ function getFitSpan(text, baseSize, limitWidth) {
 }
 
 function handleZoneAction(event, index) {
-  // チェックボックスや展開中の操作なら反応しない
   if (event.target.type === 'checkbox' || event.target.closest('.check-wrapper') || event.target.closest('.unit-chip') || event.target.closest('.btn-close-expand')) return;
   event.stopPropagation();
   expandedZoneId = (expandedZoneId === index) ? null : index;
@@ -193,7 +197,7 @@ function handleZoneCheck(e, idx) {
 function toggleUnit(id) {
   selectedUnits.has(id) ? selectedUnits.delete(id) : selectedUnits.add(id);
   updateCount();
-  renderAll(); // リアルタイムに色を変える
+  renderAll(); 
 }
 
 function updateCount() {
