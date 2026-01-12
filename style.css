@@ -115,11 +115,59 @@ body {
 .p-seg.active { background: var(--accent) !important; }
 
 /* 展開（ユニット選択）ボックス */
-.expand-box { background: #f8f9fb; padding: 10px; border-top: 1px solid #eee; }
-.unit-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
-.unit-chip { background: #fff; border: 1.5px solid #ddd; padding: 8px 0; text-align: center; border-radius: 6px; font-family: 'Oswald'; font-weight: 700; color: #444; }
-.unit-chip.active { background: var(--accent) !important; border-color: var(--accent-dim) !important; color: #000 !important; }
-.btn-close-expand { width: 100%; margin-top: 10px; padding: 10px; background: #4c566a; color: #fff; border: none; border-radius: 6px; font-weight: 700; }
+.expand-box {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw; /* 画面の横幅いっぱい */
+  min-height: 100%;
+  background: #fdfdfd; /* 少し明るい背景 */
+  z-index: 2000;
+  padding: 15px;
+  box-shadow: 0 -5px 15px rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
+}
+.unit-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4列で押しやすく */
+  gap: 10px;
+  margin-bottom: 70px; /* 完了ボタンとの余白 */
+}
+.unit-chip {
+  height: 54px; /* 指で押しやすい高さ */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 2px solid #eee;
+  border-radius: 10px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #333;
+  transition: all 0.2s;
+}
+.unit-chip.active {
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+  color: #000 !important;
+  transform: scale(0.95);
+  box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+}
+.btn-close-expand {
+  position: sticky;
+  bottom: 10px;
+  width: 100%;
+  padding: 16px;
+  background: #2d313d;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-weight: 900;
+  font-size: 16px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
 
 /* ログイン・オーバーレイ */
 .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 200000; }
