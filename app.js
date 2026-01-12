@@ -284,13 +284,17 @@ function fitText(text, fontSize) {
 /**
  * テキストを枠内に収めるためにスケールを計算する
  */
-function getFitSpan(text, baseSize, limitWidth = 85) {
-  // 1文字あたりの目安幅からスケールを計算（全角はbaseSize、半角はその半分で計算）
+/**
+ * 4列タイルの幅に合わせて文字幅を計算する
+ */
+function getFitSpan(text, baseSize, limitWidth = 75) { // 制限幅を85から75へ変更
   let estimatedWidth = 0;
   for (let char of String(text)) {
+    // 全角はbaseSize、半角(No.や数字)はbaseSizeの6割で計算
     estimatedWidth += char.match(/[ -~]/) ? baseSize * 0.6 : baseSize;
   }
   
+  // 枠（75px）を超える場合のみ横に圧縮
   const scale = estimatedWidth > limitWidth ? limitWidth / estimatedWidth : 1;
   
   return `<span class="tile-fit-inner" style="font-size:${baseSize}px; transform:scaleX(${scale});">${text}</span>`;
