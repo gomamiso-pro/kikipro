@@ -2,7 +2,9 @@
  * KIKI PRO V14 - Main Application Logic
  */
 
-let DATA = {};
+let authID = "";
+let authPass = "";
+let DATA = {}; // 既存の行
 let activeType = "通常";
 let displayMode = "list";
 let selectedUnits = new Set();
@@ -26,41 +28,37 @@ window.onload = () => {
 async function silentLogin() {
   const savedID = localStorage.getItem('kiki_authID');
   const savedPass = localStorage.getItem('kiki_authPass');
-
   const loader = document.getElementById('loading');
 
-  // 保存情報がなければログイン画面を表示して終了
   if (!savedID || !savedPass) {
     if (loader) loader.style.display = 'none';
     document.getElementById('login-overlay').style.display = 'flex';
     return;
   }
 
-  // 保存情報がある場合は自動ログイン試行
+  // 自動ログイン開始
   if (loader) loader.style.display = 'flex';
 
   try {
-    window.authID = savedID;
-    window.authPass = savedPass;
+    // 【重要】ここで最上部で宣言した変数に代入する
+    authID = savedID; 
+    authPass = savedPass;
 
-    const res = await callGAS("getInitialData");
+    // callGAS を実行（method, パラメータの順序が重要）
+    // 第二引数に空のオブジェクト、または認証情報を明示的に渡す
+    const res = await callGAS("getInitialData", { authID: authID, authPass: authPass });
+    
     DATA = res;
-
     document.getElementById('user-display').innerText = DATA.user.toUpperCase();
     renderAll();
 
-    // 成功したらログイン画面をスキップ
+    // ログイン成功：画面を切り替える
     document.body.classList.add('ready');
     document.getElementById('login-overlay').style.display = 'none';
     document.getElementById('app-content').style.display = 'flex';
-    
-    // 次回のために保存情報を維持（念のため再セット）
-    localStorage.setItem('kiki_authID', savedID);
-    localStorage.setItem('kiki_authPass', savedPass);
 
   } catch (e) {
     console.error("自動ログイン失敗:", e);
-    // 失敗（パスワード変更等）した場合は情報をクリアしてログイン画面へ
     localStorage.removeItem('kiki_authID');
     localStorage.removeItem('kiki_authPass');
     document.getElementById('login-overlay').style.display = 'flex';
