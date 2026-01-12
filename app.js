@@ -260,27 +260,7 @@ function renderTile() {
       </div>`;
   }).join('');
 }
-/**
- * テキストが指定幅を超える場合に横幅を自動で縮める
- */
-function fitText(text, fontSize) {
-  // 文字数に応じて適当な縮小率を計算（タイルの幅に合わせる）
-  // タイル幅は約90px〜100px想定
-  let scale = 1;
-  const len = String(text).length;
-  
-  if (fontSize >= 20 && len > 4) scale = 4 / len; // ゾーン名用
-  if (fontSize <= 18 && len > 8) scale = 8 / len; // No.用
-  
-  if (scale < 1) {
-    return `<span class="fit-text" style="font-size:${fontSize}px; transform:scaleX(${scale});">${text}</span>`;
-  }
-  return `<span class="fit-text" style="font-size:${fontSize}px;">${text}</span>`;
-}
 
-/**
- * テキストを枠内に収める。収まる場合はそのまま、超える場合のみ左基点で圧縮。
- */
 function getFitSpan(text, baseSize, limitWidth = 65) {
   let estimatedWidth = 0;
   for (let char of String(text)) {
