@@ -234,13 +234,27 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background:
 
 /* 選択中の強調 */
 .has-selection { border: 4px solid var(--accent) !important; box-shadow: 0 0 10px rgba(250, 204, 21, 0.5); }
-
+.has-selection .list-date-top,
+.has-selection .tile-row-3 {
+  background: #000;               /* 選択中は背景を黒にしてより強調 */
+  border-color: var(--accent);    /* 枠線をアクセントカラーに */
+}
 /* --- リスト表示修正 --- */
 .zone-container-list { padding: 10px; display: flex; flex-direction: column; gap: 8px; }
 .zone-row { border-radius: 10px; overflow: hidden; position: relative; background: #fff; }
 .list-zone-name { font-size: 18px; font-weight: 400; opacity: 0.8; }
 .list-range-no { font-size: 26px; font-weight: 900; line-height: 1.1; }
-.list-date-top { font-size: 18px; font-weight: 900; }
+.list-date-top {
+  font-size: 16px;
+  font-weight: 900;
+  color: #fff !important;         /* 文字を白に */
+  background: #333;               /* 背景を濃いグレーに */
+  padding: 2px 8px;               /* 内側に余白 */
+  border-radius: 4px;             /* 角を少し丸める */
+  display: inline-block;          /* 枠を文字幅に合わせる */
+  margin-bottom: 4px;
+  border: 1px solid #000;         /* 細い枠線 */
+}
 .list-count-bottom { font-size: 40px; font-weight: 900; line-height: 1; margin-top: 5px; }
 
 /* --- タイル表示修正（4列・高密度） --- */
@@ -252,7 +266,18 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background:
 .tile-row-1 { display: flex; justify-content: space-between; align-items: center; line-height: 1; }
 .tile-row-1 .f-oswald { font-size: 12px; font-weight: 900; }
 .tile-row-2 { font-size: 11px; font-weight: 900; line-height: 1; margin-top: 4px; }
-.tile-row-3 { font-size: 10px; font-weight: 700; margin-top: 2px; opacity: 0.7; }
+.tile-row-3 {
+  font-size: 10px;
+  font-weight: 900;
+  color: #fff !important;         /* 文字を白に */
+  background: #555;               /* 背景をグレーに */
+  padding: 1px 4px;               /* 小さめの余白 */
+  border-radius: 3px;
+  display: inline-block;
+  margin-top: 4px;
+  opacity: 1 !important;          /* 透明度を解除してハッキリさせる */
+  line-height: 1;
+}
 .tile-row-4 { font-size: 24px; font-weight: 900; text-align: right; margin-top: auto; line-height: 1; padding-bottom: 2px; }
 
 /* --- 展開表示 --- */
