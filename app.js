@@ -1,102 +1,342 @@
 /**
- * KIKI PRO V15 - Complete Stable Style (Font Optimized 4-Column)
+ * KIKI PRO V15 - Complete Stable App Logic (4-Column Font Optimized)
  */
 
-:root { 
-  --bg: #1a1c23; --card: #2d313d; --header-bg: #111318; --panel: #3a3f4d;
-  --accent: #facc15; --accent-dim: #b8970f; --text: #e5e9f0; --text-dim: #9ca3af; 
-  --danger: #bf616a; --blue-icon: #5e81ac;
+let authID = localStorage.getItem('kiki_authID') || "";
+let authPass = localStorage.getItem('kiki_authPass') || "";
+let DATA = {};
+let activeType = "通常";
+let displayMode = "tile"; 
+let selectedUnits = new Set();
+let expandedZoneId = null;
+let editingLogRow = null;
+let isSignUpMode = false;
+
+const TYPE_MAP = { "通常": 3, "セル盤": 4, "計数機": 5, "ユニット": 6, "説明書": 7 };
+const DATE_COL_MAP = { "通常": 8, "セル盤": 9, "計数機": 10, "ユニット": 11, "説明書": 12 };
+
+window.onload = () => {
+  const dateInput = document.getElementById('work-date');
+  if (dateInput) {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    dateInput.value = `${y}-${m}-${day}`;
+    updateDateDisplay();
+  }
+  if (authID && authPass) { silentLogin(); } else { showLoginOverlay(); }
+};
+
+function showLoginOverlay() {
+  document.getElementById('loading').style.display = 'none';
+  const overlay = document.getElementById('login-overlay');
+  if (overlay) overlay.style.display = 'flex';
 }
 
-body { 
-  font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: var(--text); 
-  margin: 0; display: flex; flex-direction: column; height: 100dvh; width: 100vw; 
-  overflow: hidden; position: fixed; 
+async function silentLogin() {
+  try {
+    const res = await callGAS("getInitialData");
+    DATA = res;
+    const userDisp = document.getElementById('user-display');
+    if (userDisp) userDisp.innerText = DATA.user.toUpperCase();
+    renderAll();
+    document.body.classList.add('ready');
+    document.getElementById('login-overlay').style.display = 'none';
+    document.getElementById('app-content').style.display = 'flex';
+  } catch (e) {
+    localStorage.removeItem('kiki_authID');
+    localStorage.removeItem('kiki_authPass');
+    showLoginOverlay();
+  }
 }
 
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
-
-button:not(.top-tab):not(.switch-btn):not(.type-btn) {
-  box-shadow: 0 4px 0 rgba(0,0,0,0.4); transition: transform 0.05s, box-shadow 0.05s; cursor: pointer;
-}
-button:not(.top-tab):not(.switch-btn):not(.type-btn):active {
-  transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,0.4) !important;
-}
-
-.overlay { position: fixed; inset: 0; display: none; justify-content: center; align-items: center; z-index: 100000; background: rgba(0,0,0,0.92); backdrop-filter: blur(4px); }
-.spinner { width: 40px; height: 40px; border: 4px solid rgba(250, 204, 21, 0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-
-#app-content { display: none; flex-direction: column; height: 100%; width: 100%; }
-body.ready #app-content { display: flex !important; }
-
-/* ログイン・ヘッダー・ナビ共通 */
-.auth-box { width: 90%; max-width: 340px; background: var(--card); padding: 35px 25px; border-radius: 20px; border: 1px solid var(--panel); }
-#auth-title { font-family: 'Oswald'; font-size: 32px; color: var(--accent); font-weight: 900; text-align: center; }
-.header { flex-shrink: 0; height: 60px; background: var(--header-bg); border-bottom: 1px solid var(--panel); display: flex; justify-content: space-between; align-items: center; padding: 0 8px; }
-.header-logo { font-family: 'Oswald'; color: var(--accent); font-size: 18px; font-weight: 900; }
-.nav-row { display: flex; background: var(--header-bg); border-bottom: 1px solid var(--panel); flex-shrink: 0; }
-.top-tab { flex: 1; padding: 12px; text-align: center; font-size: 13px; font-weight: 700; color: var(--text-dim); }
-.top-tab.active-work { background: #5e81ac !important; color: #fff !important; }
-.top-tab.active-log { background: #d08770 !important; color: #fff !important; }
-.type-bar { display: grid; grid-template-columns: repeat(5, 1fr); background: var(--panel); gap: 1px; border-bottom: 2px solid #000; }
-.type-btn { background: var(--header-bg); border: none; color: var(--text-dim); padding: 8px 0; display: flex; flex-direction: column; align-items: center; }
-.type-btn.active { background: var(--accent) !important; color: #000 !important; }
-
-/* ★タイル表示（4列・高密度） */
-.zone-container-tile {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; padding: 5px; box-sizing: border-box;
+async function handleAuth() {
+  const nick = document.getElementById('login-nick').value.trim();
+  const pass = document.getElementById('login-pass').value.trim();
+  if (!nick || !pass) return alert("入力してください");
+  try {
+    const method = isSignUpMode ? "signUp" : "getInitialData";
+    const res = await callGAS(method, { authID: nick, authPass: pass, nickname: nick });
+    authID = nick; authPass = pass;
+    if (document.getElementById('auto-login').checked) {
+      localStorage.setItem('kiki_authID', authID);
+      localStorage.setItem('kiki_authPass', authPass);
+    }
+    DATA = res;
+    const userDisp = document.getElementById('user-display');
+    if (userDisp) userDisp.innerText = DATA.user.toUpperCase();
+    renderAll();
+    document.body.classList.add('ready');
+    document.getElementById('login-overlay').style.display = 'none';
+    document.getElementById('app-content').style.display = 'flex';
+  } catch (e) {}
 }
 
-.tile-card {
-  padding: 4px 3px !important;
-  min-height: 105px !important; /* ★高さを少し確保 */
-  display: flex; flex-direction: column; justify-content: flex-start !important;
-  border-radius: 6px; overflow: hidden; background: #fff; color: #000 !important;
+function renderAll() {
+  if (!DATA || !DATA.cols) return;
+  const types = ["通常", "セル盤", "計数機", "ユニット", "説明書"];
+  const tabContainer = document.getElementById('type-tabs');
+  if (tabContainer) {
+    tabContainer.innerHTML = types.map(t => {
+      const lastDate = getFinalDateByType(t);
+      return `<button class="type-btn ${t === activeType ? 'active' : ''}" onclick="changeType('${t}')">${t}<span class="type-last-badge">${lastDate}</span></button>`;
+    }).join('');
+  }
+  updateToggleAllBtnState();
+  const viewWork = document.getElementById('view-work');
+  if (viewWork && viewWork.style.display !== 'none') {
+    displayMode === 'list' ? renderList() : renderTile();
+  } else { renderLogs(); }
+  updateCount();
 }
 
-.tile-row-1 { display: flex; justify-content: space-between; align-items: center; height: 16px; margin-bottom: 1px; }
-.tile-date-box { font-family: 'Oswald'; font-size: 10px !important; font-weight: 900; color: #444; }
-
-/* ★2行目（ゾーン名）：高さを抑えて3行目に譲る */
-.tile-row-2 { 
-  font-size: 9px !important; font-weight: 800; color: #666 !important;
-  height: 13px !important; line-height: 13px !important;
-  margin-top: 0px !important; white-space: nowrap;
+function renderList() {
+  const container = document.getElementById('zone-display');
+  if (!container) return;
+  container.className = "zone-container-list"; 
+  const tIdx = TYPE_MAP[activeType];
+  const finalIdx = getFinalWorkZoneIndex();
+  const filteredZones = DATA.cols.filter(z => 
+    DATA.master.some(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1)
+  );
+  container.innerHTML = filteredZones.map((z) => {
+    const originalIdx = DATA.cols.indexOf(z);
+    const zoneUnits = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1);
+    const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
+    const isAll = zoneUnits.length > 0 && zoneUnits.every(m => selectedUnits.has(Number(m[0])));
+    const isFinalZone = (originalIdx === finalIdx);
+    return `
+      <div id="zone-card-${originalIdx}" class="zone-row ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" 
+           style="background-color: ${z.color || '#ffffff'} !important;" onclick="handleZoneAction(event, ${originalIdx})">
+        <div style="padding: 12px 15px; display: flex; align-items: center; justify-content: space-between;">
+          <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+            <div class="check-wrapper" onclick="handleZoneCheck(event, ${originalIdx})"><input type="checkbox" ${isAll ? 'checked' : ''} style="transform: scale(1.6); pointer-events: none;"></div>
+            <div style="line-height: 1.1;">
+              <div style="font-size: 14px; font-weight: 700; color: #666; margin-bottom: 2px;">${z.name}</div>
+              <div class="f-oswald" style="font-size: 24px; font-weight: 900; color: #000;">No.${z.s} - ${z.e}</div>
+            </div>
+          </div>
+          <div style="text-align: right; min-width: 110px;">
+            <div class="f-oswald" style="font-size: 14px; font-weight: 800; color: ${isFinalZone ? '#d32f2f' : '#555'};">${isFinalZone ? '🚩 ' : ''}${formatLastDate(z)}</div>
+            <div class="f-oswald" style="font-size: 28px; font-weight: 900; color: #000;">${selCount}<span style="font-size: 14px; opacity: 0.6;">/ ${zoneUnits.length}</span></div>
+          </div>
+        </div>
+        <div class="status-bar-bg">${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}</div>
+        <div class="expand-box" style="display: ${expandedZoneId === originalIdx ? 'block' : 'none'};" onclick="event.stopPropagation()">
+          <div class="unit-grid">${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${Number(m[0])})">${m[0]}</div>`).join('')}</div>
+          <button class="btn-close-expand" onclick="closeExpand(event)">完了</button>
+        </div>
+      </div>`;
+  }).join('');
 }
 
-/* ★3行目（開始終了番号）：ここを巨大化 */
-.tile-row-3 { 
-  font-size: 22px !important; font-weight: 900 !important; color: #000 !important;
-  height: 26px !important; /* ★フォントが見切れないよう高さを確保 */
-  line-height: 26px !important;
-  margin-top: 1px !important; text-align: left; white-space: nowrap;
+function renderTile() {
+  const container = document.getElementById('zone-display');
+  if (!container) return;
+  container.className = "zone-container-tile";
+  const tIdx = TYPE_MAP[activeType];
+  const finalIdx = getFinalWorkZoneIndex();
+  container.innerHTML = DATA.cols.filter(z => 
+    DATA.master.some(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1)
+  ).map((z) => {
+    const originalIdx = DATA.cols.indexOf(z);
+    const zoneUnits = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1);
+    const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
+    const isAll = zoneUnits.length > 0 && zoneUnits.every(m => selectedUnits.has(Number(m[0])));
+    const rawName = z.name.replace('ゾーン', '');
+    const isFinalZone = (originalIdx === finalIdx);
+
+    return `
+      <div id="zone-card-${originalIdx}" class="tile-card ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" 
+           style="background-color: ${z.color || '#ffffff'} !important;" onclick="handleZoneAction(event, ${originalIdx})">
+        <div class="tile-row-1">
+          <div class="check-wrapper" onclick="handleZoneCheck(event, ${originalIdx})"><input type="checkbox" ${isAll ? 'checked' : ''} style="pointer-events:none; transform: scale(0.75);"></div>
+          <div class="tile-date-box ${isFinalZone ? 'is-final' : ''}">${isFinalZone ? '🚩' : ''}${formatLastDate(z, true)}</div>
+        </div>
+        <div class="tile-row-2"><b>${getFitSpan(rawName, 9, 85)}</b></div>
+        <div class="tile-row-3 f-oswald">${getFitSpan(`No.${z.s}-${z.e}`, 22, 88)}</div>
+        <div class="tile-row-4 f-oswald"><span style="font-size: 22px; font-weight: 900;">${selCount}</span><small style="font-size:9px; opacity:0.7;">/${zoneUnits.length}</small></div>
+        <div class="tile-row-5 status-bar-bg">${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}</div>
+        <div class="expand-box" onclick="event.stopPropagation()">
+          <div class="unit-grid">${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${Number(m[0])})">${m[0]}</div>`).join('')}</div>
+          <button class="btn-close-expand" onclick="closeExpand(event)">完了</button>
+        </div>
+      </div>`;
+  }).join('');
 }
 
-/* ★4行目（作業台数） */
-.tile-row-4 { 
-  font-size: 22px !important; font-weight: 900; text-align: right; 
-  color: #000 !important; margin-top: 0px !important; line-height: 1; 
-  flex-grow: 1; padding-right: 1px;
+function getFitSpan(text, baseSize, limitWidth) {
+  let estimatedWidth = 0;
+  for (let char of String(text)) { estimatedWidth += char.match(/[ -~]/) ? baseSize * 0.52 : baseSize; }
+  const scale = estimatedWidth > limitWidth ? limitWidth / estimatedWidth : 1;
+  return `<span class="tile-fit-inner" style="font-size:${baseSize}px; transform:scaleX(${scale}); transform-origin: left; display: inline-block; white-space: nowrap; letter-spacing: -0.3px;">${text}</span>`;
 }
 
-.tile-row-5.status-bar-bg { height: 4px !important; margin-top: 2px; background: rgba(0,0,0,0.05); }
+function renderLogs() {
+  const filtered = DATA.logs ? DATA.logs.filter(l => l.type === activeType) : [];
+  const logList = document.getElementById('log-list');
+  if(!logList) return;
+  logList.innerHTML = filtered.map(l => {
+    const ids = l.ids ? String(l.ids).split(',').map(Number).sort((a,b)=>a-b) : [];
+    const rangeStr = ids.length > 0 ? `${ids[0]}～${ids[ids.length-1]}` : '---';
+    return `
+    <div class="log-card">
+      <div class="log-date-badge">${l.type} - ${l.date}</div>
+      <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+        <div>
+          <div class="log-main-info" style="font-size:18px; font-weight:900; color:var(--accent);">${l.zone}</div>
+          <div class="f-oswald log-range">No.${rangeStr}</div>
+          <div style="font-size:11px; opacity:0.6;">登録者: ${l.user}</div>
+        </div>
+        <div class="log-unit-large">${l.count}<small style="font-size:12px;">台</small></div>
+      </div>
+      <div class="log-action-row">
+        <button class="btn-log-edit shadow-blue" onclick="startEdit(${l.row}, '${l.ids}', '${l.date}', '${l.type}')" style="flex:1;">編集</button>
+        <button class="btn-log-del shadow-red" onclick="handleDelete(${l.row})" style="flex:1;">削除</button>
+      </div>
+    </div>`;
+  }).join('') + `<div style="height:120px;"></div>`;
+}
 
-/* その他共通 */
-main { flex: 1; overflow-y: auto; background: var(--bg); padding-bottom: 200px; }
-.status-bar-bg { display: flex; height: 6px; background: rgba(0,0,0,0.05); width: 100%; gap: 1px; }
-.p-seg { flex: 1; height: 100%; background: rgba(0,0,0,0.08); }
-.p-seg.active { background: var(--accent) !important; }
-.has-selection { border: 3px solid var(--accent) !important; }
-.tile-fit-inner { display: inline-block; white-space: nowrap; transform-origin: left; }
-.f-oswald { font-family: 'Oswald', sans-serif; }
+function getFinalDateByType(type) {
+  const tCol = DATE_COL_MAP[type];
+  let last = null;
+  if (!DATA.master) return "未";
+  DATA.master.forEach(m => { if (m[tCol]) { const d = new Date(m[tCol]); if (!last || d > last) last = d; } });
+  if (!last) return "未";
+  const days = ["日","月","火","水","木","金","土"];
+  return `${last.getMonth() + 1}/${last.getDate()}(${days[last.getDay()]})`;
+}
 
-/* フッター */
-.footer { position: absolute; bottom: 0; width: 100%; background: var(--header-bg); border-top: 1px solid var(--panel); padding: 12px; z-index: 1000; }
-#u-total { font-family: 'Oswald'; font-size: 50px; color: var(--accent); font-weight: 900; }
-.btn-exec { background: #5e81ac; color: #fff; width: 100%; padding: 16px; border-radius: 12px; font-weight: 900; font-size: 20px; }
+function getFinalWorkZoneIndex() {
+  const tCol = DATE_COL_MAP[activeType];
+  let maxDate = null;
+  if (!DATA.master || !DATA.cols) return -1;
+  DATA.master.forEach(m => { if (m[tCol]) { const d = new Date(m[tCol]); if (!maxDate || d > maxDate) maxDate = d; } });
+  if (!maxDate) return -1;
+  let lastId = -1;
+  DATA.master.forEach(m => { if (m[tCol] && new Date(m[tCol]).getTime() === maxDate.getTime()) lastId = Number(m[0]); });
+  return DATA.cols.findIndex(z => lastId >= Math.min(z.s, z.e) && lastId <= Math.max(z.s, z.e));
+}
 
-/* 展開・点滅 */
-.expanded { position: fixed !important; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 95vw; max-height: 85vh; z-index: 99999; background: #fff !important; padding: 20px; border-radius: 15px; border: 5px solid var(--accent); display: flex !important; flex-direction: column; }
-@keyframes blink-accent { 0%, 100% { outline: 4px solid var(--accent); } 50% { outline: 4px solid transparent; } }
-.jump-highlight { animation: blink-accent 0.5s ease-in-out 3; }
+function handleZoneAction(event, index) {
+  if (event.target.type === 'checkbox' || event.target.closest('.check-wrapper') || event.target.closest('.expand-box')) return;
+  event.stopPropagation();
+  expandedZoneId = (expandedZoneId === index) ? null : index;
+  renderAll();
+}
+
+function handleZoneCheck(e, idx) {
+  e.stopPropagation();
+  const z = DATA.cols[idx];
+  const tIdx = TYPE_MAP[activeType];
+  const ids = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1).map(m => Number(m[0]));
+  const isAll = ids.every(id => selectedUnits.has(id));
+  ids.forEach(id => isAll ? selectedUnits.delete(id) : selectedUnits.add(id));
+  renderAll();
+}
+
+function toggleUnit(id) {
+  selectedUnits.has(id) ? selectedUnits.delete(id) : selectedUnits.add(id);
+  updateCount(); renderAll();
+}
+
+function updateCount() {
+  const count = selectedUnits.size;
+  const countEl = document.getElementById('u-total');
+  if (countEl) countEl.innerText = count;
+  const sendBtn = document.getElementById('send-btn');
+  if (sendBtn) sendBtn.disabled = (count === 0);
+  const cancelBtn = document.getElementById('cancel-btn');
+  if (cancelBtn) cancelBtn.style.display = (count > 0 || editingLogRow) ? "block" : "none";
+}
+
+function changeType(t) { activeType = t; expandedZoneId = null; if (!editingLogRow) selectedUnits.clear(); renderAll(); }
+function closeExpand(e) { e.stopPropagation(); expandedZoneId = null; renderAll(); }
+function updateDateDisplay() {
+  const val = document.getElementById('work-date').value;
+  if (!val) return;
+  const d = new Date(val); const days = ["日","月","火","水","木","金","土"];
+  const label = document.getElementById('date-label');
+  if(label) label.innerText = `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
+}
+
+function switchView(v) {
+  const isWork = (v === 'work');
+  document.getElementById('view-work').style.display = isWork ? 'block' : 'none';
+  document.getElementById('view-log').style.display = isWork ? 'none' : 'block';
+  document.getElementById('view-mode-controls').style.display = isWork ? 'flex' : 'none';
+  document.getElementById('footer-content-wrap').style.display = isWork ? 'block' : 'none';
+  document.getElementById('tab-work').className = 'top-tab ' + (isWork ? 'active-work' : '');
+  document.getElementById('tab-log').className = 'top-tab ' + (!isWork ? 'active-log' : '');
+  renderAll();
+}
+
+function formatLastDate(z, isShort = false) {
+  const tCol = DATE_COL_MAP[activeType];
+  const units = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e));
+  let last = null;
+  units.forEach(m => { if (m[tCol]) { const d = new Date(m[tCol]); if (!last || d > last) last = d; } });
+  if (!last) return "未";
+  const days = ["日", "月", "火", "水", "木", "金", "土"];
+  return `${last.getMonth() + 1}/${last.getDate()}(${days[last.getDay()]})`;
+}
+
+function setMode(m) { displayMode = m; document.getElementById('mode-list-btn').classList.toggle('active', m === 'list'); document.getElementById('mode-tile-btn').classList.toggle('active', m === 'tile'); renderAll(); }
+function updateToggleAllBtnState() {
+  const btn = document.getElementById('toggle-all-btn');
+  if (!btn) return;
+  const tIdx = TYPE_MAP[activeType];
+  const allIds = DATA.master.filter(m => Number(m[tIdx]) === 1).map(m => Number(m[0]));
+  const isAll = allIds.length > 0 && allIds.every(id => selectedUnits.has(id));
+  btn.innerText = isAll ? "全解除" : "全選択";
+  btn.classList.toggle('all-selected', isAll);
+}
+
+function handleZoneCheckAll() {
+  const tIdx = TYPE_MAP[activeType];
+  const allIds = DATA.master.filter(m => Number(m[tIdx]) === 1).map(m => Number(m[0]));
+  const isAll = allIds.every(id => selectedUnits.has(id));
+  allIds.forEach(id => isAll ? selectedUnits.delete(id) : selectedUnits.add(id));
+  renderAll();
+}
+
+async function upload() {
+  if (selectedUnits.size === 0) return;
+  try {
+    await callGAS("addNewRecord", { date: document.getElementById('work-date').value, type: activeType, ids: Array.from(selectedUnits), editRow: editingLogRow });
+    await silentLogin(); cancelEdit(); switchView('log');
+  } catch (e) { }
+}
+function cancelEdit() { editingLogRow = null; selectedUnits.clear(); expandedZoneId = null; renderAll(); }
+function startEdit(row, ids, date, type) {
+  editingLogRow = row; selectedUnits = new Set(String(ids).split(',').filter(x => x.trim() !== "").map(Number));
+  activeType = type; if (date) document.getElementById('work-date').value = date.replace(/\//g, '-');
+  updateDateDisplay(); displayMode = 'tile'; switchView('work'); renderAll();
+}
+async function handleDelete(row) { if (confirm("この履歴を削除しますか？")) { try { await callGAS("deleteLog", { row }); await silentLogin(); } catch (e) {} } }
+function toggleAuthMode() { isSignUpMode = !isSignUpMode; document.getElementById('auth-title').innerText = isSignUpMode ? "KIKI SIGN UP" : "KIKI LOGIN"; document.getElementById('auth-submit').innerText = isSignUpMode ? "REGISTER & LOGIN" : "LOGIN"; }
+function showQR() { 
+  const target = document.getElementById("qr-target"); if (!target) return; target.innerHTML = ""; 
+  new QRCode(target, { text: window.location.href, width: 200, height: 200 }); document.getElementById("qr-overlay").style.display = "flex"; 
+}
+function hideQR() { document.getElementById("qr-overlay").style.display = "none"; }
+function showManual() { document.getElementById('manual-overlay').style.display = 'flex'; }
+function hideManual() { document.getElementById('manual-overlay').style.display = 'none'; }
+function scrollToLastWork() {
+  const finalIdx = getFinalWorkZoneIndex(); if (finalIdx === -1) return alert("データなし");
+  const targetEl = document.getElementById(`zone-card-${finalIdx}`);
+  if (targetEl) {
+    targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    targetEl.classList.remove('jump-highlight'); setTimeout(() => { targetEl.classList.add('jump-highlight'); }, 100);
+    setTimeout(() => { targetEl.classList.remove('jump-highlight'); }, 1600);
+  }
+}
+function logout() {
+  if(confirm("ログアウトしますか？")) {
+    localStorage.removeItem('kiki_authID');
+    localStorage.removeItem('kiki_authPass');
+    location.reload();
+  }
+}
