@@ -14,10 +14,9 @@ let authPass = "";
 
 /**
  * GASとの通信を管理するメイン関数
- * 全通信でLoading表示を強制するように修正
+ * 速度向上のため、fetchのオプションを最適化
  */
 async function callGAS(methodName, params = {}) {
-  // 通信開始時にLoadingオーバーレイを表示
   const loader = document.getElementById('loading');
   if (loader) loader.style.display = 'flex';
 
@@ -32,13 +31,20 @@ async function callGAS(methodName, params = {}) {
   };
 
   try {
+    // タイムアウト設定（15秒）を追加して、無限に待たされるのを防ぐ
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
     const response = await fetch(GAS_URL, {
       method: "POST",
       body: JSON.stringify(payload),
       headers: {
         "Content-Type": "text/plain;charset=utf-8"
-      }
+      },
+      signal: controller.signal
     });
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       throw new Error("ネットワーク応答が正常ではありません。");
@@ -53,14 +59,14 @@ async function callGAS(methodName, params = {}) {
     return result;
   } catch (error) {
     console.error("GAS Call Error:", error);
+    if (error.name === 'AbortError') {
+      throw new Error("通信がタイムアウトしました。電波の良い場所で再試行してください。");
+    }
     if (error.message === "Failed to fetch") {
       throw new Error("GASへの接続に失敗しました。URLまたは公開設定を確認してください。");
     }
     throw error;
   } finally {
-    // 通信終了時にLoadingを非表示（app.js側で制御が続く場合を除く）
-    // ただし、ログイン後などはapp.js側の処理が終わるまで表示させたい場合があるため、
-    // ここで一括で消す設定にしています。
     if (loader) loader.style.display = 'none';
   }
 }
