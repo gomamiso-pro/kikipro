@@ -224,7 +224,7 @@ function renderTile() {
         </div>
         
         <div class="tile-row-2"><b>${getFitSpan(rawName, 10, 70)}</b></div>
-        <div class="tile-row-3 f-oswald">${getFitSpan(`No.${z.s}-${z.e}`, 12, 75)}</div>
+        <div class="tile-row-3 f-oswald">${getFitSpan(`No.${z.s}-${z.e}`, 13, 75)}</div>
         
         <div class="tile-row-4 f-oswald">
           <span style="font-size: 22px; font-weight: 900;">${selCount}</span><small style="font-size:9px; opacity:0.7;">/${zoneUnits.length}</small>
