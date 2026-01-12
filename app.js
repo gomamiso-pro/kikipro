@@ -148,7 +148,7 @@ function renderTile() {
           <div class="tile-date-box ${isFinalZone ? 'is-final' : ''}">${isFinalZone ? '🚩' : ''}${formatLastDate(z, true)}</div>
         </div>
         <div class="tile-row-2">${getFitSpan(rawName, 9, 85)}</div>
-        <div class="tile-row-3 f-oswald">${getFitSpan(`No.${z.s}-${z.e}`, 22, 88)}</div>
+        <div class="tile-row-3 f-oswald">${getFitSpan(`No.${z.s}-${z.e}`, 25, 100)}</div>
         <div class="tile-row-4 f-oswald"><span>${selCount}</span><small>/${zoneUnits.length}</small></div>
         <div class="tile-row-5 status-bar-bg">${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}</div>
         <div class="expand-box" onclick="event.stopPropagation()">
