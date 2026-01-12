@@ -288,10 +288,48 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background:
 .p-seg.active { background: var(--accent) !important; }
 
 /* --- 履歴 --- */
-.log-card { background: var(--card); padding: 12px; margin: 0 10px 10px 10px; border-radius: 10px; border-left: 5px solid var(--accent); }
+.log-card {
+  background: var(--card);
+  padding: 15px;
+  margin: 0 12px 12px 12px;
+  border-radius: 12px;
+  border-left: 6px solid var(--accent);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
 .log-date-badge { font-weight: 900; font-size: 12px; color: var(--text); margin-bottom: 5px; }
 .log-range { font-size: 18px; font-weight: 700; color: var(--accent); }
 .log-unit-large { font-family: 'Oswald'; color: var(--accent); font-size: 38px; font-weight: 900; }
+.log-action-row {
+  display: flex;
+  gap: 15px;            /* ボタン同士の間隔を広めに設定 */
+  margin-top: 15px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1); /* 区切り線 */
+}
+.btn-log-edit, .btn-log-del {
+  flex: 1;              /* 横並びで均等な幅に */
+  padding: 10px;
+  border-radius: 8px;
+  font-weight: 900;
+  font-size: 13px;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.05s, box-shadow 0.05s;
+}
+.btn-log-edit {
+  background: #5e81ac;
+  color: #fff;
+  box-shadow: 0 4px 0 #4a6688;
+}
+.btn-log-del {
+  background: var(--danger);
+  color: #fff;
+  box-shadow: 0 4px 0 #8a3d45;
+}
+.btn-log-edit:active, .btn-log-del:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 rgba(0,0,0,0.4) !important;
+}
 
 /* --- フッターと点滅 --- */
 @keyframes footer-blink {
