@@ -281,23 +281,19 @@ function fitText(text, fontSize) {
   }
   return `<span class="fit-text" style="font-size:${fontSize}px;">${text}</span>`;
 }
-/**
- * テキストを枠内に収めるためにスケールを計算する
- */
-/**
- * 4列タイルの幅に合わせて文字幅を計算する
- */
-function getFitSpan(text, baseSize, limitWidth = 75) { // 制限幅を85から75へ変更
+
+function getFitSpan(text, baseSize, limitWidth = 80) {
   let estimatedWidth = 0;
   for (let char of String(text)) {
-    // 全角はbaseSize、半角(No.や数字)はbaseSizeの6割で計算
+    // 半角は0.6倍、全角は1倍で幅を概算
     estimatedWidth += char.match(/[ -~]/) ? baseSize * 0.6 : baseSize;
   }
   
-  // 枠（75px）を超える場合のみ横に圧縮
+  // 収まる場合はスケール1（調整なし）、超える場合のみ比率を計算
   const scale = estimatedWidth > limitWidth ? limitWidth / estimatedWidth : 1;
   
-  return `<span class="tile-fit-inner" style="font-size:${baseSize}px; transform:scaleX(${scale});">${text}</span>`;
+  // 左寄せを維持するため transform-origin: left を指定
+  return `<span class="tile-fit-inner" style="font-size:${baseSize}px; transform:scaleX(${scale}); transform-origin: left;">${text}</span>`;
 }
 function renderLogs() {
   const filtered = DATA.logs ? DATA.logs.filter(l => l.type === activeType) : [];
