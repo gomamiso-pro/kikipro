@@ -1,89 +1,119 @@
 :root { 
   --bg: #1a1c23; --card: #2d313d; --header-bg: #111318; --panel: #3a3f4d;
   --accent: #facc15; --accent-dim: #b8970f; --text: #e5e9f0; --text-dim: #9ca3af; --danger: #bf616a;
+  --blue-icon: #5e81ac;
 }
 
+/* 基本設定 */
 body { 
   font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: var(--text); 
   margin: 0; display: flex; flex-direction: column; height: 100dvh; width: 100vw;
   overflow: hidden; position: fixed; 
 }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
 
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-/* システムボタン（共通化） */
-.btn-close-system {
-  background: var(--danger); border: none; color: #fff; font-size: 16px; font-weight: 900; 
-  padding: 10px 20px; border-radius: 8px; box-shadow: 0 4px 0 #8a3d45; cursor: pointer;
+/* --- 共通：統一CLOSEボタンのデザイン --- */
+.unified-close-btn {
+  background: var(--danger) !important;
+  color: #fff !important;
+  border: none !important;
+  font-size: 16px !important;
+  font-weight: 900 !important;
+  padding: 12px 24px !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 0 #8a3d45 !important;
+  cursor: pointer;
 }
-.btn-close-system:active { transform: translateY(2px); box-shadow: 0 2px 0 #8a3d45; }
+.unified-close-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #8a3d45 !important;
+}
 
-/* ヘッダー */
-.header { flex-shrink: 0; height: 60px; background: var(--header-bg); border-bottom: 1px solid var(--panel); display: flex; align-items: center; padding: 0 12px; }
-.header-logo { flex: 1; font-family: 'Oswald'; color: var(--accent); font-size: 20px; font-weight: 900; }
+/* --- ヘッダー --- */
+.header { 
+  flex-shrink: 0; height: 60px; background: var(--header-bg); border-bottom: 1px solid var(--panel); 
+  display: flex; align-items: center; padding: 0 12px; 
+}
+.header-logo { flex: 1; font-family: 'Oswald'; color: var(--accent); font-size: 18px; font-weight: 900; }
 .header-right { flex: 2; display: flex; justify-content: space-around; align-items: center; }
+.user-wrapper { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.user-profile { font-size: 10px; font-weight: 900; color: var(--text); white-space: nowrap; }
 
-/* 清掃種別タグ（デザイン刷新） */
-.type-bar { display: flex; overflow-x: auto; padding: 10px; gap: 8px; background: var(--header-bg); border-bottom: 1px solid var(--panel); }
-.type-tag { 
-  flex-shrink: 0; padding: 6px 12px; border-radius: 12px; background: var(--panel); border: 1px solid #444; text-align: center;
-  transition: all 0.2s; min-width: 70px;
+/* --- 清掃種別（タイプタブ）のおしゃれなデザイン --- */
+.type-bar { display: grid; grid-template-columns: repeat(5, 1fr); background: var(--panel); flex-shrink: 0; gap: 1px; }
+.type-btn { 
+  background: var(--header-bg); border: none; color: var(--text-dim); 
+  padding: 10px 2px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center;
 }
-.type-tag.active { background: var(--accent); border-color: #000; box-shadow: 0 0 10px var(--accent); }
-.tag-label { font-size: 13px; font-weight: 900; color: #fff; }
-.type-tag.active .tag-label { color: #000; }
-.tag-date { font-size: 10px; color: var(--text-dim); }
-.type-tag.active .tag-date { color: #333; font-weight: 700; }
+.type-btn.active { background: var(--accent) !important; color: #000 !important; }
+.type-name-label { font-size: 11px; font-weight: 900; margin-bottom: 2px; }
+.type-date-label { font-family: 'Oswald'; font-size: 10px; opacity: 0.8; font-weight: 700; }
+.type-btn.active .type-date-label { color: #000; font-weight: 900; }
 
-/* リスト表示スタイル */
-.zone-row { border-radius: 10px; overflow: hidden; margin-bottom: 8px; cursor: pointer; transition: 0.1s; }
-.list-main-content { padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+/* --- リスト表示（フォント拡大・レイアウト入れ替え） --- */
+.zone-container-list { padding: 10px; display: flex; flex-direction: column; gap: 10px; }
+.list-card-content { padding: 15px; display: flex; justify-content: space-between; align-items: center; }
 .list-left { display: flex; align-items: center; gap: 15px; }
-.list-zone-name { font-size: 18px; font-weight: 900; }
-.list-no { font-size: 22px; font-weight: 900; margin-top: 4px; }
-.list-right { text-align: right; }
-.list-date { font-size: 18px; font-weight: 700; }
-.list-count { font-size: 24px; font-weight: 900; margin-top: 5px; }
-.list-count small { font-size: 14px; opacity: 0.6; }
+.list-zone-name { font-size: 20px; font-weight: 900; color: #000; }
+.list-range-no { font-size: 22px; font-weight: 900; color: #000; margin-top: 4px; }
+.list-right { text-align: right; display: flex; flex-direction: column; justify-content: space-between; height: 100%; }
+.list-date-top { font-size: 18px; font-weight: 900; margin-bottom: 5px; } /* 日付を上に */
+.list-count-bottom { font-size: 32px; font-weight: 900; line-height: 1; } /* 台数を下に大きく */
 
-/* タイル表示スタイル */
+/* --- 全体表示（タイル：4列、左右余白5px） --- */
 .zone-container-tile { padding: 10px 5px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
-.tile-card { min-height: 95px; padding: 6px 3px; border-radius: 6px; display: flex; flex-direction: column; cursor: pointer; overflow: hidden; }
-.tile-row-1 { font-size: 14px; font-weight: 900; margin-bottom: 2px; }
-.tile-row-2 { font-weight: 900; line-height: 1.1; margin-bottom: 2px; }
-.tile-row-3 { font-weight: 900; opacity: 0.8; }
-.tile-row-4 { font-size: 24px; font-weight: 900; margin-top: auto; text-align: right; }
+.tile-card { 
+  padding: 6px 4px; border-radius: 6px; display: flex; flex-direction: column; min-height: 100px;
+}
+.tile-date-top { font-size: 12px; font-weight: 900; } /* 1段目拡大 */
+.tile-row-2 { font-weight: 900; margin-top: 4px; overflow: hidden; } /* 2段目 ゾーン名 */
+.tile-row-3 { font-weight: 700; margin-top: 2px; } /* 3段目 番号 */
+.tile-row-4 { font-size: 24px; font-weight: 900; text-align: right; margin-top: auto; padding-right: 2px; } /* 4段目 台数右寄せ大きく */
 
-/* 最終フラグテキスト */
-.final-date-text { color: red !important; font-size: 1.2em !important; font-weight: 900; text-shadow: 1px 1px 0 #fff; }
-
-/* 展開（モーダル） */
+/* --- 展開表示（ポップアップ・チップ） --- */
 .expanded {
   position: fixed !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important;
-  width: 95vw !important; height: auto !important; max-height: 85vh !important; z-index: 99999 !important;
+  width: 95vw !important; max-height: 85vh !important; z-index: 99999 !important;
   background: #fff !important; padding: 20px !important; border-radius: 15px !important;
   border: 5px solid var(--accent) !important; box-shadow: 0 0 0 100vmax rgba(0,0,0,0.85) !important;
-  display: flex !important; flex-direction: column; color: #000 !important;
+  display: flex !important; flex-direction: column;
 }
-.expanded .expand-box { display: block !important; overflow-y: auto; }
-.unit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 10px; }
-.unit-chip { 
-  background: #eee; color: #000; border-radius: 8px; text-align: center; font-family: 'Oswald';
-  font-size: 24px; padding: 15px 0; border: 2px solid #ccc; font-weight: 900;
-}
-.unit-chip.active { background: var(--accent) !important; border-color: #000; box-shadow: 0 4px 0 var(--accent-dim); }
+.expand-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+.expand-title { font-size: 24px; font-weight: 900; color: #000; margin: 0; }
+.expand-count-badge { background: #000; color: var(--accent); padding: 4px 12px; border-radius: 20px; font-family: 'Oswald'; font-size: 18px; font-weight: 700; }
 
-/* フッター点滅 */
-@keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-.attention-blink { animation: blink 1.5s ease-in-out infinite; }
-.unit-text { font-size: 20px; font-weight: 900; color: var(--accent); margin-left: 5px; }
+.unit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; overflow-y: auto; flex: 1; }
+.unit-chip { 
+  background: #f0f0f0; color: #000; border-radius: 8px; text-align: center; 
+  font-family: 'Oswald'; font-size: 22px; padding: 15px 0; border: 2px solid #ccc; font-weight: 700;
+}
+.unit-chip.active { background: var(--accent) !important; border-color: #000; font-weight: 900; transform: scale(0.98); }
+
+/* --- フッター：点滅アニメーション --- */
+.blink-highlight {
+  animation: soft-blink 2s infinite ease-in-out;
+}
+@keyframes soft-blink {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(0.98); }
+}
+
+.footer { 
+  flex-shrink: 0; background: var(--header-bg); border-top: 1px solid var(--panel);
+  padding: 10px 12px calc(15px + env(safe-area-inset-bottom)); 
+  position: absolute; bottom: 0; width: 100%; z-index: 1000;
+}
+#u-total { font-family: 'Oswald'; font-size: 50px; color: var(--accent); font-weight: 900; line-height: 1; }
+.date-container-simple { background: var(--panel); padding: 10px 15px; border-radius: 8px; color: var(--accent); font-weight: 900; font-size: 20px; }
 
 /* その他 */
-.status-bar-bg { display: flex; height: 4px; background: rgba(0,0,0,0.1); width: 100%; gap: 1px; }
+.zone-row, .tile-card { cursor: pointer; overflow: hidden; position: relative; border: none; }
+.status-bar-bg { display: flex; background: rgba(0,0,0,0.1); width: 100%; gap: 1px; }
+.p-seg { flex: 1; height: 100%; background: rgba(0,0,0,0.05); }
 .p-seg.active { background: var(--accent) !important; }
-.has-selection { outline: 4px solid var(--accent); }
-.footer { background: var(--header-bg); border-top: 1px solid var(--panel); padding: 15px; position: absolute; bottom: 0; width: 100%; }
-.footer-main-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-#u-total { font-family: 'Oswald'; font-size: 54px; color: var(--accent); font-weight: 900; line-height: 1; }
-.btn-exec { background: #5e81ac; color: #fff; width: 100%; padding: 20px; border-radius: 12px; font-weight: 900; font-size: 20px; border: none; box-shadow: 0 6px 0 #3b526d; }
+
+.btn-exec { background: #5e81ac; color: #fff; width: 100%; padding: 18px; border-radius: 12px; font-weight: 900; font-size: 20px; border: none; box-shadow: 0 5px 0 #3b526d; }
+.btn-cancel { background: var(--danger); color: #fff; width: 100%; padding: 12px; border-radius: 8px; font-weight: 900; border: none; margin-bottom: 10px; }
+
+.has-selection { outline: 5px solid var(--accent) !important; z-index: 10; }
 .f-oswald { font-family: 'Oswald', sans-serif; }
