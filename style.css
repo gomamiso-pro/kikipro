@@ -93,26 +93,27 @@ body.ready #app-content { display: flex !important; }
   font-weight: 900;
 }
 .type-name-label { 
-  font-size: 14px; 
+  font-size: 14px; /* 元の12pxから+2px */
   font-weight: 900; 
-  width: 80%; /* 均等配置の幅を指定 */
-  display: flex;
-  justify-content: space-between; /* 文字を両端に広げて均等にする */
+  letter-spacing: 0.15em; /* 文字間を広げておしゃれに */
+  margin-left: 0.15em; /* 広げた分のズレを中央に戻す */
   margin-bottom: 2px;
+  display: block;
+  text-align: center;
 }
 .type-last-badge { 
   font-family: 'Oswald', sans-serif; 
   font-size: 12px; 
   font-weight: 700;
-  color: #555; /* 非アクティブ時は視認性のあるグレー */
+  color: #333; /* 濃いグレー（黒に近い） */
   display: flex;
   align-items: center;
   gap: 2px;
 }
 .type-last-badge::before {
   content: "🚩";
-  font-size: 8px;
-  vertical-align: middle;
+  font-size: 9px;
+  opacity: 0.8;
 }
 
 /* --- コントロールバー --- */
