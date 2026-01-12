@@ -116,17 +116,18 @@ function renderAll() {
 /**
  * リスト表示の描画ロジック（横長・1列デザイン）
  */
+/**
+ * 【最新版】リスト表示：番号・台数・最終日を大きく強調
+ */
 function renderList() {
   const container = document.getElementById('zone-display');
   if (!container) return;
   
-  // クラスをリスト専用に切り替え（CSSで grid-template-columns: 1fr; になっている必要があります）
   container.className = "zone-container-list"; 
   
   const tIdx = TYPE_MAP[activeType];
   const finalIdx = getFinalWorkZoneIndex();
   
-  // 対象のゾーンのみ抽出
   const filteredZones = DATA.cols.filter(z => 
     DATA.master.some(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1)
   );
@@ -141,45 +142,48 @@ function renderList() {
     return `
       <div id="zone-card-${originalIdx}" 
            class="zone-row ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" 
-           style="background-color: ${bgColor} !important; margin-bottom: 8px; border-radius: 8px; overflow: hidden; border: 1px solid rgba(0,0,0,0.05);" 
+           style="background-color: ${bgColor} !important; margin-bottom: 10px; border-radius: 10px; overflow: hidden; border: 1px solid rgba(0,0,0,0.1); box-shadow: 0 2px 4px rgba(0,0,0,0.05);" 
            onclick="handleZoneAction(event, ${originalIdx})">
         
         <div style="padding: 12px 15px; display: flex; align-items: center; justify-content: space-between;">
+          
           <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
-            <div class="check-wrapper" onclick="handleZoneCheck(event, ${originalIdx})" style="display: flex; align-items: center;">
-              <input type="checkbox" ${isAll ? 'checked' : ''} style="transform: scale(1.4); pointer-events: none;">
+            <div class="check-wrapper" onclick="handleZoneCheck(event, ${originalIdx})" style="display: flex; align-items: center; padding: 5px;">
+              <input type="checkbox" ${isAll ? 'checked' : ''} style="transform: scale(1.6); pointer-events: none;">
             </div>
-            <div style="line-height: 1.2;">
-              <div style="font-size: 16px; font-weight: 900; color: #333;">
-                ${originalIdx === finalIdx ? '<span style="margin-right:4px;">🚩</span>' : ''}${z.name}
+            <div style="line-height: 1.1;">
+              <div style="font-size: 15px; font-weight: 700; color: #555; margin-bottom: 2px;">${z.name}</div>
+              <div class="f-oswald" style="font-size: 22px; font-weight: 900; color: #000; letter-spacing: -0.5px;">
+                No.${z.s} <span style="font-size:16px; opacity:0.5;">-</span> ${z.e}
               </div>
-              <div class="f-oswald" style="font-size: 13px; color: #666; margin-top: 2px;">No.${z.s} - ${z.e}</div>
             </div>
           </div>
 
-          <div style="text-align: right; min-width: 80px;">
-            <div class="f-oswald" style="font-size: 20px; font-weight: 900; color: #000;">
-              ${selCount}<span style="font-size: 12px; opacity: 0.5; font-weight: 400; margin-left: 2px;">/${zoneUnits.length}</span>
+          <div style="text-align: right; min-width: 100px; display: flex; flex-direction: column; justify-content: center; gap: 2px;">
+            <div class="f-oswald" style="font-size: 14px; font-weight: 800; color: #444; background: rgba(0,0,0,0.05); padding: 2px 6px; border-radius: 4px; display: inline-block; margin-left: auto;">
+              ${originalIdx === finalIdx ? '🚩' : '📅'} ${formatLastDate(z)}
             </div>
-            <div class="f-oswald" style="font-size: 10px; color: #888; margin-top: 2px;">${formatLastDate(z)}</div>
+            <div class="f-oswald" style="font-size: 28px; font-weight: 900; color: var(--accent, #d32f2f); line-height: 1;">
+              ${selCount}<span style="font-size: 14px; opacity: 0.6; font-weight: 700; margin-left: 2px;">/ ${zoneUnits.length}</span>
+            </div>
           </div>
         </div>
 
-        <div class="status-bar-bg" style="height: 5px; background: rgba(0,0,0,0.05); display: flex;">
-          ${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" style="flex:1; height:100%;"></div>`).join('')}
+        <div class="status-bar-bg" style="height: 8px; background: rgba(0,0,0,0.08); display: flex;">
+          ${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" style="flex:1; height:100%; border-right: 0.5px solid rgba(255,255,255,0.2);"></div>`).join('')}
         </div>
 
-        <div class="expand-box" style="display: ${expandedZoneId === originalIdx ? 'block' : 'none'}; padding: 10px; background: rgba(255,255,255,0.5);" onclick="event.stopPropagation()">
-          <div class="unit-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); gap: 6px;">
+        <div class="expand-box" style="display: ${expandedZoneId === originalIdx ? 'block' : 'none'}; padding: 12px; background: rgba(255,255,255,0.6);" onclick="event.stopPropagation()">
+          <div class="unit-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(55px, 1fr)); gap: 8px;">
             ${zoneUnits.map(m => `
               <div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" 
-                   style="padding: 8px 0; text-align: center; border-radius: 4px; font-size: 14px; font-weight: bold; cursor: pointer;"
+                   style="padding: 10px 0; text-align: center; border-radius: 6px; font-size: 16px; font-weight: 900; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1);"
                    onclick="toggleUnit(${Number(m[0])})">
                 ${m[0]}
               </div>`).join('')}
           </div>
           <button class="btn-close-expand" 
-                  style="width: 100%; margin-top: 10px; padding: 10px; border-radius: 6px; border: none; background: #666; color: white; font-weight: bold;"
+                  style="width: 100%; margin-top: 12px; padding: 12px; border-radius: 8px; border: none; background: #444; color: white; font-weight: 900; font-size: 16px;"
                   onclick="closeExpand(event)">完了</button>
         </div>
       </div>`;
