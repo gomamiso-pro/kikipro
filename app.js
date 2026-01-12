@@ -261,7 +261,7 @@ function renderTile() {
   }).join('');
 }
 
-function getFitSpan(text, baseSize, limitWidth = 60) {
+function getFitSpan(text, baseSize, limitWidth = 70) {
   let estimatedWidth = 0;
   for (let char of String(text)) {
     // 半角は0.6倍、全角は1倍で幅を概算
@@ -278,7 +278,7 @@ function getFitSpan(text, baseSize, limitWidth = 60) {
       transform-origin: left; 
       display: inline-block; 
       white-space: nowrap;
-      letter-spacing: -0.5px; 
+      letter-spacing: -0.3px; 
     ">${text}</span>`;
 }
 function renderLogs() {
