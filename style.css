@@ -247,7 +247,7 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background:
 .list-count-bottom { font-size: 40px; font-weight: 900; line-height: 1; margin-top: 5px; }
 
 /* --- タイル表示修正（4列・高密度） --- */
-.zone-container-tile { padding: 5px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.zone-container-tile { padding: 5px; width:95%;display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
 .tile-card { 
   min-height: 100px; padding: 6px 4px; border-radius: 6px; 
   display: flex; flex-direction: column; position: relative; background: #fff;
