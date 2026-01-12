@@ -43,14 +43,14 @@ body.ready #app-content { display: flex !important; }
 .type-btn { background: var(--header-bg); border: none; color: var(--text-dim); padding: 8px 0; display: flex; flex-direction: column; align-items: center; }
 .type-btn.active { background: var(--accent) !important; color: #000 !important; }
 
-/* ★タイル表示（4列・高密度） */
+/* タイル表示（4列維持） */
 .zone-container-tile {
   display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; padding: 5px; box-sizing: border-box;
 }
 
 .tile-card {
   padding: 4px 3px !important;
-  min-height: 105px !important; /* ★高さを少し確保 */
+  min-height: 108px !important; /* ★フォントを大きくするため全体高を少しアップ */
   display: flex; flex-direction: column; justify-content: flex-start !important;
   border-radius: 6px; overflow: hidden; background: #fff; color: #000 !important;
 }
@@ -58,22 +58,22 @@ body.ready #app-content { display: flex !important; }
 .tile-row-1 { display: flex; justify-content: space-between; align-items: center; height: 16px; margin-bottom: 1px; }
 .tile-date-box { font-family: 'Oswald'; font-size: 10px !important; font-weight: 900; color: #444; }
 
-/* ★2行目（ゾーン名）：高さを抑えて3行目に譲る */
+/* 2行目（ゾーン名）：高さを抑えて3行目の巨大化を助ける */
 .tile-row-2 { 
   font-size: 9px !important; font-weight: 800; color: #666 !important;
   height: 13px !important; line-height: 13px !important;
-  margin-top: 0px !important; white-space: nowrap;
+  margin-top: 0px !important; white-space: nowrap; overflow: hidden;
 }
 
 /* ★3行目（開始終了番号）：ここを巨大化 */
 .tile-row-3 { 
   font-size: 22px !important; font-weight: 900 !important; color: #000 !important;
-  height: 26px !important; /* ★フォントが見切れないよう高さを確保 */
-  line-height: 26px !important;
+  height: 28px !important; /* ★重要：大きなフォントを収めるための窓 */
+  line-height: 28px !important;
   margin-top: 1px !important; text-align: left; white-space: nowrap;
 }
 
-/* ★4行目（作業台数） */
+/* 4行目（作業台数） */
 .tile-row-4 { 
   font-size: 22px !important; font-weight: 900; text-align: right; 
   color: #000 !important; margin-top: 0px !important; line-height: 1; 
@@ -91,12 +91,10 @@ main { flex: 1; overflow-y: auto; background: var(--bg); padding-bottom: 200px; 
 .tile-fit-inner { display: inline-block; white-space: nowrap; transform-origin: left; }
 .f-oswald { font-family: 'Oswald', sans-serif; }
 
-/* フッター */
+/* フッター・展開・点滅（省略なし） */
 .footer { position: absolute; bottom: 0; width: 100%; background: var(--header-bg); border-top: 1px solid var(--panel); padding: 12px; z-index: 1000; }
 #u-total { font-family: 'Oswald'; font-size: 50px; color: var(--accent); font-weight: 900; }
 .btn-exec { background: #5e81ac; color: #fff; width: 100%; padding: 16px; border-radius: 12px; font-weight: 900; font-size: 20px; }
-
-/* 展開・点滅 */
 .expanded { position: fixed !important; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 95vw; max-height: 85vh; z-index: 99999; background: #fff !important; padding: 20px; border-radius: 15px; border: 5px solid var(--accent); display: flex !important; flex-direction: column; }
 @keyframes blink-accent { 0%, 100% { outline: 4px solid var(--accent); } 50% { outline: 4px solid transparent; } }
 .jump-highlight { animation: blink-accent 0.5s ease-in-out 3; }
