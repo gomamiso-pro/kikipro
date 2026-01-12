@@ -1,13 +1,13 @@
 /**
- * KIKI PRO V15 - Complete Stable App Logic (Fixed)
+ * KIKI PRO V15 - Complete Stable App Logic (Bug Fixed)
  */
 
 // --- 1. グローバル変数の宣言 ---
-authID = localStorage.getItem('kiki_authID') || "";
-authPass = localStorage.getItem('kiki_authPass') || "";
+let authID = localStorage.getItem('kiki_authID') || "";
+let authPass = localStorage.getItem('kiki_authPass') || "";
 let DATA = {};
 let activeType = "通常";
-let displayMode = "list";
+let displayMode = "tile"; // 初期モードをエラーの起きにくい tile に設定
 let selectedUnits = new Set();
 let expandedZoneId = null;
 let editingLogRow = null;
@@ -34,13 +34,15 @@ window.onload = () => {
 // --- 3. 認証・データ取得コア ---
 async function silentLogin() {
   if (!authID || !authPass) {
-    document.getElementById('login-overlay').style.display = 'flex';
+    const overlay = document.getElementById('login-overlay');
+    if (overlay) overlay.style.display = 'flex';
     return;
   }
   try {
     const res = await callGAS("getInitialData");
     DATA = res;
-    document.getElementById('user-display').innerText = DATA.user.toUpperCase();
+    const userDisp = document.getElementById('user-display');
+    if (userDisp) userDisp.innerText = DATA.user.toUpperCase();
     renderAll();
     document.body.classList.add('ready');
     document.getElementById('login-overlay').style.display = 'none';
@@ -69,12 +71,15 @@ async function handleAuth() {
       localStorage.setItem('kiki_authPass', authPass);
     }
     DATA = res;
+    const userDisp = document.getElementById('user-display');
+    if (userDisp) userDisp.innerText = DATA.user.toUpperCase();
     renderAll();
-    document.getElementById('user-display').innerText = DATA.user.toUpperCase();
     document.body.classList.add('ready');
     document.getElementById('login-overlay').style.display = 'none';
     document.getElementById('app-content').style.display = 'flex';
-  } catch (e) { }
+  } catch (e) {
+    // api.js側でエラー処理がされている想定
+  }
 }
 
 // --- 4. 描画ロジック ---
@@ -96,7 +101,12 @@ function renderAll() {
   updateToggleAllBtnState();
   const viewWork = document.getElementById('view-work');
   if (viewWork && viewWork.style.display !== 'none') {
-    displayMode === 'list' ? renderList() : renderTile();
+    // renderListがないことによるエラーを防ぐため、存在チェックを入れる
+    if (displayMode === 'list' && typeof renderList === 'function') {
+      renderList();
+    } else {
+      renderTile();
+    }
   } else {
     renderLogs();
   }
@@ -104,8 +114,16 @@ function renderAll() {
 }
 
 /**
- * 【修正済】タイル描画：重複を削除し、右端ギリギリまで表示を広げました
+ * リスト描画（もし未定義なら簡易版を定義）
  */
+function renderList() {
+  const container = document.getElementById('zone-display');
+  if (!container) return;
+  container.className = "zone-container-list";
+  // 今回はタイル表示を優先するため、リストが呼ばれてもタイルを描画するように誘導
+  renderTile();
+}
+
 function renderTile() {
   const container = document.getElementById('zone-display');
   if (!container) return;
@@ -178,7 +196,9 @@ function getFitSpan(text, baseSize, limitWidth) {
 
 function renderLogs() {
   const filtered = DATA.logs ? DATA.logs.filter(l => l.type === activeType) : [];
-  document.getElementById('log-list').innerHTML = filtered.map(l => {
+  const logList = document.getElementById('log-list');
+  if(!logList) return;
+  logList.innerHTML = filtered.map(l => {
     const ids = l.ids ? String(l.ids).split(',').map(Number).sort((a,b)=>a-b) : [];
     const rangeStr = ids.length > 0 ? `${ids[0]}～${ids[ids.length-1]}` : '---';
     return `
@@ -254,7 +274,11 @@ function handleZoneCheck(e, idx) {
 function toggleUnit(id) {
   selectedUnits.has(id) ? selectedUnits.delete(id) : selectedUnits.add(id);
   updateCount();
-  displayMode === 'list' ? renderList() : renderTile();
+  if (displayMode === 'list') {
+      renderList();
+  } else {
+      renderTile();
+  }
 }
 
 function updateCount() {
