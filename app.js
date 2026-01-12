@@ -1,5 +1,5 @@
 /**
- * KIKI PRO V15 - Complete Stable App Logic
+ * KIKI PRO V15 - Complete Stable App Logic (Fixed)
  */
 
 // --- 1. グローバル変数の宣言 ---
@@ -32,8 +32,6 @@ window.onload = () => {
 };
 
 // --- 3. 認証・データ取得コア ---
-// ※ callGAS 本体は api.js で定義されているため、ここでは再定義しません。
-
 async function silentLogin() {
   if (!authID || !authPass) {
     document.getElementById('login-overlay').style.display = 'flex';
@@ -76,9 +74,7 @@ async function handleAuth() {
     document.body.classList.add('ready');
     document.getElementById('login-overlay').style.display = 'none';
     document.getElementById('app-content').style.display = 'flex';
-  } catch (e) {
-    // api.js 内の alert でエラー表示済み
-  }
+  } catch (e) { }
 }
 
 // --- 4. 描画ロジック ---
@@ -107,8 +103,12 @@ function renderAll() {
   updateCount();
 }
 
+/**
+ * 【修正済】タイル描画：重複を削除し、右端ギリギリまで表示を広げました
+ */
 function renderTile() {
   const container = document.getElementById('zone-display');
+  if (!container) return;
   container.className = "zone-container-tile";
   const tIdx = TYPE_MAP[activeType];
   const finalIdx = getFinalWorkZoneIndex();
@@ -125,28 +125,28 @@ function renderTile() {
 
     return `
       <div id="zone-card-${originalIdx}" class="tile-card ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" 
-           style="background-color: ${bgColor} !important;" onclick="handleZoneAction(event, ${originalIdx})">
+           style="background-color: ${bgColor} !important; padding: 4px 2px;" onclick="handleZoneAction(event, ${originalIdx})">
         
         <div class="tile-row-1" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2px;">
           <div class="check-wrapper" onclick="handleZoneCheck(event, ${originalIdx})">
-            <input type="checkbox" ${isAll ? 'checked' : ''} style="pointer-events:none; transform: scale(0.8);">
+            <input type="checkbox" ${isAll ? 'checked' : ''} style="pointer-events:none; transform: scale(0.75);">
           </div>
           <div class="f-oswald" style="font-size:10px; opacity: 0.8;">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z, true)}</div>
         </div>
         
-        <div class="tile-row-2" style="text-align: left; padding-left: 1px; font-weight: 650; height: 21px; overflow: hidden;">
-          <b>${getFitSpan(rawName, 19, 60)}</b>
+        <div class="tile-row-2" style="text-align: left; padding-left: 2px; font-weight: 700; height: 21px; overflow: visible;">
+          <b>${getFitSpan(rawName, 19, 80)}</b>
         </div>
         
-        <div class="tile-row-3 f-oswald" style="text-align: left; padding-left: 1px; color: #000 !important; font-weight: 650; height: 21px; overflow: hidden;">
-          ${getFitSpan(`No.${z.s}-${z.e}`, 19, 78)}
+        <div class="tile-row-3 f-oswald" style="text-align: left; padding-left: 1px; color: #000 !important; font-weight: 700; height: 21px; overflow: visible;">
+          ${getFitSpan(`No.${z.s}-${z.e}`, 19, 82)}
         </div>
         
-        <div class="tile-row-4 f-oswald" style="text-align: right; padding-right: 2px; margin-top: 2px;">
+        <div class="tile-row-4 f-oswald" style="text-align: right; padding-right: 4px; margin-top: 2px;">
           <span style="font-size: 18px; font-weight: 900;">${selCount}</span><small style="font-size:9px; opacity:0.7;">/${zoneUnits.length}</small>
         </div>
 
-        <div class="tile-row-5 status-bar-bg" style="margin-top: 4px;">
+        <div class="tile-row-5 status-bar-bg" style="margin-top: 4px; margin-left: 1px; margin-right: 1px;">
           ${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}
         </div>
 
@@ -160,17 +160,12 @@ function renderTile() {
   }).join('');
 }
 
-function getFitSpan(text, baseSize, limitWidth = 70) {
+function getFitSpan(text, baseSize, limitWidth) {
   let estimatedWidth = 0;
   for (let char of String(text)) {
-    // 半角は0.6倍、全角は1倍で幅を概算
     estimatedWidth += char.match(/[ -~]/) ? baseSize * 0.52 : baseSize;
   }
-  
-  // 収まる場合はスケール1、超える場合のみ圧縮率を計算
   const scale = estimatedWidth > limitWidth ? limitWidth / estimatedWidth : 1;
-  
-  // transform-origin: left で左端を固定して縮小
   return `<span class="tile-fit-inner" style="
       font-size:${baseSize}px; 
       transform:scaleX(${scale}); 
@@ -180,6 +175,7 @@ function getFitSpan(text, baseSize, limitWidth = 70) {
       letter-spacing: -0.3px; 
     ">${text}</span>`;
 }
+
 function renderLogs() {
   const filtered = DATA.logs ? DATA.logs.filter(l => l.type === activeType) : [];
   document.getElementById('log-list').innerHTML = filtered.map(l => {
@@ -285,7 +281,8 @@ function updateDateDisplay() {
   if (!val) return;
   const d = new Date(val);
   const days = ["日","月","火","水","木","金","土"];
-  document.getElementById('date-label').innerText = `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
+  const label = document.getElementById('date-label');
+  if(label) label.innerText = `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
 }
 
 function switchView(v) {
@@ -388,43 +385,21 @@ function showQR() {
 function hideQR() { document.getElementById("qr-overlay").style.display = "none"; }
 function showManual() { document.getElementById('manual-overlay').style.display = 'flex'; }
 function hideManual() { document.getElementById('manual-overlay').style.display = 'none'; }
-/**
- * HTMLのボタン「GO TO 最終🚩」から呼び出される関数
- */
-/**
- * 最終作業日（🚩マーク）のゾーンまでスクロールし、点滅させる
- */
+
 function scrollToLastWork() {
   const finalIdx = getFinalWorkZoneIndex();
-  
   if (finalIdx === -1) {
     alert("最新の作業データが見つかりませんでした。");
     return;
   }
-
   const targetId = `zone-card-${finalIdx}`;
   const targetEl = document.getElementById(targetId);
-
   if (targetEl) {
-    // スムーズにスクロール
     targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    
-    // 一旦クラスを消してから再度付与（連続押しに対応）
     targetEl.classList.remove('jump-highlight');
-    
-    // わずかな遅延のあとクラスを付与してアニメーション開始
-    setTimeout(() => {
-      targetEl.classList.add('jump-highlight');
-    }, 100);
-
-    // アニメーション終了時間（1.5秒後）にクラスを除去
-    setTimeout(() => {
-      targetEl.classList.remove('jump-highlight');
-    }, 1600);
-    
+    setTimeout(() => { targetEl.classList.add('jump-highlight'); }, 100);
+    setTimeout(() => { targetEl.classList.remove('jump-highlight'); }, 1600);
   } else {
     alert("現在のタブ（" + activeType + "）には最終作業ゾーンが表示されていません。");
   }
 }
-
-// ※ logout() は api.js に記述済みなので app.js には不要です（重複防止）
