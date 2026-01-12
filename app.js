@@ -228,26 +228,26 @@ function renderTile() {
       <div id="zone-card-${originalIdx}" class="tile-card ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" 
            style="background-color: ${bgColor} !important;" onclick="handleZoneAction(event, ${originalIdx})">
         
-        <div class="tile-row-1">
+        <div class="tile-row-1" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2px;">
           <div class="check-wrapper" onclick="handleZoneCheck(event, ${originalIdx})">
-            <input type="checkbox" ${isAll ? 'checked' : ''} style="pointer-events:none;">
+            <input type="checkbox" ${isAll ? 'checked' : ''} style="pointer-events:none; transform: scale(0.8);">
           </div>
-          <div class="f-oswald" style="font-size:10px;">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z, true)}</div>
+          <div class="f-oswald" style="font-size:10px; opacity: 0.8;">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z, true)}</div>
         </div>
         
-        <div class="tile-row-2" style="text-align: left; padding-left: 4px; overflow: hidden;">
-          <b>${getFitSpan(rawName, 20, 80)}</b>
+        <div class="tile-row-2" style="text-align: left; padding-left: 2px; height: 24px; overflow: hidden;">
+          <b>${getFitSpan(rawName, 19, 78)}</b>
         </div>
         
-        <div class="tile-row-3 f-oswald" style="text-align: left; padding-left: 4px; color: #000 !important; font-weight: 700; overflow: hidden;">
-          ${getFitSpan(`No.${z.s}-${z.e}`, 16, 80)}
+        <div class="tile-row-3 f-oswald" style="text-align: left; padding-left: 2px; color: #000 !important; font-weight: 700; height: 18px; overflow: hidden;">
+          ${getFitSpan(`No.${z.s}-${z.e}`, 15, 78)}
         </div>
         
-        <div class="tile-row-4 f-oswald" style="text-align: right; padding-right: 4px;">
-          ${selCount}<small style="font-size:9px; opacity:0.7;">/${zoneUnits.length}</small>
+        <div class="tile-row-4 f-oswald" style="text-align: right; padding-right: 2px; margin-top: 2px;">
+          <span style="font-size: 18px; font-weight: 900;">${selCount}</span><small style="font-size:9px; opacity:0.7;">/${zoneUnits.length}</small>
         </div>
 
-        <div class="tile-row-5 status-bar-bg">
+        <div class="tile-row-5 status-bar-bg" style="margin-top: 4px;">
           ${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}
         </div>
 
@@ -278,18 +278,21 @@ function fitText(text, fontSize) {
   return `<span class="fit-text" style="font-size:${fontSize}px;">${text}</span>`;
 }
 
-function getFitSpan(text, baseSize, limitWidth = 80) {
+/**
+ * テキストを枠内に収める。収まる場合はそのまま、超える場合のみ左基点で圧縮。
+ */
+function getFitSpan(text, baseSize, limitWidth = 78) {
   let estimatedWidth = 0;
   for (let char of String(text)) {
     // 半角は0.6倍、全角は1倍で幅を概算
     estimatedWidth += char.match(/[ -~]/) ? baseSize * 0.6 : baseSize;
   }
   
-  // 収まる場合はスケール1（調整なし）、超える場合のみ比率を計算
+  // 収まる場合はスケール1、超える場合のみ圧縮率を計算
   const scale = estimatedWidth > limitWidth ? limitWidth / estimatedWidth : 1;
   
-  // 左寄せを維持するため transform-origin: left を指定
-  return `<span class="tile-fit-inner" style="font-size:${baseSize}px; transform:scaleX(${scale}); transform-origin: left;">${text}</span>`;
+  // transform-origin: left で左端を固定して縮小
+  return `<span class="tile-fit-inner" style="font-size:${baseSize}px; transform:scaleX(${scale}); transform-origin: left; display: inline-block; white-space: nowrap;">${text}</span>`;
 }
 function renderLogs() {
   const filtered = DATA.logs ? DATA.logs.filter(l => l.type === activeType) : [];
