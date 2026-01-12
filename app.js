@@ -44,60 +44,51 @@ async function silentLogin() {
   } catch (e) {
     console.error(e);
     localStorage.clear();
-    document.('login-overlay').style.display = 'flex';
+    document.getElementById('login-overlay').style.display = 'flex';
   }
 }
 
 async function handleAuth() {
-  const nick = document.('login-nick').value;
-  const pass = document.('login-pass').value;
+  const nick = document.getElementById('login-nick').value;
+  const pass = document.getElementById('login-pass').value;
   if (!nick || !pass) return alert("入力してください");
   try {
     const method = isSignUpMode ? "signUp" : "getInitialData";
     const res = await callGAS(method, { authID: nick, authPass: pass, nickname: nick });
     authID = nick;
     authPass = pass;
-    if (document.('auto-login').checked) {
+    if (document.getElementById('auto-login').checked) {
       localStorage.setItem('kiki_authID', authID);
       localStorage.setItem('kiki_authPass', authPass);
     }
     DATA = res;
     renderAll();
-    document.('user-display').innerText = DATA.user.toUpperCase();
+    document.getElementById('user-display').innerText = DATA.user.toUpperCase();
     document.body.classList.add('ready');
-    document.('login-overlay').style.display = 'none';
-    document.('app-content').style.display = 'flex';
+    document.getElementById('login-overlay').style.display = 'none';
+    document.getElementById('app-content').style.display = 'flex';
   } catch (e) { alert(e.message); }
 }
 
 function renderAll() {
   const types = ["通常", "セル盤", "計数機", "ユニット", "説明書"];
-  
-  // タブ部分の描画
-  const typeTabs = document.getElementById('type-tabs');
-  if (typeTabs) {
-    typeTabs.innerHTML = types.map(t => {
-      const lastDate = getFinalDateByType(t);
-      return `
-        <button class="type-btn ${t === activeType ? 'active' : ''}" onclick="changeType('${t}')">
-          <span class="type-name-label">${t}</span>
-          <span class="type-last-badge">${lastDate}</span>
-        </button>`;
-    }).join('');
-  }
+  document.getElementById('type-tabs').innerHTML = types.map(t => {
+    const lastDate = getFinalDateByType(t);
+    return `
+      <button class="type-btn ${t === activeType ? 'active' : ''}" onclick="changeType('${t}')">
+        <span class="type-name-label">${t}</span>
+        <span class="type-last-badge">${lastDate}</span>
+      </button>`;
+  }).join('');
   
   updateToggleAllBtnState();
-
-  // 表示モードの切り替え
   const viewWork = document.getElementById('view-work');
-  if (viewWork && viewWork.style.display !== 'none') {
+  if (viewWork.style.display !== 'none') {
     displayMode === 'list' ? renderList() : renderTile();
-  } else {
-    renderLogs();
-  }
-  
+  } else { renderLogs(); }
   updateCount();
 }
+
 function getFinalDateByType(type) {
   const tCol = DATE_COL_MAP[type];
   let last = null;
@@ -120,7 +111,7 @@ function changeType(t) {
 }
 
 function updateToggleAllBtnState() {
-  const btn = document.('toggle-all-btn');
+  const btn = document.getElementById('toggle-all-btn');
   if (!btn) return;
   const tIdx = TYPE_MAP[activeType];
   const allIds = DATA.master.filter(m => Number(m[tIdx]) === 1).map(m => Number(m[0]));
@@ -170,7 +161,7 @@ function fitText(text, limit) {
  * リスト表示描画
  */
 function renderList() {
-  const container = document.('zone-display');
+  const container = document.getElementById('zone-display');
   container.className = "zone-container-list";
   const tIdx = TYPE_MAP[activeType];
   const finalIdx = getFinalWorkZoneIndex();
@@ -220,7 +211,7 @@ function renderList() {
  * タイル表示描画
  */
 function renderTile() {
-  const container = document.('zone-display');
+  const container = document.getElementById('zone-display');
   container.className = "zone-container-tile";
   const tIdx = TYPE_MAP[activeType];
   const finalIdx = getFinalWorkZoneIndex();
@@ -293,34 +284,34 @@ function toggleUnit(id) {
 
 function updateCount() {
   const count = selectedUnits.size;
-  document.('u-total').innerText = count;
-  document.('send-btn').disabled = (count === 0);
-  document.('cancel-btn').style.display = (count > 0 || editingLogRow) ? "block" : "none";
+  document.getElementById('u-total').innerText = count;
+  document.getElementById('send-btn').disabled = (count === 0);
+  document.getElementById('cancel-btn').style.display = (count > 0 || editingLogRow) ? "block" : "none";
 }
 
 function updateDateDisplay() {
-  const val = document.('work-date').value;
+  const val = document.getElementById('work-date').value;
   if (!val) return;
   const d = new Date(val);
   const days = ["日","月","火","水","木","金","土"];
-  document.('date-label').innerText = `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
+  document.getElementById('date-label').innerText = `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
 }
 
 function setMode(m) { 
   displayMode = m; 
-  document.('mode-list-btn').classList.toggle('active', m === 'list'); 
-  document.('mode-tile-btn').classList.toggle('active', m === 'tile'); 
+  document.getElementById('mode-list-btn').classList.toggle('active', m === 'list'); 
+  document.getElementById('mode-tile-btn').classList.toggle('active', m === 'tile'); 
   renderAll(); 
 }
 
 function switchView(v) {
   const isWork = (v === 'work');
-  document.('view-work').style.display = isWork ? 'block' : 'none';
-  document.('view-log').style.display = isWork ? 'none' : 'block';
-  document.('view-mode-controls').style.display = isWork ? 'flex' : 'none';
-  document.('footer-content-wrap').style.display = isWork ? 'block' : 'none';
-  document.('tab-work').className = 'top-tab ' + (isWork ? 'active-work' : '');
-  document.('tab-log').className = 'top-tab ' + (!isWork ? 'active-log' : '');
+  document.getElementById('view-work').style.display = isWork ? 'block' : 'none';
+  document.getElementById('view-log').style.display = isWork ? 'none' : 'block';
+  document.getElementById('view-mode-controls').style.display = isWork ? 'flex' : 'none';
+  document.getElementById('footer-content-wrap').style.display = isWork ? 'block' : 'none';
+  document.getElementById('tab-work').className = 'top-tab ' + (isWork ? 'active-work' : '');
+  document.getElementById('tab-log').className = 'top-tab ' + (!isWork ? 'active-log' : '');
   renderAll();
 }
 
@@ -338,7 +329,7 @@ function formatLastDate(z, isFinal = false) {
 function scrollToLastWork() {
   const finalIdx = getFinalWorkZoneIndex();
   if (finalIdx === -1) return;
-  const target = document.(`zone-card-${finalIdx}`);
+  const target = document.getElementById(`zone-card-${finalIdx}`);
   if (target) {
     target.scrollIntoView({ behavior: 'smooth', block: 'center' });
     target.style.transform = "scale(1.05)";
@@ -350,7 +341,7 @@ async function upload() {
   if (selectedUnits.size === 0) return;
   try {
     await callGAS("addNewRecord", { 
-      date: document.('work-date').value, 
+      date: document.getElementById('work-date').value, 
       type: activeType, 
       ids: Array.from(selectedUnits), 
       editRow: editingLogRow 
@@ -369,7 +360,7 @@ function cancelEdit() {
 
 function renderLogs() {
   const filtered = DATA.logs.filter(l => l.type === activeType);
-  document.('log-list').innerHTML = filtered.map(l => {
+  document.getElementById('log-list').innerHTML = filtered.map(l => {
     const ids = l.ids ? String(l.ids).split(',').map(Number).sort((a,b)=>a-b) : [];
     const rangeStr = ids.length > 0 ? `${ids[0]}～${ids[ids.length-1]}` : '---';
     let dateWithDay = l.date;
@@ -402,7 +393,7 @@ function startEdit(row, ids, date, type) {
   const idStr = ids ? String(ids) : "";
   selectedUnits = new Set(idStr.split(',').filter(x => x.trim() !== "").map(Number));
   activeType = type;
-  if (date) document.('work-date').value = date.replace(/\//g, '-');
+  if (date) document.getElementById('work-date').value = date.replace(/\//g, '-');
   updateDateDisplay(); 
   displayMode = 'tile';
   switchView('work');
@@ -417,15 +408,15 @@ async function handleDelete(row) {
 }
 
 function showQR() { 
-  const target = document.("qr-target"); 
+  const target = document.getElementById("qr-target"); 
   if (!target) return;
   target.innerHTML = ""; 
   new QRCode(target, { text: window.location.href, width: 200, height: 200 }); 
-  document.("qr-overlay").style.display = "flex"; 
+  document.getElementById("qr-overlay").style.display = "flex"; 
 }
-function hideQR() { document.("qr-overlay").style.display = "none"; }
-function showManual() { document.('manual-overlay').style.display = 'flex'; }
-function hideManual() { document.('manual-overlay').style.display = 'none'; }
+function hideQR() { document.getElementById("qr-overlay").style.display = "none"; }
+function showManual() { document.getElementById('manual-overlay').style.display = 'flex'; }
+function hideManual() { document.getElementById('manual-overlay').style.display = 'none'; }
 function toggleAuthMode() {
   isSignUpMode = !isSignUpMode;
   document.getElementById('auth-title').innerText = isSignUpMode ? "KIKI SIGN UP" : "KIKI LOGIN";
