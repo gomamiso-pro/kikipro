@@ -210,7 +210,6 @@ function renderTile() {
 
 function renderTile() {
   const container = document.getElementById('zone-display');
-  if (!container) return;
   container.className = "zone-container-tile";
   const tIdx = TYPE_MAP[activeType];
   const finalIdx = getFinalWorkZoneIndex();
@@ -224,7 +223,6 @@ function renderTile() {
     const isAll = zoneUnits.length > 0 && zoneUnits.every(m => selectedUnits.has(Number(m[0])));
     const bgColor = z.color || "#ffffff";
     const rawName = z.name.replace('ゾーン', '');
-    const isFinal = (originalIdx === finalIdx);
 
     return `
       <div id="zone-card-${originalIdx}" class="tile-card ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" 
@@ -234,21 +232,19 @@ function renderTile() {
           <div class="check-wrapper" onclick="handleZoneCheck(event, ${originalIdx})">
             <input type="checkbox" ${isAll ? 'checked' : ''} style="pointer-events:none;">
           </div>
-          <div class="f-oswald">
-            ${isFinal ? '🚩' : ''}${formatLastDate(z, true)}
-          </div>
+          <div class="f-oswald" style="font-size:10px;">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z, true)}</div>
         </div>
-
-        <div class="tile-row-2 fit-container">
-          ${fitText(rawName, 22)}
+        
+        <div class="tile-row-2" style="text-align: left; padding-left: 4px; overflow: hidden;">
+          <b>${getFitSpan(rawName, 20, 80)}</b>
         </div>
-
-        <div class="tile-row-3 f-oswald fit-container">
-          ${fitText(`No.${z.s}-${z.e}`, 18)}
+        
+        <div class="tile-row-3 f-oswald" style="text-align: left; padding-left: 4px; color: #000 !important; font-weight: 700; overflow: hidden;">
+          ${getFitSpan(`No.${z.s}-${z.e}`, 16, 80)}
         </div>
-
-        <div class="tile-row-4 f-oswald" style="font-size:24px; font-weight:900;">
-          ${selCount}<small style="font-size:12px; opacity:0.7;">/${zoneUnits.length}</small>
+        
+        <div class="tile-row-4 f-oswald" style="text-align: right; padding-right: 4px;">
+          ${selCount}<small style="font-size:9px; opacity:0.7;">/${zoneUnits.length}</small>
         </div>
 
         <div class="tile-row-5 status-bar-bg">
