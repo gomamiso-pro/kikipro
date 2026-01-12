@@ -1,5 +1,6 @@
 /**
  * KIKI PRO V15 - Complete Stable App Logic (Bug Fixed)
+ * 既存の全機能を維持したフルコード
  */
 
 // --- 1. グローバル変数の宣言 ---
@@ -7,7 +8,7 @@ let authID = localStorage.getItem('kiki_authID') || "";
 let authPass = localStorage.getItem('kiki_authPass') || "";
 let DATA = {};
 let activeType = "通常";
-let displayMode = "tile"; // 初期モードをエラーの起きにくい tile に設定
+let displayMode = "tile"; 
 let selectedUnits = new Set();
 let expandedZoneId = null;
 let editingLogRow = null;
@@ -19,45 +20,57 @@ const DATE_COL_MAP = { "通常": 8, "セル盤": 9, "計数機": 10, "ユニッ�
 
 // --- 2. 初期起動処理 ---
 window.onload = () => {
-  silentLogin();
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
   const dateInput = document.getElementById('work-date');
   if (dateInput) {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
     dateInput.value = `${y}-${m}-${day}`;
     updateDateDisplay();
   }
+
+  // 認証情報の有無で初動を分岐（チラつき防止）
+  if (authID && authPass) {
+    silentLogin();
+  } else {
+    showLoginOverlay();
+  }
 };
+
+function showLoginOverlay() {
+  document.getElementById('loading').style.display = 'none';
+  const overlay = document.getElementById('login-overlay');
+  if (overlay) overlay.style.display = 'flex';
+}
 
 // --- 3. 認証・データ取得コア ---
 async function silentLogin() {
-  if (!authID || !authPass) {
-    const overlay = document.getElementById('login-overlay');
-    if (overlay) overlay.style.display = 'flex';
-    return;
-  }
   try {
+    // 既存のauthID/Passを使ってデータ取得を試みる
     const res = await callGAS("getInitialData");
     DATA = res;
+    
     const userDisp = document.getElementById('user-display');
     if (userDisp) userDisp.innerText = DATA.user.toUpperCase();
+    
     renderAll();
+    
     document.body.classList.add('ready');
     document.getElementById('login-overlay').style.display = 'none';
     document.getElementById('app-content').style.display = 'flex';
   } catch (e) {
     console.error("Silent Login Failed:", e);
+    // 失敗（認証切れ等）した場合は情報を消してログイン画面へ
     localStorage.removeItem('kiki_authID');
     localStorage.removeItem('kiki_authPass');
-    document.getElementById('login-overlay').style.display = 'flex';
+    showLoginOverlay();
   }
 }
 
 async function handleAuth() {
-  const nick = document.getElementById('login-nick').value;
-  const pass = document.getElementById('login-pass').value;
+  const nick = document.getElementById('login-nick').value.trim();
+  const pass = document.getElementById('login-pass').value.trim();
   if (!nick || !pass) return alert("入力してください");
 
   try {
@@ -73,12 +86,13 @@ async function handleAuth() {
     DATA = res;
     const userDisp = document.getElementById('user-display');
     if (userDisp) userDisp.innerText = DATA.user.toUpperCase();
+    
     renderAll();
     document.body.classList.add('ready');
     document.getElementById('login-overlay').style.display = 'none';
     document.getElementById('app-content').style.display = 'flex';
   } catch (e) {
-    // api.js側でエラー処理がされている想定
+    // api.js側でエラー処理（alert等）がされる想定
   }
 }
 
@@ -101,8 +115,7 @@ function renderAll() {
   updateToggleAllBtnState();
   const viewWork = document.getElementById('view-work');
   if (viewWork && viewWork.style.display !== 'none') {
-    // renderListがないことによるエラーを防ぐため、存在チェックを入れる
-    if (displayMode === 'list' && typeof renderList === 'function') {
+    if (displayMode === 'list') {
       renderList();
     } else {
       renderTile();
@@ -112,14 +125,13 @@ function renderAll() {
   }
   updateCount();
 }
+
 function renderList() {
   const container = document.getElementById('zone-display');
   if (!container) return;
-  
   container.className = "zone-container-list"; 
   
   const tIdx = TYPE_MAP[activeType];
-  // 最新の作業があった「一番最後のゾーンインデックス」を取得
   const finalIdx = getFinalWorkZoneIndex();
   
   const filteredZones = DATA.cols.filter(z => 
@@ -132,56 +144,49 @@ function renderList() {
     const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
     const isAll = zoneUnits.length > 0 && zoneUnits.every(m => selectedUnits.has(Number(m[0])));
     const bgColor = z.color || "#ffffff";
-
-    // 🚩を表示するかどうかの判定
     const isFinalZone = (originalIdx === finalIdx);
 
     return `
       <div id="zone-card-${originalIdx}" 
            class="zone-row ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" 
-           style="background-color: ${bgColor} !important; margin-bottom: 10px; border-radius: 10px; overflow: hidden; border: 1px solid rgba(0,0,0,0.1); box-shadow: 0 2px 4px rgba(0,0,0,0.05);" 
+           style="background-color: ${bgColor} !important;" 
            onclick="handleZoneAction(event, ${originalIdx})">
         
         <div style="padding: 12px 15px; display: flex; align-items: center; justify-content: space-between;">
-          
           <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
-            <div class="check-wrapper" onclick="handleZoneCheck(event, ${originalIdx})" style="display: flex; align-items: center; padding: 5px;">
+            <div class="check-wrapper" onclick="handleZoneCheck(event, ${originalIdx})">
               <input type="checkbox" ${isAll ? 'checked' : ''} style="transform: scale(1.6); pointer-events: none;">
             </div>
             <div style="line-height: 1.1;">
               <div style="font-size: 14px; font-weight: 700; color: #666; margin-bottom: 2px;">${z.name}</div>
-              <div class="f-oswald" style="font-size: 24px; font-weight: 900; color: #000; letter-spacing: -0.5px;">
-                No.${z.s} <span style="font-size:16px; opacity:0.5;">-</span> ${z.e}
+              <div class="f-oswald" style="font-size: 24px; font-weight: 900; color: #000;">
+                No.${z.s} - ${z.e}
               </div>
             </div>
           </div>
 
-          <div style="text-align: right; min-width: 110px; display: flex; flex-direction: column; justify-content: center; gap: 4px;">
-            <div class="f-oswald" style="font-size: 14px; font-weight: 800; color: ${isFinalZone ? '#d32f2f' : '#555'}; background: ${isFinalZone ? 'rgba(211,47,47,0.1)' : 'transparent'}; padding: 3px 6px; border-radius: 4px; display: inline-block; margin-left: auto;">
+          <div style="text-align: right; min-width: 110px;">
+            <div class="f-oswald" style="font-size: 14px; font-weight: 800; color: ${isFinalZone ? '#d32f2f' : '#555'};">
               ${isFinalZone ? '🚩 ' : ''}${formatLastDate(z)}
             </div>
-            <div class="f-oswald" style="font-size: 28px; font-weight: 900; color: #000; line-height: 1;">
-              ${selCount}<span style="font-size: 14px; opacity: 0.6; font-weight: 700; margin-left: 2px;">/ ${zoneUnits.length}</span>
+            <div class="f-oswald" style="font-size: 28px; font-weight: 900; color: #000;">
+              ${selCount}<span style="font-size: 14px; opacity: 0.6;">/ ${zoneUnits.length}</span>
             </div>
           </div>
         </div>
 
-        <div class="status-bar-bg" style="height: 8px; background: rgba(0,0,0,0.08); display: flex;">
-          ${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" style="flex:1; height:100%; border-right: 0.5px solid rgba(255,255,255,0.2);"></div>`).join('')}
+        <div class="status-bar-bg">
+          ${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}
         </div>
 
-        <div class="expand-box" style="display: ${expandedZoneId === originalIdx ? 'block' : 'none'}; padding: 12px; background: rgba(255,255,255,0.6);" onclick="event.stopPropagation()">
-          <div class="unit-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 8px;">
+        <div class="expand-box" style="display: ${expandedZoneId === originalIdx ? 'block' : 'none'};" onclick="event.stopPropagation()">
+          <div class="unit-grid">
             ${zoneUnits.map(m => `
-              <div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" 
-                   style="padding: 12px 0; text-align: center; border-radius: 6px; font-size: 18px; font-weight: 900; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1);"
-                   onclick="toggleUnit(${Number(m[0])})">
+              <div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${Number(m[0])})">
                 ${m[0]}
               </div>`).join('')}
           </div>
-          <button class="btn-close-expand" 
-                  style="width: 100%; margin-top: 12px; padding: 12px; border-radius: 8px; border: none; background: #333; color: white; font-weight: 900; font-size: 16px;"
-                  onclick="closeExpand(event)">完了</button>
+          <button class="btn-close-expand" onclick="closeExpand(event)">完了</button>
         </div>
       </div>`;
   }).join('');
@@ -207,9 +212,9 @@ function renderTile() {
 
     return `
       <div id="zone-card-${originalIdx}" class="tile-card ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" 
-           style="background-color: ${bgColor} !important; padding: 4px 2px;" onclick="handleZoneAction(event, ${originalIdx})">
+           style="background-color: ${bgColor} !important;" onclick="handleZoneAction(event, ${originalIdx})">
         
-        <div class="tile-row-1" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2px;">
+        <div class="tile-row-1">
           <div class="check-wrapper" onclick="handleZoneCheck(event, ${originalIdx})">
             <input type="checkbox" ${isAll ? 'checked' : ''} style="pointer-events:none; transform: scale(0.75);">
           </div>
@@ -218,19 +223,14 @@ function renderTile() {
           </div>
         </div>
         
-        <div class="tile-row-2" style="text-align: left; padding-left: 3px; font-weight: 800; height: 21px; overflow: visible;">
-          <b>${getFitSpan(rawName, 19, 70)}</b>
-        </div>
+        <div class="tile-row-2"><b>${getFitSpan(rawName, 10, 70)}</b></div>
+        <div class="tile-row-3 f-oswald">${getFitSpan(`No.${z.s}-${z.e}`, 9, 75)}</div>
         
-        <div class="tile-row-3 f-oswald" style="text-align: left; padding-left: 1px; color: #000 !important; font-weight: 700; height: 21px; overflow: visible;">
-          ${getFitSpan(`No.${z.s}-${z.e}`, 19, 75)}
-        </div>
-        
-        <div class="tile-row-4 f-oswald" style="text-align: right; padding-right: 4px; margin-top: 2px;">
-          <span style="font-size: 18px; font-weight: 900;">${selCount}</span><small style="font-size:9px; opacity:0.7;">/${zoneUnits.length}</small>
+        <div class="tile-row-4 f-oswald">
+          <span style="font-size: 22px; font-weight: 900;">${selCount}</span><small style="font-size:9px; opacity:0.7;">/${zoneUnits.length}</small>
         </div>
 
-        <div class="tile-row-5 status-bar-bg" style="margin-top: 4px; margin-left: 1px; margin-right: 1px;">
+        <div class="tile-row-5 status-bar-bg">
           ${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}
         </div>
 
@@ -278,7 +278,7 @@ function renderLogs() {
         </div>
         <div class="log-unit-large">${l.count}<small style="font-size:12px;">台</small></div>
       </div>
-      <div class="log-action-row" style="display:flex; gap:12px; margin-top:15px; border-top:1px solid rgba(255,255,255,0.1); padding-top:12px;">
+      <div class="log-action-row">
         <button class="btn-log-edit shadow-blue" onclick="startEdit(${l.row}, '${l.ids}', '${l.date}', '${l.type}')" style="flex:1;">編集</button>
         <button class="btn-log-del shadow-red" onclick="handleDelete(${l.row})" style="flex:1;">削除</button>
       </div>
@@ -340,11 +340,7 @@ function handleZoneCheck(e, idx) {
 function toggleUnit(id) {
   selectedUnits.has(id) ? selectedUnits.delete(id) : selectedUnits.add(id);
   updateCount();
-  if (displayMode === 'list') {
-      renderList();
-  } else {
-      renderTile();
-  }
+  renderAll();
 }
 
 function updateCount() {
