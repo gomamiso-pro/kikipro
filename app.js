@@ -126,54 +126,6 @@ function renderTile() {
     return `
       <div id="zone-card-${originalIdx}" class="tile-card ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" 
            style="background-color: ${bgColor} !important;" onclick="handleZoneAction(event, ${originalIdx})">
-        <div class="tile-row-1">
-          <div class="check-wrapper" onclick="handleZoneCheck(event, ${originalIdx})">
-            <input type="checkbox" ${isAll ? 'checked' : ''} style="pointer-events:none;">
-          </div>
-          <div class="f-oswald">${originalIdx === finalIdx ? '🚩' : ''}${formatLastDate(z, true)}</div>
-        </div>
-        
-        <div class="tile-row-2 tile-fit-text">
-          <b>${getFitSpan(rawName, 20)}</b>
-        </div>
-        
-        <div class="tile-row-3 f-oswald tile-fit-text" style="color: #000 !important; font-weight: 700;">
-          ${getFitSpan(`No.${z.s}-${z.e}`, 16)}
-        </div>
-        
-        <div class="tile-row-4 f-oswald">${selCount}<small style="font-size:9px; opacity:0.7;">/${zoneUnits.length}</small></div>
-        <div class="tile-row-5 status-bar-bg">
-          ${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}
-        </div>
-        <div class="expand-box" onclick="event.stopPropagation()">
-          <div class="unit-grid">
-            ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${Number(m[0])})">${m[0]}</div>`).join('')}
-          </div>
-          <button class="btn-close-expand" onclick="closeExpand(event)">完了</button>
-        </div>
-      </div>`;
-  }).join('');
-}
-
-function renderTile() {
-  const container = document.getElementById('zone-display');
-  container.className = "zone-container-tile";
-  const tIdx = TYPE_MAP[activeType];
-  const finalIdx = getFinalWorkZoneIndex();
-  
-  container.innerHTML = DATA.cols.filter(z => 
-    DATA.master.some(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1)
-  ).map((z) => {
-    const originalIdx = DATA.cols.indexOf(z);
-    const zoneUnits = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1);
-    const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
-    const isAll = zoneUnits.length > 0 && zoneUnits.every(m => selectedUnits.has(Number(m[0])));
-    const bgColor = z.color || "#ffffff";
-    const rawName = z.name.replace('ゾーン', '');
-
-    return `
-      <div id="zone-card-${originalIdx}" class="tile-card ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" 
-           style="background-color: ${bgColor} !important;" onclick="handleZoneAction(event, ${originalIdx})">
         
         <div class="tile-row-1" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2px;">
           <div class="check-wrapper" onclick="handleZoneCheck(event, ${originalIdx})">
