@@ -1,7 +1,8 @@
 /**
- * KIKI PRO V15 - App Logic
+ * app.js - KIKI PRO V16 アプリケーション・ロジック
  */
 
+// --- 1. グローバル変数の宣言 ---
 let authID = localStorage.getItem('kiki_authID') || "";
 let authPass = localStorage.getItem('kiki_authPass') || "";
 let DATA = {};
@@ -12,98 +13,96 @@ let expandedZoneId = null;
 let editingLogRow = null;
 let isSignUpMode = false;
 
+// 共通設定・インデックスマップ
 const TYPE_MAP = { "通常": 3, "セル盤": 4, "計数機": 5, "ユニット": 6, "説明書": 7 };
 const DATE_COL_MAP = { "通常": 8, "セル盤": 9, "計数機": 10, "ユニット": 11, "説明書": 12 };
 
+// --- 2. 初期起動処理 ---
 window.onload = () => {
   const dateInput = document.getElementById('work-date');
   if (dateInput) {
     const d = new Date();
-    dateInput.value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    dateInput.value = `${y}-${m}-${day}`;
     updateDateDisplay();
   }
-  // 認証情報の有無で初期画面を分岐
-  if (authID && authPass) { 
-    silentLogin(); 
-  } else { 
-    showLoginOverlay(); 
-  }
+  silentLogin();
 };
 
-function showLoginOverlay() {
-  const loader = document.getElementById('loading');
-  if (loader) loader.style.display = 'none';
-  const overlay = document.getElementById('login-overlay');
-  if (overlay) overlay.style.display = 'flex';
-}
-
+// --- 3. 認証・データ取得コア ---
 async function silentLogin() {
+  if (!authID || !authPass) {
+    const loader = document.getElementById('loading');
+    if (loader) loader.style.display = 'none';
+    document.getElementById('login-overlay').style.display = 'flex';
+    return;
+  }
   try {
     const res = await callGAS("getInitialData");
     DATA = res;
     const userDisp = document.getElementById('user-display');
     if (userDisp) userDisp.innerText = DATA.user.toUpperCase();
+    
     renderAll();
-    document.body.classList.add('ready');
+    document.body.classList.remove('loading-state');
     document.getElementById('login-overlay').style.display = 'none';
-    document.getElementById('app-content').style.display = 'flex';
   } catch (e) {
     localStorage.removeItem('kiki_authID');
     localStorage.removeItem('kiki_authPass');
-    showLoginOverlay();
+    document.getElementById('login-overlay').style.display = 'flex';
   }
 }
 
 async function handleAuth() {
   const nick = document.getElementById('login-nick').value.trim();
   const pass = document.getElementById('login-pass').value.trim();
-  if (!nick || !pass) return alert("ニックネームとパスワードを入力してください");
-  
+  if (!nick || !pass) return alert("入力してください");
+
   try {
     const method = isSignUpMode ? "signUp" : "getInitialData";
     const res = await callGAS(method, { authID: nick, authPass: pass, nickname: nick });
     
-    authID = nick; 
+    authID = nick;
     authPass = pass;
-    
     if (document.getElementById('auto-login').checked) {
       localStorage.setItem('kiki_authID', authID);
       localStorage.setItem('kiki_authPass', authPass);
     }
-    
     DATA = res;
     const userDisp = document.getElementById('user-display');
     if (userDisp) userDisp.innerText = DATA.user.toUpperCase();
     
     renderAll();
-    document.body.classList.add('ready');
     document.getElementById('login-overlay').style.display = 'none';
-    document.getElementById('app-content').style.display = 'flex';
-  } catch (e) {
-    // エラーメッセージは callGAS 内で表示されます
-  }
+  } catch (e) { }
 }
 
+// --- 4. 描画ロジック ---
 function renderAll() {
   if (!DATA || !DATA.cols) return;
-  
+
+  // タブ描画
   const types = ["通常", "セル盤", "計数機", "ユニット", "説明書"];
   const tabContainer = document.getElementById('type-tabs');
   if (tabContainer) {
     tabContainer.innerHTML = types.map(t => {
       const lastDate = getFinalDateByType(t);
       return `<button class="type-btn ${t === activeType ? 'active' : ''}" onclick="changeType('${t}')">
-                ${t}<span class="type-last-badge">${lastDate}</span>
+                <span class="type-name-label">${t}</span>
+                <span class="type-last-badge">${lastDate}</span>
               </button>`;
     }).join('');
   }
-
+  
   updateToggleAllBtnState();
+  
   const viewWork = document.getElementById('view-work');
   if (viewWork && viewWork.style.display !== 'none') {
     displayMode === 'list' ? renderList() : renderTile();
-  } else { 
-    renderLogs(); 
+  } else {
+    renderLogs();
   }
   updateCount();
 }
@@ -113,16 +112,16 @@ function renderList() {
   if (!container) return;
   container.className = "zone-container-list"; 
   const tIdx = TYPE_MAP[activeType];
+  const finalIdx = getFinalWorkZoneIndex();
   
-  const filteredZones = DATA.cols.filter(z => 
+  container.innerHTML = DATA.cols.filter(z => 
     DATA.master.some(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1)
-  );
-
-  container.innerHTML = filteredZones.map((z) => {
+  ).map((z) => {
     const originalIdx = DATA.cols.indexOf(z);
     const zoneUnits = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1);
     const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
     const isAll = zoneUnits.length > 0 && zoneUnits.every(m => selectedUnits.has(Number(m[0])));
+    const isFinalZone = (originalIdx === finalIdx);
 
     return `
       <div id="zone-card-${originalIdx}" class="zone-row ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" 
@@ -130,7 +129,7 @@ function renderList() {
         <div class="zone-row-inner">
           <div class="zone-info-left">
             <div class="check-wrapper" onclick="handleZoneCheck(event, ${originalIdx})">
-              <input type="checkbox" ${isAll ? 'checked' : ''}>
+              <input type="checkbox" ${isAll ? 'checked' : ''} style="transform: scale(1.5);">
             </div>
             <div class="zone-name-block">
               <div class="zone-name-sub">${z.name}</div>
@@ -138,11 +137,17 @@ function renderList() {
             </div>
           </div>
           <div class="zone-info-right">
+            <div class="zone-date-badge ${isFinalZone ? 'is-final' : ''}">${isFinalZone ? '🚩' : ''}${formatLastDate(z)}</div>
             <div class="zone-count-main f-oswald">${selCount}<span class="zone-count-total">/ ${zoneUnits.length}</span></div>
           </div>
         </div>
         <div class="status-bar-bg">${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}</div>
-        ${generateExpandBoxHTML(z, zoneUnits, originalIdx)}
+        <div class="expand-box" style="display: ${expandedZoneId === originalIdx ? 'block' : 'none'};" onclick="event.stopPropagation()">
+          <div class="unit-grid">
+            ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${Number(m[0])})">${m[0]}</div>`).join('')}
+          </div>
+          <button class="btn-close-expand" onclick="closeExpand(event)">入力を完了する</button>
+        </div>
       </div>`;
   }).join('');
 }
@@ -154,11 +159,9 @@ function renderTile() {
   const tIdx = TYPE_MAP[activeType];
   const finalIdx = getFinalWorkZoneIndex();
 
-  const filteredZones = DATA.cols.filter(z => 
+  container.innerHTML = DATA.cols.filter(z => 
     DATA.master.some(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1)
-  );
-
-  container.innerHTML = filteredZones.map((z) => {
+  ).map((z) => {
     const originalIdx = DATA.cols.indexOf(z);
     const zoneUnits = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1);
     const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
@@ -173,47 +176,51 @@ function renderTile() {
           <div class="check-wrapper" onclick="handleZoneCheck(event, ${originalIdx})">
             <input type="checkbox" ${isAll ? 'checked' : ''} style="pointer-events:none;">
           </div>
-          <div class="tile-date-box ${isFinalZone ? 'is-final' : ''}">${isFinalZone ? '🚩' : ''}${formatLastDate(z)}</div>
+          <div class="tile-date-box ${isFinalZone ? 'is-final' : ''}">${isFinalZone ? '🚩' : ''}${formatLastDate(z, true)}</div>
         </div>
-        <div class="tile-row-2">${getFitSpan(rawName, 9, 85)}</div>
-        <div class="tile-row-3 f-oswald">
-          <span class="tile-no-label">No.</span>
-          <span class="tile-main-number">${z.s}-${z.e}</span>
-        </div>
+        <div class="tile-row-2">${getFitSpan(rawName, 10, 80)}</div>
+        <div class="tile-row-3 f-oswald">${getFitSpan(`No.${z.s}-${z.e}`, 14, 75)}</div>
         <div class="tile-row-4 f-oswald"><span>${selCount}</span><small>/${zoneUnits.length}</small></div>
         <div class="tile-row-5 status-bar-bg">${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}</div>
-        ${generateExpandBoxHTML(z, zoneUnits, originalIdx)}
+        <div class="expand-box" onclick="event.stopPropagation()">
+          <div class="unit-grid">
+            ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${Number(m[0])})">${m[0]}</div>`).join('')}
+          </div>
+          <button class="btn-close-expand" onclick="closeExpand(event)">入力を完了する</button>
+        </div>
       </div>`;
   }).join('');
 }
 
-function generateExpandBoxHTML(z, zoneUnits, originalIdx) {
-  return `
-    <div class="expand-box" style="display: ${expandedZoneId === originalIdx ? 'flex' : 'none'};" onclick="event.stopPropagation()">
-      <div class="expand-header">
-        <div class="expand-title-main">${z.name}</div>
-        <div class="expand-title-sub f-oswald">No.${z.s} - ${z.e}</div>
-      </div>
-      <div class="unit-grid">
-        ${zoneUnits.map(m => `
-          <div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" 
-               onclick="toggleUnit(${Number(m[0])})">${m[0]}</div>
-        `).join('')}
-      </div>
-      <button class="btn-close-expand" onclick="closeExpand(event)">入力を完了する</button>
-    </div>
-  `;
-}
-
 function getFitSpan(text, baseSize, limitWidth) {
   let estimatedWidth = 0;
-  for (let char of String(text)) { estimatedWidth += char.match(/[ -~]/) ? baseSize * 0.52 : baseSize; }
+  for (let char of String(text)) { estimatedWidth += char.match(/[ -~]/) ? baseSize * 0.6 : baseSize; }
   const scale = estimatedWidth > limitWidth ? limitWidth / estimatedWidth : 1;
-  return `<span class="tile-fit-inner" style="transform:scaleX(${scale});">${text}</span>`;
+  return `<span style="font-size:${baseSize}px; transform:scaleX(${scale}); display:inline-block; transform-origin:left; white-space:nowrap;">${text}</span>`;
+}
+
+// --- 5. ユーティリティ & アクション ---
+function getFinalDateByType(type) {
+  const tCol = DATE_COL_MAP[type];
+  let last = null;
+  if (!DATA.master) return "未";
+  DATA.master.forEach(m => { if (m[tCol]) { const d = new Date(m[tCol]); if (!last || d > last) last = d; } });
+  return last ? `${last.getMonth() + 1}/${last.getDate()}` : "未";
+}
+
+function getFinalWorkZoneIndex() {
+  const tCol = DATE_COL_MAP[activeType];
+  let maxDate = null;
+  if (!DATA.master || !DATA.cols) return -1;
+  DATA.master.forEach(m => { if (m[tCol]) { const d = new Date(m[tCol]); if (!maxDate || d > maxDate) maxDate = d; } });
+  if (!maxDate) return -1;
+  let lastId = -1;
+  DATA.master.forEach(m => { if (m[tCol] && new Date(m[tCol]).getTime() === maxDate.getTime()) lastId = Number(m[0]); });
+  return DATA.cols.findIndex(z => lastId >= Math.min(z.s, z.e) && lastId <= Math.max(z.s, z.e));
 }
 
 function handleZoneAction(event, index) {
-  if (event.target.type === 'checkbox' || event.target.closest('.check-wrapper') || event.target.closest('.unit-chip') || event.target.closest('.btn-close-expand')) return;
+  if (event.target.type === 'checkbox' || event.target.closest('.check-wrapper') || event.target.closest('.expand-box')) return;
   event.stopPropagation();
   expandedZoneId = (expandedZoneId === index) ? null : index;
   renderAll();
@@ -232,17 +239,16 @@ function handleZoneCheck(e, idx) {
 function toggleUnit(id) {
   selectedUnits.has(id) ? selectedUnits.delete(id) : selectedUnits.add(id);
   updateCount();
+  // 全体再描画はせず、UIを直接更新すると軽いが、整合性のためにrenderを推奨
   renderAll(); 
 }
 
 function updateCount() {
   const count = selectedUnits.size;
-  const totalEl = document.getElementById('u-total');
-  if (totalEl) totalEl.innerText = count;
-  
+  const countEl = document.getElementById('u-total');
+  if (countEl) countEl.innerText = count;
   const sendBtn = document.getElementById('send-btn');
   if (sendBtn) sendBtn.disabled = (count === 0);
-  
   const cancelBtn = document.getElementById('cancel-btn');
   if (cancelBtn) cancelBtn.style.display = (count > 0 || editingLogRow) ? "block" : "none";
 }
@@ -254,65 +260,15 @@ function changeType(t) {
   renderAll(); 
 }
 
-function closeExpand(e) { 
-  if(e) e.stopPropagation(); 
-  expandedZoneId = null; 
-  renderAll(); 
-}
+function closeExpand(e) { e.stopPropagation(); expandedZoneId = null; renderAll(); }
 
 function updateDateDisplay() {
   const val = document.getElementById('work-date').value;
   if (!val) return;
-  const d = new Date(val); 
+  const d = new Date(val);
   const days = ["日","月","火","水","木","金","土"];
   const label = document.getElementById('date-label');
-  if (label) label.innerText = `${d.getMonth() + 1}/${d.getDate()} (${days[d.getDay()]})`;
-}
-
-function renderLogs() {
-  const filtered = DATA.logs ? DATA.logs.filter(l => l.type === activeType) : [];
-  const logList = document.getElementById('log-list');
-  if(!logList) return;
-  
-  logList.innerHTML = filtered.length ? filtered.map(l => {
-    const ids = l.ids ? String(l.ids).split(',').map(Number).sort((a,b)=>a-b) : [];
-    const rangeStr = ids.length > 0 ? `${ids[0]}～${ids[ids.length-1]}` : '---';
-    return `
-    <div class="log-card">
-      <div class="log-date-badge">${l.type} - ${l.date}</div>
-      <div class="log-card-body">
-        <div>
-          <div class="log-zone-name">${l.zone}</div>
-          <div class="log-no-range f-oswald">No.${rangeStr}</div>
-        </div>
-        <div class="log-unit-large">${l.count}<small>台</small></div>
-      </div>
-      <div class="log-action-row">
-        <button class="btn-log-edit" onclick="startEdit(${l.row}, '${l.ids}', '${l.date}', '${l.type}')">編集</button>
-        <button class="btn-log-del" onclick="handleDelete(${l.row})">削除</button>
-      </div>
-    </div>`;
-  }).join('') : `<div style="padding:40px; text-align:center; color:var(--text-dim);">履歴がありません</div>`;
-}
-
-function getFinalDateByType(type) {
-  const tCol = DATE_COL_MAP[type];
-  let last = null;
-  if (!DATA.master) return "未";
-  DATA.master.forEach(m => { if (m[tCol]) { const d = new Date(m[tCol]); if (!last || d > last) last = d; } });
-  if (!last) return "未";
-  return `${last.getMonth() + 1}/${last.getDate()}`;
-}
-
-function getFinalWorkZoneIndex() {
-  const tCol = DATE_COL_MAP[activeType];
-  let maxDate = null;
-  if (!DATA.master || !DATA.cols) return -1;
-  DATA.master.forEach(m => { if (m[tCol]) { const d = new Date(m[tCol]); if (!maxDate || d > maxDate) maxDate = d; } });
-  if (!maxDate) return -1;
-  let lastId = -1;
-  DATA.master.forEach(m => { if (m[tCol] && new Date(m[tCol]).getTime() === maxDate.getTime()) lastId = Number(m[0]); });
-  return DATA.cols.findIndex(z => lastId >= Math.min(z.s, z.e) && lastId <= Math.max(z.s, z.e));
+  if(label) label.innerText = `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
 }
 
 function switchView(v) {
@@ -331,8 +287,7 @@ function formatLastDate(z) {
   const units = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e));
   let last = null;
   units.forEach(m => { if (m[tCol]) { const d = new Date(m[tCol]); if (!last || d > last) last = d; } });
-  if (!last) return "未";
-  return `${last.getMonth() + 1}/${last.getDate()}`;
+  return last ? `${last.getMonth() + 1}/${last.getDate()}` : "未";
 }
 
 function setMode(m) { 
@@ -369,27 +324,49 @@ async function upload() {
       ids: Array.from(selectedUnits), 
       editRow: editingLogRow 
     });
-    await silentLogin(); 
+    await silentLogin();
     cancelEdit(); 
     switchView('log');
   } catch (e) { }
 }
 
-function cancelEdit() { 
-  editingLogRow = null; 
-  selectedUnits.clear(); 
-  expandedZoneId = null; 
-  renderAll(); 
+function renderLogs() {
+  const filtered = DATA.logs ? DATA.logs.filter(l => l.type === activeType) : [];
+  const logList = document.getElementById('log-list');
+  if(!logList) return;
+  logList.innerHTML = filtered.length ? filtered.map(l => {
+    const ids = l.ids ? String(l.ids).split(',').map(Number).sort((a,b)=>a-b) : [];
+    const rangeStr = ids.length > 0 ? `${ids[0]}～${ids[ids.length-1]}` : '---';
+    return `
+    <div class="log-card">
+      <div class="log-date-badge">${l.type} - ${l.date}</div>
+      <div class="log-card-body" style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <div class="log-zone-name" style="font-weight:900; font-size:18px;">${l.zone}</div>
+          <div class="log-no-range f-oswald">No.${rangeStr}</div>
+          <div style="font-size:10px; opacity:0.6;">Worker: ${l.user}</div>
+        </div>
+        <div class="log-unit-large">${l.count}<small>台</small></div>
+      </div>
+      <div class="log-action-row" style="display:flex; gap:10px; margin-top:10px;">
+        <button class="btn-log-edit" onclick="startEdit(${l.row}, '${l.ids}', '${l.date}', '${l.type}')" style="flex:1;">編集</button>
+        <button class="btn-log-del" onclick="handleDelete(${l.row})" style="flex:1;">削除</button>
+      </div>
+    </div>`;
+  }).join('') : `<div style="padding:40px; text-align:center; opacity:0.5;">履歴がありません</div>`;
 }
+
+function cancelEdit() { editingLogRow = null; selectedUnits.clear(); expandedZoneId = null; renderAll(); }
 
 function startEdit(row, ids, date, type) {
   editingLogRow = row; 
-  selectedUnits = new Set(String(ids).split(',').filter(x => x.trim() !== "").map(Number));
-  activeType = type; 
+  const idStr = ids ? String(ids) : "";
+  selectedUnits = new Set(idStr.split(',').filter(x => x.trim() !== "").map(Number));
+  activeType = type;
   if (date) document.getElementById('work-date').value = date.replace(/\//g, '-');
   updateDateDisplay(); 
-  displayMode = 'tile'; 
-  switchView('work'); 
+  displayMode = 'tile';
+  switchView('work');
   renderAll();
 }
 
@@ -398,34 +375,35 @@ async function handleDelete(row) {
     try { 
       await callGAS("deleteLog", { row }); 
       await silentLogin(); 
-    } catch (e) {} 
+    } catch (e) {}
   } 
 }
 
-function toggleAuthMode() { 
-  isSignUpMode = !isSignUpMode; 
-  document.getElementById('auth-title').innerText = isSignUpMode ? "KIKI SIGN UP" : "KIKI LOGIN"; 
-  document.getElementById('auth-submit').innerText = isSignUpMode ? "REGISTER & LOGIN" : "LOGIN"; 
+function toggleAuthMode() {
+  isSignUpMode = !isSignUpMode;
+  document.getElementById('auth-title').innerText = isSignUpMode ? "KIKI SIGN UP" : "KIKI LOGIN";
+  document.getElementById('auth-submit').innerText = isSignUpMode ? "REGISTER & LOGIN" : "LOGIN";
+  document.getElementById('auth-toggle-btn').innerText = isSignUpMode ? "ログインはこちら" : "新規登録はこちら";
 }
 
 function showQR() { 
   const target = document.getElementById("qr-target"); 
+  if (!target) return;
   target.innerHTML = ""; 
   new QRCode(target, { text: window.location.href, width: 200, height: 200 }); 
   document.getElementById("qr-overlay").style.display = "flex"; 
 }
-
 function hideQR() { document.getElementById("qr-overlay").style.display = "none"; }
 function showManual() { document.getElementById('manual-overlay').style.display = 'flex'; }
 function hideManual() { document.getElementById('manual-overlay').style.display = 'none'; }
 
 function scrollToLastWork() {
-  const finalIdx = getFinalWorkZoneIndex(); 
+  const finalIdx = getFinalWorkZoneIndex();
   if (finalIdx === -1) return;
   const targetEl = document.getElementById(`zone-card-${finalIdx}`);
   if (targetEl) {
     targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    targetEl.classList.add('jump-highlight'); 
-    setTimeout(() => { targetEl.classList.remove('jump-highlight'); }, 1600);
+    targetEl.classList.add('jump-highlight');
+    setTimeout(() => { targetEl.classList.remove('jump-highlight'); }, 2000);
   }
 }
