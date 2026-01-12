@@ -258,6 +258,21 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background:
 .tile-row-3 { font-size: 10px; font-weight: 700; margin-top: 2px; opacity: 0.7; }
 .tile-row-4 { font-size: 24px; font-weight: 900; text-align: right; margin-top: auto; line-height: 1; padding-bottom: 2px; }
 
+/* タイル表示内の文字圧縮用 */
+.fit-container {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.fit-text {
+  display: inline-block;
+  transform-origin: center;
+  white-space: nowrap;
+}
+
 /* --- 展開表示 --- */
 .expanded {
   position: fixed !important; top: 50% !important; left: 50% !important;
