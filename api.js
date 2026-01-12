@@ -12,20 +12,20 @@ async function callGAS(methodName, params = {}) {
   const loader = document.getElementById('loading');
   if (loader) loader.style.display = 'flex';
 
-  // ログイン済み情報を取得（app.jsの変数、または引数から）
+  // ペイロード構築
   const payload = {
     method: methodName,
     apiKey: SECRET_API_KEY,
     data: {
-      authID: params.authID || (typeof authID !== 'undefined' ? authID : ""),
-      authPass: params.authPass || (typeof authPass !== 'undefined' ? authPass : ""),
+      authID: params.authID || (typeof authID !== 'undefined' ? authID : localStorage.getItem('kiki_authID') || ""),
+      authPass: params.authPass || (typeof authPass !== 'undefined' ? authPass : localStorage.getItem('kiki_authPass') || ""),
       ...params
     }
   };
 
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 25000); // タイムアウトを少し延長
+    const timeoutId = setTimeout(() => controller.abort(), 25000); // 25秒でタイムアウト
 
     const response = await fetch(GAS_URL, {
       method: "POST",
@@ -40,16 +40,18 @@ async function callGAS(methodName, params = {}) {
     clearTimeout(timeoutId);
 
     if (!response.ok) {
-      throw new Error("サーバー接続エラー (" + response.status + ")");
+      throw new Error(`サーバー接続エラー (${response.status})`);
     }
 
     const result = await response.json();
 
     if (result.status === "error") {
-      // 認証エラーなどの場合、ローカルストレージを消去してリロードする選択肢も検討
-      if (result.message.includes("認証")) {
-          localStorage.removeItem('kiki_authID');
-          localStorage.removeItem('kiki_authPass');
+      // 認証エラー時は情報をクリアしてログインへ
+      if (result.message.includes("認証") || result.message.includes("ログイン")) {
+        localStorage.removeItem('kiki_authID');
+        localStorage.removeItem('kiki_authPass');
+        alert("セッションが切れたか、認証に失敗しました。再度ログインしてください。");
+        location.reload();
       }
       throw new Error(result.message);
     }
@@ -61,7 +63,7 @@ async function callGAS(methodName, params = {}) {
     
     let msg = error.message;
     if (error.name === 'AbortError') msg = "通信タイムアウト：電波の良い場所で再試行してください。";
-    if (msg === "Failed to fetch") msg = "ネットワークに接続できません。";
+    if (msg === "Failed to fetch") msg = "ネットワークに接続できません。オフラインの可能性があります。";
     
     alert("【通信エラー】\n" + msg);
     throw error;
