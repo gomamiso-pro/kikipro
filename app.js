@@ -113,9 +113,6 @@ function renderAll() {
   updateCount();
 }
 
-/**
- * リスト描画（もし未定義なら簡易版を定義）
- */
 function renderList() {
   const container = document.getElementById('zone-display');
   container.className = "zone-container-list";
