@@ -1,5 +1,5 @@
 /**
- * KIKI PRO V15 - App Logic (Conflict Fixed)
+ * KIKI PRO V15 - App Logic (Tile Expand Supported)
  */
 
 let authID = localStorage.getItem('kiki_authID') || "";
@@ -94,15 +94,16 @@ function renderList() {
   container.className = "zone-container-list"; 
   const tIdx = TYPE_MAP[activeType];
   const finalIdx = getFinalWorkZoneIndex();
-  const filteredZones = DATA.cols.filter(z => 
+  
+  container.innerHTML = DATA.cols.filter(z => 
     DATA.master.some(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1)
-  );
-  container.innerHTML = filteredZones.map((z) => {
+  ).map((z) => {
     const originalIdx = DATA.cols.indexOf(z);
     const zoneUnits = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1);
     const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
     const isAll = zoneUnits.length > 0 && zoneUnits.every(m => selectedUnits.has(Number(m[0])));
     const isFinalZone = (originalIdx === finalIdx);
+
     return `
       <div id="zone-card-${originalIdx}" class="zone-row ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" 
            style="background-color: ${z.color || '#ffffff'} !important;" onclick="handleZoneAction(event, ${originalIdx})">
@@ -115,11 +116,14 @@ function renderList() {
             </div>
           </div>
           <div style="text-align: right; min-width: 110px;">
-            <div class="f-oswald" style="font-size: 14px; font-weight: 800; color: ${isFinalZone ? '#d32f2f' : '#555'};">${isFinalZone ? '🚩 ' : ''}${formatLastDate(z)}</div>
             <div class="f-oswald" style="font-size: 28px; font-weight: 900; color: #000;">${selCount}<span style="font-size: 14px; opacity: 0.6;">/ ${zoneUnits.length}</span></div>
           </div>
         </div>
         <div class="status-bar-bg">${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}</div>
+        <div class="expand-box" style="display: ${expandedZoneId === originalIdx ? 'block' : 'none'};" onclick="event.stopPropagation()">
+          <div class="unit-grid">${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${Number(m[0])})">${m[0]}</div>`).join('')}</div>
+          <button class="btn-close-expand" onclick="closeExpand(event)">完了</button>
+        </div>
       </div>`;
   }).join('');
 }
@@ -130,6 +134,7 @@ function renderTile() {
   container.className = "zone-container-tile";
   const tIdx = TYPE_MAP[activeType];
   const finalIdx = getFinalWorkZoneIndex();
+
   container.innerHTML = DATA.cols.filter(z => 
     DATA.master.some(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1)
   ).map((z) => {
@@ -145,13 +150,14 @@ function renderTile() {
            style="background-color: ${z.color || '#ffffff'} !important;" onclick="handleZoneAction(event, ${originalIdx})">
         <div class="tile-row-1">
           <div class="check-wrapper" onclick="handleZoneCheck(event, ${originalIdx})"><input type="checkbox" ${isAll ? 'checked' : ''} style="pointer-events:none; transform: scale(0.75);"></div>
-          <div class="tile-date-box ${isFinalZone ? 'is-final' : ''}">${isFinalZone ? '🚩' : ''}${formatLastDate(z, true)}</div>
+          <div class="tile-date-box ${isFinalZone ? 'is-final' : ''}">${isFinalZone ? '🚩' : ''}${formatLastDate(z)}</div>
         </div>
         <div class="tile-row-2">${getFitSpan(rawName, 9, 85)}</div>
-        <div class="tile-row-3 f-oswald">${getFitSpan(`No.${z.s}-${z.e}`, 25, 100)}</div>
+        <div class="tile-row-3 f-oswald">${getFitSpan(`No.${z.s}-${z.e}`, 22, 88)}</div>
         <div class="tile-row-4 f-oswald"><span>${selCount}</span><small>/${zoneUnits.length}</small></div>
         <div class="tile-row-5 status-bar-bg">${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}</div>
-        <div class="expand-box" onclick="event.stopPropagation()">
+        
+        <div class="expand-box" style="display: ${expandedZoneId === originalIdx ? 'block' : 'none'};" onclick="event.stopPropagation()">
           <div class="unit-grid">${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${Number(m[0])})">${m[0]}</div>`).join('')}</div>
           <button class="btn-close-expand" onclick="closeExpand(event)">完了</button>
         </div>
@@ -159,12 +165,51 @@ function renderTile() {
   }).join('');
 }
 
-// 修正：個別のタグ内 font-size 指定をやめ、親CSSに任せる
 function getFitSpan(text, baseSize, limitWidth) {
   let estimatedWidth = 0;
   for (let char of String(text)) { estimatedWidth += char.match(/[ -~]/) ? baseSize * 0.52 : baseSize; }
   const scale = estimatedWidth > limitWidth ? limitWidth / estimatedWidth : 1;
   return `<span class="tile-fit-inner" style="transform:scaleX(${scale});">${text}</span>`;
+}
+
+function handleZoneAction(event, index) {
+  // チェックボックスや展開中の操作なら反応しない
+  if (event.target.type === 'checkbox' || event.target.closest('.check-wrapper') || event.target.closest('.unit-chip') || event.target.closest('.btn-close-expand')) return;
+  event.stopPropagation();
+  expandedZoneId = (expandedZoneId === index) ? null : index;
+  renderAll();
+}
+
+function handleZoneCheck(e, idx) {
+  e.stopPropagation();
+  const z = DATA.cols[idx];
+  const tIdx = TYPE_MAP[activeType];
+  const ids = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1).map(m => Number(m[0]));
+  const isAll = ids.every(id => selectedUnits.has(id));
+  ids.forEach(id => isAll ? selectedUnits.delete(id) : selectedUnits.add(id));
+  renderAll();
+}
+
+function toggleUnit(id) {
+  selectedUnits.has(id) ? selectedUnits.delete(id) : selectedUnits.add(id);
+  updateCount();
+  renderAll(); // リアルタイムに色を変える
+}
+
+function updateCount() {
+  const count = selectedUnits.size;
+  document.getElementById('u-total').innerText = count;
+  document.getElementById('send-btn').disabled = (count === 0);
+  document.getElementById('cancel-btn').style.display = (count > 0 || editingLogRow) ? "block" : "none";
+}
+
+function changeType(t) { activeType = t; expandedZoneId = null; if (!editingLogRow) selectedUnits.clear(); renderAll(); }
+function closeExpand(e) { if(e) e.stopPropagation(); expandedZoneId = null; renderAll(); }
+function updateDateDisplay() {
+  const val = document.getElementById('work-date').value;
+  if (!val) return;
+  const d = new Date(val); const days = ["日","月","火","水","木","金","土"];
+  document.getElementById('date-label').innerText = `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
 }
 
 function renderLogs() {
@@ -181,13 +226,12 @@ function renderLogs() {
         <div>
           <div style="font-size:18px; font-weight:900; color:var(--accent);">${l.zone}</div>
           <div class="f-oswald">No.${rangeStr}</div>
-          <div style="font-size:11px; opacity:0.6;">登録者: ${l.user}</div>
         </div>
         <div class="log-unit-large">${l.count}<small style="font-size:12px;">台</small></div>
       </div>
       <div class="log-action-row">
-        <button class="btn-log-edit" onclick="startEdit(${l.row}, '${l.ids}', '${l.date}', '${l.type}')" style="flex:1;">編集</button>
-        <button class="btn-log-del" onclick="handleDelete(${l.row})" style="flex:1;">削除</button>
+        <button class="btn-log-edit" onclick="startEdit(${l.row}, '${l.ids}', '${l.date}', '${l.type}')">編集</button>
+        <button class="btn-log-del" onclick="handleDelete(${l.row})">削除</button>
       </div>
     </div>`;
   }).join('');
@@ -213,44 +257,6 @@ function getFinalWorkZoneIndex() {
   return DATA.cols.findIndex(z => lastId >= Math.min(z.s, z.e) && lastId <= Math.max(z.s, z.e));
 }
 
-function handleZoneAction(event, index) {
-  if (event.target.type === 'checkbox' || event.target.closest('.check-wrapper') || event.target.closest('.expand-box')) return;
-  event.stopPropagation();
-  expandedZoneId = (expandedZoneId === index) ? null : index;
-  renderAll();
-}
-
-function handleZoneCheck(e, idx) {
-  e.stopPropagation();
-  const z = DATA.cols[idx];
-  const tIdx = TYPE_MAP[activeType];
-  const ids = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1).map(m => Number(m[0]));
-  const isAll = ids.every(id => selectedUnits.has(id));
-  ids.forEach(id => isAll ? selectedUnits.delete(id) : selectedUnits.add(id));
-  renderAll();
-}
-
-function toggleUnit(id) {
-  selectedUnits.has(id) ? selectedUnits.delete(id) : selectedUnits.add(id);
-  updateCount(); renderAll();
-}
-
-function updateCount() {
-  const count = selectedUnits.size;
-  document.getElementById('u-total').innerText = count;
-  document.getElementById('send-btn').disabled = (count === 0);
-  document.getElementById('cancel-btn').style.display = (count > 0 || editingLogRow) ? "block" : "none";
-}
-
-function changeType(t) { activeType = t; expandedZoneId = null; if (!editingLogRow) selectedUnits.clear(); renderAll(); }
-function closeExpand(e) { e.stopPropagation(); expandedZoneId = null; renderAll(); }
-function updateDateDisplay() {
-  const val = document.getElementById('work-date').value;
-  if (!val) return;
-  const d = new Date(val); const days = ["日","月","火","水","木","金","土"];
-  document.getElementById('date-label').innerText = `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
-}
-
 function switchView(v) {
   const isWork = (v === 'work');
   document.getElementById('view-work').style.display = isWork ? 'block' : 'none';
@@ -262,7 +268,7 @@ function switchView(v) {
   renderAll();
 }
 
-function formatLastDate(z, isShort = false) {
+function formatLastDate(z) {
   const tCol = DATE_COL_MAP[activeType];
   const units = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e));
   let last = null;
