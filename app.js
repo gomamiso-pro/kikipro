@@ -402,3 +402,35 @@ function showQR() {
 function hideQR() { document.getElementById("qr-overlay").style.display = "none"; }
 function showManual() { document.getElementById('manual-overlay').style.display = 'flex'; }
 function hideManual() { document.getElementById('manual-overlay').style.display = 'none'; }
+/**
+ * HTMLのボタン「GO TO 最終🚩」から呼び出される関数
+ */
+function scrollToLastWork() {
+  // 最新の作業があるゾーンのインデックスを取得
+  const finalIdx = getFinalWorkZoneIndex();
+  
+  if (finalIdx === -1) {
+    alert("最新の作業データが見つかりませんでした。");
+    return;
+  }
+
+  // HTMLのID（zone-card-X）を指定して要素を取得
+  const targetId = `zone-card-${finalIdx}`;
+  const targetEl = document.getElementById(targetId);
+
+  if (targetEl) {
+    // 画面中央へスムーズにスクロール
+    targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    
+    // 視認性のための強調演出（クラス追加）
+    targetEl.classList.add('jump-highlight');
+    setTimeout(() => {
+      targetEl.classList.remove('jump-highlight');
+    }, 2500);
+  } else {
+    // 現在の表示タイプ（通常/セル等）の中にそのゾーンがない場合
+    alert("現在のタブ（" + activeType + "）には最終作業ゾーンが表示されていません。");
+  }
+}
+
+// ※ logout() は api.js に記述済みなので app.js には不要です（重複防止）
