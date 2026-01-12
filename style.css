@@ -204,7 +204,7 @@ main {
 
 .tile-card {
   padding: 4px 3px !important;
-  min-height: 82px !important;
+  min-height: 98px !important;
   display: flex;
   flex-direction: column;
   justify-content: flex-start !important;
@@ -237,12 +237,12 @@ main {
 }
 
 .tile-row-3 { 
-  font-size: 13px !important; 
+  font-size: 16px !important; 
   font-weight: 800 !important; 
   color: #333 !important;
-  height: 21px !important;
-  line-height: 12px !important;
-  margin-top: 1px !important;
+  height: 20px !important;
+  line-height: 20px !important;
+  margin-top: 2px !important;
   text-align: left;
   white-space: nowrap;
 }
