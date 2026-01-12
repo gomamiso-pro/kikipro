@@ -272,7 +272,18 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background:
   transform-origin: center;
   white-space: nowrap;
 }
-
+.tile-fit-text {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-align: center;
+}
+.tile-fit-inner {
+  display: inline-block;
+  white-space: nowrap;
+  transform-origin: center;
+}
 /* --- 展開表示 --- */
 .expanded {
   position: fixed !important; top: 50% !important; left: 50% !important;
