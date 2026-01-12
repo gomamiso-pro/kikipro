@@ -212,10 +212,11 @@ function closeExpand(e) { if(e) e.stopPropagation(); expandedZoneId = null; rend
 function updateDateDisplay() {
   const val = document.getElementById('work-date').value;
   if (!val) return;
-  const d = new Date(val); const days = ["日","月","火","水","木","金","土"];
-  document.getElementById('date-label').innerText = `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
+  const d = new Date(val); 
+  const days = ["日","月","火","水","木","金","土"];
+  // 表示形式を「1/12 (月)」のように調整
+  document.getElementById('date-label').innerText = `${d.getMonth() + 1}/${d.getDate()} (${days[d.getDay()]})`;
 }
-
 function renderLogs() {
   const filtered = DATA.logs ? DATA.logs.filter(l => l.type === activeType) : [];
   const logList = document.getElementById('log-list');
