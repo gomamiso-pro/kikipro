@@ -21,7 +21,7 @@
 
   <div id="loading" class="overlay" style="display: flex;">
     <div class="spinner"></div>
-    <div style="color:var(--accent); font-weight:900; margin-top:15px; letter-spacing: 2px; font-family:'Oswald';">LOADING...</div>
+    <div style="color:var(--accent); font-weight:900; margin-top:15px; letter-spacing: 2px;">LOADING...</div>
   </div>
 
   <div id="manual-overlay" class="overlay" style="display:none; z-index: 250000; padding: 0;">
@@ -42,30 +42,26 @@
     </div>
   </div>
 
-  <div id="login-overlay" class="overlay">
+<div id="login-overlay" class="overlay">
     <div class="auth-box">
       <div id="auth-title">KIKI LOGIN</div>
+      
       <div id="login-fields">
         <input type="text" id="login-nick" placeholder="NICKNAME" class="auth-input">
         <input type="password" id="login-pass" placeholder="PASSWORD" class="auth-input">
       </div>
+
       <div class="auto-login-wrap">
         <input type="checkbox" id="auto-login" checked>
         <label for="auto-login">次回から自動ログイン</label>
       </div>
+
       <button id="auth-submit" onclick="handleAuth()" class="auth-btn">LOGIN</button>
+
       <div class="auth-switch">
         <span id="auth-toggle-msg">アカウントをお持ちでない方</span><br>
         <a href="javascript:void(0)" onclick="toggleAuthMode()" id="auth-toggle-btn">新規登録はこちら</a>
       </div>
-    </div>
-  </div>
-
-  <div id="expanded-overlay" class="overlay" onclick="closeExpand()" style="z-index: 270000;">
-    <div class="expanded-card" onclick="event.stopPropagation()">
-      <div id="expanded-title" class="exp-title">ZONE NAME</div>
-      <div id="expanded-grid" class="unit-grid"></div>
-      <button class="btn-close-exp" onclick="closeExpand()">入力を完了する</button>
     </div>
   </div>
 
@@ -115,19 +111,19 @@
 
     <footer class="footer" id="main-footer">
       <div id="footer-content-wrap">
-        <div class="footer-main-row">
+        <div class="footer-main-row blink-highlight">
           <div class="total-wrap">
             <span id="u-total">0</span><small style="font-size:14px; font-weight:900; color:var(--accent); margin-left:5px;">台</small>
           </div>
           
-          <div class="date-btn-boxed" onclick="document.getElementById('work-date').showPicker()">
+          <div class="date-container-simple" onclick="document.getElementById('work-date').showPicker()">
             <span id="date-label">--/--(--)</span>
             <input type="date" id="work-date" onchange="updateDateDisplay()" style="position:absolute; opacity:0; pointer-events:none; width:1px;">
           </div>
         </div>
         
         <div class="footer-btns">
-          <button class="btn-cancel" id="cancel-btn" onclick="cancelEdit()" style="display:none;">中止</button>
+          <button class="btn-cancel" id="cancel-btn" onclick="cancelEdit()" style="display:none;">選択をキャンセル</button>
           <button class="btn-exec" id="send-btn" onclick="upload()" disabled>登録実行</button>
         </div>
       </div>
