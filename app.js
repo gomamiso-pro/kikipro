@@ -219,7 +219,7 @@ function renderTile() {
         </div>
         
         <div class="tile-row-2" style="text-align: left; padding-left: 3px; font-weight: 800; height: 21px; overflow: visible;">
-          <b>${getFitSpan(rawName, 19, 70)}</b>
+          <b>${getFitSpan(rawName, 16, 70)}</b>
         </div>
         
         <div class="tile-row-3 f-oswald" style="text-align: left; padding-left: 1px; color: #000 !important; font-weight: 700; height: 21px; overflow: visible;">
