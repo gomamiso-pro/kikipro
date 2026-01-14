@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   
-  <title>KIKI PRO V17</title>
+  <title>KIKI PRO V14</title>
   
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700;900&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
@@ -20,10 +20,8 @@
 <body class="loading-state">
 
   <div id="loading" class="overlay" style="display: flex;">
-    <div style="display: flex; flex-direction: column; align-items: center;">
-      <div class="spinner"></div>
-      <div style="color:var(--accent); font-weight:900; margin-top:15px; letter-spacing: 2px; font-family:'Oswald';">LOADING...</div>
-    </div>
+    <div class="spinner"></div>
+    <div style="color:var(--accent); font-weight:900; margin-top:15px; letter-spacing: 2px;">LOADING...</div>
   </div>
 
   <div id="manual-overlay" class="overlay" style="display:none; z-index: 250000; padding: 0;">
@@ -44,18 +42,22 @@
     </div>
   </div>
 
-  <div id="login-overlay" class="overlay" style="display: none;">
+<div id="login-overlay" class="overlay">
     <div class="auth-box">
       <div id="auth-title">KIKI LOGIN</div>
+      
       <div id="login-fields">
         <input type="text" id="login-nick" placeholder="NICKNAME" class="auth-input">
         <input type="password" id="login-pass" placeholder="PASSWORD" class="auth-input">
       </div>
+
       <div class="auto-login-wrap">
         <input type="checkbox" id="auto-login" checked>
         <label for="auto-login">次回から自動ログイン</label>
       </div>
+
       <button id="auth-submit" onclick="handleAuth()" class="auth-btn">LOGIN</button>
+
       <div class="auth-switch">
         <span id="auth-toggle-msg">アカウントをお持ちでない方</span><br>
         <a href="javascript:void(0)" onclick="toggleAuthMode()" id="auth-toggle-btn">新規登録はこちら</a>
@@ -63,7 +65,7 @@
     </div>
   </div>
 
-  <div id="app-content" style="display: none;">
+  <div id="app-content">
     <header class="header">
       <div class="header-logo">KIKI PRO</div>
       <div class="header-right">
@@ -109,7 +111,7 @@
 
     <footer class="footer" id="main-footer">
       <div id="footer-content-wrap">
-        <div class="footer-main-row">
+        <div class="footer-main-row blink-highlight">
           <div class="total-wrap">
             <span id="u-total">0</span><small style="font-size:14px; font-weight:900; color:var(--accent); margin-left:5px;">台</small>
           </div>
