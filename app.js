@@ -17,9 +17,16 @@ let isSignUpMode = false;
 const TYPE_MAP = { "通常": 3, "セル盤": 4, "計数機": 5, "ユニット": 6, "説明書": 7 };
 const DATE_COL_MAP = { "通常": 8, "セル盤": 9, "計数機": 10, "ユニット": 11, "説明書": 12 };
 
-// --- 2. 初期起動処理 ---
-window.onload = () => {
-  silentLogin();
+// 初期状態の徹底：Loading以外はすべて隠す
+  const loader = document.getElementById('loading');
+  const loginOverlay = document.getElementById('login-overlay');
+  const appContent = document.getElementById('app-content');
+  
+  if (loader) loader.style.display = 'flex';
+  if (loginOverlay) loginOverlay.style.display = 'none';
+  if (appContent) appContent.style.display = 'none';
+
+  // 日付の初期セット
   const d = new Date();
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -29,29 +36,48 @@ window.onload = () => {
     dateInput.value = `${y}-${m}-${day}`;
     updateDateDisplay();
   }
+
+  // 自動ログイン判定
+  if (authID && authPass) {
+    // 保存情報がある場合は、そのままサイレントログイン（成功するまでLoadingのまま）
+    await silentLogin();
+  } else {
+    // 保存情報がない場合のみ、Loadingを消してログイン画面を出す
+    if (loader) loader.style.display = 'none';
+    if (loginOverlay) loginOverlay.style.display = 'flex';
+  }
 };
 
 // --- 3. 認証・データ取得コア ---
 async function silentLogin() {
-  if (!authID || !authPass) {
-    const overlay = document.getElementById('login-overlay');
-    if (overlay) overlay.style.display = 'flex';
-    return;
-  }
+  const loader = document.getElementById('loading');
+  const loginOverlay = document.getElementById('login-overlay');
+  const appContent = document.getElementById('app-content');
+
   try {
     const res = await callGAS("getInitialData");
     DATA = res;
+    
     const userDisp = document.getElementById('user-display');
     if (userDisp) userDisp.innerText = DATA.user.toUpperCase();
+    
+    // 描画を完了させる
     renderAll();
+    
+    // 全ての準備が整ってから画面を切り替える
     document.body.classList.add('ready');
-    document.getElementById('login-overlay').style.display = 'none';
-    document.getElementById('app-content').style.display = 'flex';
+    if (loginOverlay) loginOverlay.style.display = 'none';
+    if (appContent) appContent.style.display = 'flex';
+    if (loader) loader.style.display = 'none'; // 最後にLoadingを消す
+
   } catch (e) {
     console.error("Silent Login Failed:", e);
+    // 失敗した場合は情報を消してログイン画面へ戻す
     localStorage.removeItem('kiki_authID');
     localStorage.removeItem('kiki_authPass');
-    document.getElementById('login-overlay').style.display = 'flex';
+    if (loader) loader.style.display = 'none';
+    if (loginOverlay) loginOverlay.style.display = 'flex';
+    if (appContent) appContent.style.display = 'none';
   }
 }
 
