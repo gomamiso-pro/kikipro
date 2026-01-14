@@ -51,34 +51,49 @@ window.onload = async () => {
 };
 
 // --- 3. 認証・データ取得コア ---
+// --- 3. 認証・データ取得コア ---
 async function silentLogin() {
   const loader = document.getElementById('loading');
   const loginOverlay = document.getElementById('login-overlay');
   const appContent = document.getElementById('app-content');
 
   try {
+    // 1. 通信開始
+    console.log("Starting silent login...");
     const res = await callGAS("getInitialData");
-    if (!res || res.error) throw new Error("Invalid Response");
+    
+    // 2. 応答チェック
+    if (!res || res.error) {
+      console.error("Data error:", res);
+      throw new Error("Invalid Response");
+    }
 
+    // 3. データ反映
     DATA = res;
     const userDisp = document.getElementById('user-display');
     if (userDisp) userDisp.innerText = DATA.user.toUpperCase();
     
-    // 描画を先に完了させる
     renderAll();
     
-    // 全ての準備が整ってから画面を切り替える
+    // 4. 正常終了：画面表示切り替え
     document.body.classList.add('ready');
     if (appContent) appContent.style.display = 'flex';
     if (loginOverlay) loginOverlay.style.display = 'none';
     if (loader) loader.style.display = 'none';
 
   } catch (e) {
+    // 5. エラー発生時：必ずぐるぐるを消してログイン画面に戻す
     console.error("Silent Login Failed:", e);
-    localStorage.removeItem('kiki_authID');
-    localStorage.removeItem('kiki_authPass');
+    
+    // ログイン情報を一度クリア（これを行わないと無限リロードになるため）
+    // localStorage.removeItem('kiki_authID'); // 必要に応じてコメント解除
+    // localStorage.removeItem('kiki_authPass');
+
     if (loader) loader.style.display = 'none';
     if (loginOverlay) loginOverlay.style.display = 'flex';
+    if (appContent) appContent.style.display = 'none';
+    
+    alert("通信エラーが発生しました。ログインをやり直してください。");
   }
 }
 
