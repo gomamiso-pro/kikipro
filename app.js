@@ -35,6 +35,9 @@ async function silentLogin() {
   const loader = document.getElementById('loading');
   const overlay = document.getElementById('login-overlay');
 
+  // チラつき防止：判定が終わるまで一旦隠す
+  if (overlay) overlay.style.display = 'none';
+
   if (!authID || !authPass) {
     if (loader) loader.style.display = 'none';
     if (overlay) overlay.style.display = 'flex';
@@ -177,7 +180,6 @@ function renderList() {
   const tIdx = TYPE_MAP[activeType];
   const finalIdx = getFinalWorkZoneIndex();
   
-  // 指定されたタイプで有効なゾーンのみ抽出
   const filteredZones = DATA.cols.filter(z => 
     DATA.master.some(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1)
   );
@@ -187,7 +189,7 @@ function renderList() {
     const zoneUnits = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1);
     const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
     const isAll = zoneUnits.length > 0 && zoneUnits.every(m => selectedUnits.has(Number(m[0])));
-    const bgColor = z.bg || z.color || "#ffffff"; // 背景色を確実に取得
+    const bgColor = z.bg || z.color || "#ffffff";
 
     const isFinalZone = (originalIdx === finalIdx);
 
@@ -268,17 +270,25 @@ function renderTile() {
           </div>
           <div class="tile-date-box ${isFinalZone ? 'is-final' : ''}">${isFinalZone ? '🚩' : ''}${formatLastDate(z, true)}</div>
         </div>
-        <div class="tile-row-2"><b>${getFitSpan(rawName, 19, 70)}</b></div>
-        <div class="tile-row-3 f-oswald">${getFitSpan(`No.${z.s}-${z.e}`, 19, 75)}</div>
-        <div class="tile-row-4 f-oswald">${selCount}<small>/${zoneUnits.length}</small></div>
+        <div class="tile-row-2"><b>${getFitSpan(rawName, 18, 70)}</b></div>
+        <div class="tile-row-3 f-oswald">${getFitSpan(`No.${z.s}-${z.e}`, 18, 75)}</div>
+        <div class="tile-row-4 f-oswald" style="font-size: 17px;">
+          <span style="font-weight: 900;">${selCount}</span><small style="font-size:9px; opacity:0.7;">/${zoneUnits.length}</small>
+        </div>
         <div class="tile-row-5 status-bar-bg">
           ${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}
         </div>
-        <div class="expand-box" onclick="event.stopPropagation()">
-          <div class="unit-grid">
-            ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${Number(m[0])})">${m[0]}</div>`).join('')}
+        
+        <div class="expand-box" style="display: ${expandedZoneId === originalIdx ? 'block' : 'none'};" onclick="event.stopPropagation()">
+          <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(70px, 1fr)); gap:10px; padding:15px; background: rgba(255,255,255,0.7);">
+            ${zoneUnits.map(m => `
+              <div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" 
+                   onclick="toggleUnit(${Number(m[0])})">
+                ${m[0]}
+              </div>`).join('')}
           </div>
-          <button class="btn-close-expand" onclick="closeExpand(event)">完了</button>
+          <button class="btn-close-expand" onclick="closeExpand(event)" 
+                  style="width: 100%; padding: 12px; background: #444; color: #fff; border: none; font-weight: 900;">完了</button>
         </div>
       </div>`;
   }).join('');
