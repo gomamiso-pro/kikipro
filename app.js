@@ -306,25 +306,47 @@ function renderLogs() {
   const filtered = DATA.logs ? DATA.logs.filter(l => l.type === activeType) : [];
   const logList = document.getElementById('log-list');
   if(!logList) return;
+
   logList.innerHTML = filtered.map(l => {
     const ids = l.ids ? String(l.ids).split(',').map(Number).sort((a,b)=>a-b) : [];
     const rangeStr = ids.length > 0 ? `${ids[0]}～${ids[ids.length-1]}` : '---';
+    
+    // 日付に曜日を付与
+    const d = new Date(l.date);
+    const dateWithDay = `${l.date}(${["日","月","火","水","木","金","土"][d.getDay()]})`;
+
     return `
-    <div class="log-card">
-      <div class="log-date-badge">${l.type} - ${l.date}</div>
-      <div class="log-content">
+    <div class="log-card" style="padding: 18px; margin-bottom: 15px;">
+      <div class="log-date-badge" style="font-size: 13px; margin-bottom: 8px;">${l.type} - ${dateWithDay}</div>
+      
+      <div class="log-content" style="display: flex; justify-content: space-between; align-items: flex-start;">
         <div>
-          <div class="log-main-info">${l.zone}</div>
-          <div class="f-oswald log-range">No.${rangeStr}</div>
+          <div class="f-oswald" style="font-size: 20px; font-weight: 900; color: var(--text); line-height: 1.2;">
+            ${l.zone}
+          </div>
+          <div class="f-oswald" style="font-size: 18px; font-weight: 700; color: var(--accent); margin-top: 4px;">
+            No.${rangeStr}
+          </div>
+          <div style="font-size: 12px; color: var(--text-dim); margin-top: 8px; font-weight: 700;">
+            👤 ${l.user || '---'}
+          </div>
         </div>
-        <div class="log-unit-large">${l.count}<small>台</small></div>
+        
+        <div class="log-unit-large" style="text-align: right; line-height: 1;">
+          ${l.count}<small style="font-size: 14px; margin-left: 2px;">台</small>
+        </div>
       </div>
-      <div class="log-action-row">
-        <button class="btn-log-edit" onclick="startEdit(${l.row}, '${l.ids}', '${l.date}', '${l.type}')">編集</button>
-        <button class="btn-log-del" onclick="handleDelete(${l.row})">削除</button>
+
+      <div class="log-action-row" style="display: flex; gap: 15px; margin-top: 15px;">
+        <button class="btn-log-edit" 
+                style="flex: 2; padding: 15px; font-size: 16px; font-weight: 900; border-radius: 10px;" 
+                onclick="startEdit(${l.row}, '${l.ids}', '${l.date}', '${l.type}')">編集</button>
+        <button class="btn-log-del" 
+                style="flex: 1; padding: 15px; font-size: 16px; font-weight: 900; border-radius: 10px;" 
+                onclick="handleDelete(${l.row})">削除</button>
       </div>
     </div>`;
-  }).join('') + `<div style="height:120px;"></div>`;
+  }).join('') + `<div style="height:150px;"></div>`;
 }
 
 function getFinalDateByType(type) {
