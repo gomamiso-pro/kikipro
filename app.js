@@ -171,10 +171,13 @@ function renderAll() {
 function renderList() {
   const container = document.getElementById('zone-display');
   if (!container) return;
+  
   container.className = "zone-container-list"; 
+  
   const tIdx = TYPE_MAP[activeType];
   const finalIdx = getFinalWorkZoneIndex();
   
+  // 指定されたタイプで有効なゾーンのみ抽出
   const filteredZones = DATA.cols.filter(z => 
     DATA.master.some(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1)
   );
@@ -184,32 +187,56 @@ function renderList() {
     const zoneUnits = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1);
     const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
     const isAll = zoneUnits.length > 0 && zoneUnits.every(m => selectedUnits.has(Number(m[0])));
+    const bgColor = z.bg || z.color || "#ffffff"; // 背景色を確実に取得
+
     const isFinalZone = (originalIdx === finalIdx);
 
     return `
-      <div id="zone-card-${originalIdx}" class="zone-row ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" 
-           style="background-color: ${z.color || "#ffffff"} !important;" onclick="handleZoneAction(event, ${originalIdx})">
-        <div class="zone-info-main">
-          <div class="check-wrapper" onclick="handleZoneCheck(event, ${originalIdx})">
-            <input type="checkbox" ${isAll ? 'checked' : ''} style="transform: scale(1.6); pointer-events: none;">
+      <div id="zone-card-${originalIdx}" 
+           class="zone-row ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" 
+           onclick="handleZoneAction(event, ${originalIdx})">
+        
+        <div style="display:flex; width:100%; align-items: stretch;">
+          <div class="zone-check-area" onclick="handleZoneCheck(event, ${originalIdx})" 
+               style="width: 60px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.03); border-right: 1px solid rgba(0,0,0,0.05);">
+            <input type="checkbox" ${isAll ? 'checked' : ''} style="transform: scale(1.8); pointer-events: none;">
           </div>
-          <div class="zone-text">
-            <div class="zone-label">${z.name}</div>
-            <div class="f-oswald zone-no">No.${z.s} - ${z.e}</div>
-          </div>
-          <div class="zone-status">
-            <div class="f-oswald last-date ${isFinalZone ? 'is-final' : ''}">${isFinalZone ? '🚩 ' : ''}${formatLastDate(z)}</div>
-            <div class="f-oswald zone-count">${selCount}<span>/${zoneUnits.length}</span></div>
+
+          <div style="background:${bgColor}; flex:1; padding: 12px 15px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 4px;">
+              <b style="font-size:15px; color: #333;">${z.name}</b>
+              <span class="f-oswald" style="font-size:13px; font-weight: 700; color: ${isFinalZone ? '#d32f2f' : '#666'};">
+                ${isFinalZone ? '🚩' : ''}${formatLastDate(z)}
+              </span>
+            </div>
+            
+            <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+              <span class="f-oswald" style="font-size:22px; font-weight: 900; letter-spacing: -0.5px;">No.${z.s}-${z.e}</span>
+              <div class="f-oswald" style="text-align: right;">
+                <span style="font-size:22px; font-weight: 900;">${selCount}</span>
+                <span style="font-size:14px; opacity:0.6; font-weight: 700;">/${zoneUnits.length}台</span>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="status-bar-bg">
-          ${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}
+
+        <div class="status-bar-bg" style="height:6px; background: rgba(0,0,0,0.1); display: flex;">
+          ${zoneUnits.map(m => `
+            <div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" 
+                 style="flex:1; height:100%; border-right: 0.5px solid rgba(255,255,255,0.2);">
+            </div>`).join('')}
         </div>
+        
         <div class="expand-box" style="display: ${expandedZoneId === originalIdx ? 'block' : 'none'};" onclick="event.stopPropagation()">
-          <div class="unit-grid">
-            ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${Number(m[0])})">${m[0]}</div>`).join('')}
+          <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(70px, 1fr)); gap:10px; padding:15px; background: rgba(255,255,255,0.7);">
+            ${zoneUnits.map(m => `
+              <div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" 
+                   onclick="toggleUnit(${Number(m[0])})">
+                ${m[0]}
+              </div>`).join('')}
           </div>
-          <button class="btn-close-expand" onclick="closeExpand(event)">完了</button>
+          <button class="btn-close-expand" onclick="closeExpand(event)" 
+                  style="width: 100%; padding: 12px; background: #444; color: #fff; border: none; font-weight: 900;">完了</button>
         </div>
       </div>`;
   }).join('');
