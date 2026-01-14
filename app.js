@@ -51,49 +51,40 @@ window.onload = async () => {
 };
 
 // --- 3. 認証・データ取得コア ---
-// --- 3. 認証・データ取得コア ---
 async function silentLogin() {
   const loader = document.getElementById('loading');
   const loginOverlay = document.getElementById('login-overlay');
   const appContent = document.getElementById('app-content');
 
   try {
-    // 1. 通信開始
     console.log("Starting silent login...");
-    const res = await callGAS("getInitialData");
+    // 15秒でタイムアウトさせる安全装置
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 15000));
+    const res = await Promise.race([callGAS("getInitialData"), timeoutPromise]);
     
-    // 2. 応答チェック
     if (!res || res.error) {
-      console.error("Data error:", res);
       throw new Error("Invalid Response");
     }
 
-    // 3. データ反映
     DATA = res;
     const userDisp = document.getElementById('user-display');
     if (userDisp) userDisp.innerText = DATA.user.toUpperCase();
     
     renderAll();
     
-    // 4. 正常終了：画面表示切り替え
     document.body.classList.add('ready');
     if (appContent) appContent.style.display = 'flex';
     if (loginOverlay) loginOverlay.style.display = 'none';
-    if (loader) loader.style.display = 'none';
 
   } catch (e) {
-    // 5. エラー発生時：必ずぐるぐるを消してログイン画面に戻す
     console.error("Silent Login Failed:", e);
-    
-    // ログイン情報を一度クリア（これを行わないと無限リロードになるため）
-    // localStorage.removeItem('kiki_authID'); // 必要に応じてコメント解除
-    // localStorage.removeItem('kiki_authPass');
-
-    if (loader) loader.style.display = 'none';
+    // 失敗時はログイン画面を出す
     if (loginOverlay) loginOverlay.style.display = 'flex';
     if (appContent) appContent.style.display = 'none';
-    
-    alert("通信エラーが発生しました。ログインをやり直してください。");
+    // alert("通信エラーが発生しました。"); // 頻繁に出ると煩わしいのでコンソールのみでもOK
+  } finally {
+    // 【重要】成功・失敗・タイムアウトに関わらず、必ずぐるぐるを消す
+    if (loader) loader.style.display = 'none';
   }
 }
 
@@ -103,12 +94,14 @@ async function handleAuth() {
   const loader = document.getElementById('loading');
   if (!nick || !pass) return alert("入力してください");
 
-  if (loader) loader.style.display = 'flex'; // 通信中ぐるぐる
+  if (loader) loader.style.display = 'flex';
 
   try {
     const method = isSignUpMode ? "signUp" : "getInitialData";
     const res = await callGAS(method, { authID: nick, authPass: pass, nickname: nick });
     
+    if (!res || res.error) throw new Error("Auth Failed");
+
     authID = nick;
     authPass = pass;
     if (document.getElementById('auto-login').checked) {
@@ -124,10 +117,12 @@ async function handleAuth() {
     document.body.classList.add('ready');
     document.getElementById('login-overlay').style.display = 'none';
     document.getElementById('app-content').style.display = 'flex';
-    if (loader) loader.style.display = 'none';
   } catch (e) {
-    if (loader) loader.style.display = 'none';
+    console.error(e);
     alert("認証に失敗しました。");
+  } finally {
+    // ボタンクリック後も、何があっても最後にぐるぐるを消す
+    if (loader) loader.style.display = 'none';
   }
 }
 
