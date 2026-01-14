@@ -51,7 +51,7 @@ button:not(.top-tab):not(.switch-btn):not(.type-btn):active {
 body.ready #app-content { display: flex !important; }
 
 /* --- ログイン画面 --- */
-#login-overlay { display: flex; flex-direction: column; background: var(--bg) !important; }
+#login-overlay { display: none; flex-direction: column; background: var(--bg) !important; }
 .auth-box { width: 90%; max-width: 340px; background: var(--card); padding: 35px 25px; border-radius: 20px; border: 1px solid var(--panel); box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
 #auth-title { font-family: 'Oswald', sans-serif; font-size: 32px; color: var(--accent); font-weight: 900; margin-bottom: 30px; text-align: center; }
 #login-fields { display: flex !important; flex-direction: column !important; gap: 15px !important; width: 100%; margin-bottom: 20px; }
@@ -94,11 +94,37 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background:
 .zone-row, .tile-card, .zone-row *, .tile-card * { color: #000 !important; }
 .has-selection { border: 4px solid var(--accent) !important; box-shadow: 0 0 10px rgba(250, 204, 21, 0.5); }
 
+/* --- 日付入力（ボタン・台数と同じ黄色太字） --- */
+.date-input-wrap {
+  display: flex;
+  align-items: center;
+  background: #000;
+  border: 2px solid var(--accent);
+  border-radius: 8px;
+  padding: 4px 10px;
+  gap: 8px;
+}
+#work-date {
+  background: transparent;
+  border: none;
+  color: var(--accent);
+  font-family: 'Oswald', sans-serif;
+  font-size: 18px;
+  font-weight: 900;
+  width: 130px;
+  text-align: center;
+}
+#date-label {
+  color: var(--accent);
+  font-weight: 900;
+  font-size: 16px;
+}
+
 /* --- リスト表示 --- */
 .zone-container-list { padding: 10px; display: flex; flex-direction: column; gap: 8px; }
 .zone-row { border-radius: 10px; overflow: hidden; position: relative; background: #fff; border: 1px solid rgba(0,0,0,0.1); }
 
-/* --- タイル表示（4列・高密度圧縮・重なり防止版） --- */
+/* --- タイル表示 --- */
 .zone-container-tile {
   display: grid;
   grid-template-columns: repeat(4, 1fr); 
@@ -110,7 +136,7 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background:
 
 .tile-card {
   padding: 4px 3px !important;
-  min-height: 82px !important; /* カードの高さを少し出し、重なりを物理的に防ぐ */
+  min-height: 82px !important;
   display: flex;
   flex-direction: column;
   justify-content: flex-start !important;
@@ -122,7 +148,6 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background:
 
 .tile-row-1 { display: flex; justify-content: space-between; align-items: center; height: 16px; margin-bottom: 2px; }
 
-/* タイル内の日付 */
 .tile-date-box {
   font-family: 'Oswald', sans-serif;
   font-size: 10px !important;
@@ -131,44 +156,43 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background:
   line-height: 1;
 }
 
-/* ゾーン名（10px・重なり防止） */
+/* 2行目：ゾーン名（1px小さく 10px -> 9px） */
 .tile-row-2 { 
-  font-size: 10px !important; 
+  font-size: 9px !important; 
   font-weight: 800 !important; 
   color: #000 !important;
-  height: 21px !important; /* 高さを固定 */
-  line-height: 13px !important;
+  height: 20px !important;
+  line-height: 12px !important;
   margin-top: 1px !important;
   text-align: left;
   white-space: nowrap;
   letter-spacing: -0.5px;
 }
 
-/* No（9px・重なり防止） */
+/* 3行目：No（そのまま 9px） */
 .tile-row-3 { 
   font-size: 9px !important; 
   font-weight: 800 !important; 
   color: #333 !important;
-  height: 12px !important; /* 高さを固定 */
+  height: 12px !important;
   line-height: 12px !important;
-  margin-top: 1px !important; /* ゾーン名との隙間 */
+  margin-top: 1px !important;
   text-align: left;
   white-space: nowrap;
 }
 
-/* 台数（大きく、かつNoと距離を置く） */
+/* 4行目：台数（1px小さく 22px -> 21px） */
 .tile-row-4 { 
-  font-size: 22px !important; 
+  font-size: 21px !important; 
   font-weight: 900; 
   text-align: right; 
   color: #000 !important;
   margin-top: 0px !important; 
   line-height: 1; 
   padding-right: 1px;
-  flex-grow: 1; /* 余白を埋める */
+  flex-grow: 1;
 }
 
-/* ステータスバー（最下部固定） */
 .tile-row-5.status-bar-bg {
   height: 4px !important;
   margin-top: 2px !important;
@@ -176,11 +200,23 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background:
   border-radius: 2px;
 }
 
-/* タイルフィット調整用（JSで使用） */
-.tile-fit-inner { display: inline-block; white-space: nowrap; transform-origin: left; }
-
-/* --- 展開表示 --- */
-.expanded { position: fixed !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; width: 95vw !important; max-height: 85vh !important; z-index: 99999 !important; background: #fff !important; padding: 20px !important; border: 5px solid var(--accent) !important; box-shadow: 0 0 0 100vmax rgba(0,0,0,0.85) !important; border-radius: 15px; display: flex !important; flex-direction: column; }
+/* --- 展開表示（共通：中央ポップアップ） --- */
+.expanded { 
+  position: fixed !important; 
+  top: 50% !important; 
+  left: 50% !important; 
+  transform: translate(-50%, -50%) !important; 
+  width: 95vw !important; 
+  max-height: 85vh !important; 
+  z-index: 99999 !important; 
+  background: #fff !important; 
+  padding: 20px !important; 
+  border: 5px solid var(--accent) !important; 
+  box-shadow: 0 0 0 100vmax rgba(0,0,0,0.85) !important; 
+  border-radius: 15px; 
+  display: flex !important; 
+  flex-direction: column; 
+}
 .expand-box { flex: 1; overflow-y: auto; display: none; }
 .expanded .expand-box { display: block; }
 .unit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; }
