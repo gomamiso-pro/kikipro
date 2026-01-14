@@ -1,118 +1,185 @@
 :root { 
-  --bg: #1a1c23; --card: #2d313d; --header-bg: #111318; --panel: #3a3f4d;
-  --accent: #facc15; --accent-dim: #b8970f; --text: #e5e9f0; --text-dim: #9ca3af; --danger: #bf616a;
-  --blue-icon: #5e81ac;
+  --bg: #1a1c23; 
+  --card: #2d313d; 
+  --header-bg: #111318; 
+  --panel: #3a3f4d;
+  --accent: #facc15; 
+  --accent-dim: #b8970f; 
+  --text: #e5e9f0; 
+  --text-dim: #9ca3af; 
+  --danger: #bf616a;
 }
 
-/* 基本構造 */
+/* --- 1. ベースレイアウト --- */
+/* スクリプトが読み込まれるまで全体を隠し、チラつきを防止 */
 body { 
-  font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: var(--text); 
-  margin: 0; display: flex; flex-direction: column; height: 100dvh; width: 100%;
-  overflow: hidden;
+  font-family: 'Noto Sans JP', sans-serif; 
+  background: var(--bg); 
+  color: var(--text); 
+  margin: 0; 
+  padding: 0;
+  display: flex; 
+  flex-direction: column; 
+  height: 100dvh; 
+  width: 100vw;
+  overflow: hidden; 
+  position: fixed; /* キーボード表示時のガタつき防止 */
 }
 
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
-
-/* ボタン共通アニメーション */
-button:not(.top-tab):not(.switch-btn):not(.type-btn) {
-  box-shadow: 0 4px 0 rgba(0,0,0,0.4);
-  transition: transform 0.05s, box-shadow 0.05s;
-  cursor: pointer;
-}
-button:not(.top-tab):not(.switch-btn):not(.type-btn):active {
-  transform: translateY(3px);
-  box-shadow: 0 1px 0 rgba(0,0,0,0.4) !important;
+#app-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  position: relative;
 }
 
-/* システムパーツ */
-.overlay { position: fixed; inset: 0; display: none; justify-content: center; align-items: center; z-index: 100000; background: rgba(0,0,0,0.92); backdrop-filter: blur(4px); }
-
-.spinner {
-  width: 40px; height: 40px;
-  border: 4px solid rgba(250, 204, 21, 0.2);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
-.unified-close-btn {
-  background: var(--danger) !important;
-  color: #fff !important;
-  border: none !important;
-  font-size: 16px !important;
-  font-weight: 900 !important;
-  padding: 10px 20px !important;
-  border-radius: 8px !important;
-  box-shadow: 0 4px 0 #8a3d45 !important;
+/* --- 2. 各セクションの固定制御 --- */
+.header, .nav-row, .type-bar, .view-mode-bar {
+  flex-shrink: 0;
+  width: 100%;
 }
 
-/* ログイン画面 */
-.auth-box { width: 90%; max-width: 340px; background: var(--card); padding: 35px 25px; border-radius: 20px; border: 1px solid var(--panel); }
-#auth-title { font-family: 'Oswald', sans-serif; font-size: 32px; color: var(--accent); font-weight: 900; margin-bottom: 30px; text-align: center; }
-.auth-input { width: 100%; background: #111318; border: 1px solid var(--panel); border-radius: 10px; padding: 16px; color: #fff; font-size: 16px; margin-bottom: 15px; }
-.auto-login-wrap { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 25px; font-size: 13px; color: var(--text-dim); }
-.auth-btn { width: 100%; background: var(--accent); color: #000; border: none; padding: 16px; border-radius: 12px; font-weight: 900; font-size: 18px; }
+/* スクロールエリア（メイン） */
+main { 
+  flex: 1; 
+  overflow-y: auto; 
+  -webkit-overflow-scrolling: touch;
+  background: var(--bg);
+  padding-bottom: 220px; /* フッターと被らないための余白 */
+}
 
-/* ヘッダー・ナビ */
-.header { height: 60px; background: var(--header-bg); border-bottom: 1px solid var(--panel); display: flex; justify-content: space-between; align-items: center; padding: 0 15px; }
+/* --- 3. ヘッダー・ナビ・タイプバー --- */
+.header { 
+  height: 60px; 
+  background: var(--header-bg); 
+  border-bottom: 1px solid var(--panel); 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  padding: 0 12px; 
+}
 .header-logo { font-family: 'Oswald'; color: var(--accent); font-size: 20px; font-weight: 900; }
-.nav-row { display: flex; background: var(--header-bg); border-bottom: 1px solid var(--panel); }
-.top-tab { flex: 1; padding: 12px; text-align: center; font-size: 14px; font-weight: 700; color: var(--text-dim); }
-.top-tab.active-work { background: #5e81ac !important; color: #fff !important; }
-.top-tab.active-log { background: #d08770 !important; color: #fff !important; }
 
-/* タイプバー */
-.type-bar { display: grid; grid-template-columns: repeat(5, 1fr); background: var(--panel); gap: 1px; border-bottom: 2px solid #000; }
-.type-btn { background: var(--header-bg); border: none; color: var(--text-dim); padding: 8px 0; display: flex; flex-direction: column; align-items: center; }
+.nav-row { display: flex; height: 50px; background: var(--header-bg); border-bottom: 1px solid var(--panel); }
+.top-tab { 
+  flex: 1; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  font-size: 15px; 
+  font-weight: 700; 
+  color: var(--text-dim); 
+}
+.top-tab.active-work { background: #5e81ac; color: #fff; }
+.top-tab.active-log { background: #d08770; color: #fff; }
+
+.type-bar { 
+  display: grid; 
+  grid-template-columns: repeat(5, 1fr); 
+  background: var(--panel); 
+  gap: 1px; 
+  height: 62px;
+  border-bottom: 2px solid #000;
+}
+.type-btn { 
+  background: var(--header-bg); 
+  border: none; 
+  color: var(--text-dim); 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  justify-content: center; 
+  padding: 5px 0; 
+}
 .type-btn.active { background: var(--accent) !important; color: #000 !important; }
-.type-last-badge { font-family: 'Oswald'; font-size: 11px; font-weight: 700; }
+.type-name-label { font-size: 13px; font-weight: 900; letter-spacing: -0.5px; }
+.type-last-badge { font-family: 'Oswald'; font-size: 10px; font-weight: 700; margin-top: 2px; }
 
-/* モード切替 */
-.view-mode-bar { display: flex; align-items: center; justify-content: space-between; padding: 8px; gap: 8px; background: var(--bg); border-bottom: 1px solid var(--panel); }
+/* モード切替バー */
+.view-mode-bar { 
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between; 
+  padding: 8px 12px; 
+  background: var(--bg); 
+  border-bottom: 1px solid var(--panel); 
+}
 .switch-group { display: flex; background: #000; padding: 4px; border-radius: 8px; }
-.switch-btn { border: none; background: transparent; color: #666; padding: 8px 12px; font-size: 12px; font-weight: 900; border-radius: 6px; }
+.switch-btn { border: none; background: transparent; color: #666; padding: 8px 14px; font-size: 12px; font-weight: 900; border-radius: 6px; }
 .switch-btn.active { background: var(--panel); color: var(--accent); }
 
-/* メインエリア */
-main { flex: 1; overflow-y: auto; padding-bottom: 180px; }
-.zone-row, .tile-card { color: #000 !important; }
-.has-selection { border: 4px solid var(--accent) !important; }
+/* --- 4. リスト・タイル表示 --- */
+/* リスト表示：番号を大きく */
+.zone-container-list { padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.zone-row { background: #fff; border-radius: 12px; overflow: hidden; border: 1px solid rgba(0,0,0,0.1); }
+.list-number-text { font-family: 'Oswald'; font-size: 24px; font-weight: 900; color: #000; }
 
-/* リスト表示（V17 強化版） */
-.zone-container-list { padding: 10px; display: flex; flex-direction: column; gap: 10px; }
-.zone-row { background: #fff; border-radius: 10px; overflow: hidden; border: 1px solid rgba(0,0,0,0.1); }
-.list-number-text { font-family: 'Oswald'; font-size: 24px; font-weight: 900; color: #000; } /* ゾーン名と同じサイズ */
+/* タイル表示：4列・高密度 */
+.zone-container-tile { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 8px; }
+.tile-card { background: #fff; border-radius: 8px; min-height: 95px; padding: 6px 4px; display: flex; flex-direction: column; color: #000 !important; }
+.tile-row-2 { font-size: 8px !important; font-weight: 900; height: 20px; line-height: 1.1; overflow: hidden; color: #000 !important; } /* ゾーン名2px縮小 */
+.tile-row-4 { font-family: 'Oswald'; font-size: 22px !important; font-weight: 900; text-align: right; margin-top: auto; color: #000 !important; }
+.tile-row-4 small { font-size: 10px !important; font-weight: 700; } /* 分母1px拡大 */
 
-/* タイル表示（V17 4列 高密度） */
-.zone-container-tile { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 6px; }
-.tile-card { padding: 4px 3px; background: #fff; border-radius: 6px; min-height: 85px; display: flex; flex-direction: column; }
-.tile-row-2 { font-size: 8px !important; font-weight: 800; line-height: 1.2; height: 20px; overflow: hidden; } /* 2px小さく */
-.tile-row-4 { font-size: 22px !important; font-weight: 900; text-align: right; margin-top: auto; }
-.tile-row-4 small { font-size: 10px !important; opacity: 0.7; } /* 分母 1px大きく */
-
-/* 展開表示（中央固定ポップアップ） */
+/* --- 5. 展開パネル（ポップアップ） --- */
 .expanded { 
-  position: fixed !important; top: 50% !important; left: 50% !important; 
-  transform: translate(-50%, -50%) !important; width: 92vw !important; 
-  max-height: 80vh !important; z-index: 99999 !important; 
-  background: #fff !important; padding: 20px !important; border-radius: 15px;
-  box-shadow: 0 0 0 100vmax rgba(0,0,0,0.85); display: flex !important; flex-direction: column;
+  position: fixed !important; 
+  top: 50% !important; 
+  left: 50% !important; 
+  transform: translate(-50%, -50%) !important; 
+  width: 92vw !important; 
+  max-height: 85vh !important; 
+  z-index: 100000 !important; 
+  background: #fff !important; 
+  padding: 20px !important; 
+  border-radius: 20px;
+  box-shadow: 0 0 0 100vmax rgba(0,0,0,0.85); 
+  display: flex !important; 
+  flex-direction: column;
 }
-.expand-box { flex: 1; overflow-y: auto; }
-.unit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; }
-.unit-chip { background: #f0f0f0; border-radius: 8px; text-align: center; font-family: 'Oswald'; font-size: 22px; padding: 12px 0; border: 2px solid #ddd; }
-.unit-chip.active { background: var(--accent) !important; border-color: #000; font-weight: 900; }
+.expand-box { flex: 1; overflow-y: auto; margin: 15px 0; }
+.unit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 10px; }
+.unit-chip { background: #f0f0f0; border-radius: 10px; text-align: center; font-family: 'Oswald'; font-size: 24px; padding: 15px 0; border: 2px solid #ddd; color: #000; font-weight: 700; }
+.unit-chip.active { background: var(--accent) !important; border-color: #000; font-weight: 900; box-shadow: 0 4px 0 var(--accent-dim); }
 
-/* フッター & 日付（V17 デザイン） */
-.footer { position: fixed; bottom: 0; width: 100%; background: var(--header-bg); border-top: 1px solid var(--panel); padding: 12px 12px calc(15px + env(safe-area-inset-bottom)); }
-#u-total { font-family: 'Oswald'; font-size: 50px; color: var(--accent); font-weight: 900; }
+/* --- 6. フッター・日付入力（指示通りのデザイン） --- */
+.footer { 
+  position: absolute; 
+  bottom: 0; 
+  width: 100%; 
+  background: var(--header-bg); 
+  border-top: 1px solid var(--panel); 
+  padding: 12px 12px calc(15px + env(safe-area-inset-bottom)); 
+  z-index: 5000; 
+}
+.footer-main-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+
+#u-total { font-family: 'Oswald'; font-size: 50px; color: var(--accent); font-weight: 900; line-height: 1; }
+
 .date-container-simple { 
-  background: rgba(250, 204, 21, 0.1); padding: 8px 15px; border-radius: 8px; 
-  border: 1px solid var(--accent); cursor: pointer; display: flex; align-items: center; 
+  background: rgba(250, 204, 21, 0.1); /* 黄色のうっすら背景 */
+  padding: 10px 18px; 
+  border-radius: 10px; 
+  border: 1px solid var(--accent); 
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+  cursor: pointer;
 }
-#date-label { font-family: 'Oswald'; font-size: 24px; font-weight: 900; color: var(--accent); }
+#date-label { 
+  font-family: 'Oswald', sans-serif; 
+  font-size: 26px; /* 台数に近い大きさ */
+  font-weight: 900; 
+  color: var(--accent); /* 台数と同じ黄色 */
+}
 
-/* アニメーション */
-@keyframes blink-accent { 0%, 100% { outline: 4px solid var(--accent); } 50% { outline: 4px solid transparent; } }
-.jump-highlight { animation: blink-accent 0.5s ease-in-out 3; }
+.btn-exec { background: #5e81ac; color: #fff; width: 100%; padding: 20px; border-radius: 12px; font-weight: 900; font-size: 22px; border: none; }
+.btn-exec:disabled { background: #3a3f4d; color: #666; }
+
+/* システム系 */
+.overlay { position: fixed; inset: 0; display: none; justify-content: center; align-items: center; z-index: 200000; background: rgba(0,0,0,0.95); backdrop-filter: blur(5px); }
+.spinner { width: 50px; height: 50px; border: 5px solid rgba(250, 204, 21, 0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.f-oswald { font-family: 'Oswald', sans-serif; }
