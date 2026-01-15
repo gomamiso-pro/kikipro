@@ -104,11 +104,13 @@ async function handleAuth() {
  */
 async function upload() {
   if (selectedUnits.size === 0) return;
+  
+  // 1. ユーザーへのフィードバック（Loading開始）
   const loader = document.getElementById('loading');
   loader.style.display = 'flex';
 
   try {
-    // 1. GASから最新の全データを一括で受け取る
+    // 2. 通信（一括データ取得）
     const result = await callGAS("addNewRecord", { 
       date: document.getElementById('work-date').value, 
       type: activeType, 
@@ -116,28 +118,26 @@ async function upload() {
       editRow: editingLogRow 
     });
     
-    // 2. ブラウザが持っているデータを最新に差し替える
+    // 3. データの即時反映
     DATA = result; 
     
-    // 3. 選択状態をきれいに掃除する
+    // 4. UIのクリーンアップ
     editingLogRow = null;
     selectedUnits.clear();
     expandedZoneId = null;
     
-    // 4. 【重要】この関数で全てのボタンやリストを「最新データ」で書き換える
+    // 5. 【重要】アラートを出す前に描画を完了させる（ストレス軽減）
     renderAll(); 
-
-    // 5. 画面を履歴（Log）に切り替える
     switchView('log'); 
     
-    // 最後に完了通知
-    alert("登録完了しました");
+    loader.style.display = 'none'; // 先にローディングを消す
+    
+    // 最後に通知（OKを押すのを待たずに後ろで画面が変わっている状態）
+    setTimeout(() => alert("登録完了しました"), 100);
 
   } catch (e) { 
-    console.error("Upload Error:", e);
-    alert("保存はできましたが、表示の更新に失敗しました。アプリを再起動してください。");
-  } finally {
     loader.style.display = 'none';
+    alert("通信エラーが発生しました。再読み込みしてください。");
   }
 }
 
