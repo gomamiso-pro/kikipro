@@ -3,7 +3,7 @@
  * 2026 Stable Version / 爆速レスポンス対応
  */
 
-const GAS_URL = "https://script.google.com/macros/s/AKfycbzVAwf4OVt0NeLaNK1OPqyrriFUI9AN2vJ78QmOHdwbkndZ1Rysmp5m6WOIM_h-1GYX9w/exec";
+const GAS_URL = "https://script.google.com/macros/s/AKfycbzw6bfQrQIAM1TEYNaVRTpGgnh9TP3W4E87e3X9AasK7WJ64a0Cb2dHsAutKtNZyZpKDA/exec";
 const SECRET_API_KEY = "kiki-secure-2026";
 
 /**
