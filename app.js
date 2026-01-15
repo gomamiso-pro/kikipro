@@ -1,6 +1,6 @@
 /**
  * KIKI PRO V17 - Complete Logic
- * 全機能を維持したまま、爆速化と表示系を最適化
+ * 全機能を維持し、通信安定性と描画パフォーマンスを最適化
  */
 
 // --- 1. グローバル変数の宣言 ---
@@ -8,17 +8,19 @@ let DATA = {};
 let activeType = "通常";
 let displayMode = "tile"; 
 let selectedUnits = new Set();
-let expandedZoneId = null;
 let editingLogRow = null;
 let isSignUpMode = false;
 
-// 定数
+// 定数 (Spreadsheetの列番号と連動)
 const TYPE_MAP = { "通常": 3, "セル盤": 4, "計数機": 5, "ユニット": 6, "説明書": 7 };
 const DATE_COL_MAP = { "通常": 8, "セル盤": 9, "計数機": 10, "ユニット": 11, "説明書": 12 };
 
 // --- 2. 初期起動処理 ---
 window.onload = () => {
+  // 保存された認証情報があれば自動ログイン
   silentLogin(); 
+  
+  // 日付の初期値を今日に設定
   const d = new Date();
   const dateInput = document.getElementById('work-date');
   if (dateInput) {
@@ -38,7 +40,7 @@ async function silentLogin() {
   }
 
   try {
-    // api.js経由で呼び出し
+    // 既存の api("getInitialData") を使用
     const res = await api('getInitialData', { authID: savedID, authPass: savedPass });
     setupAppData(res, savedID, savedPass);
   } catch (e) {
@@ -48,24 +50,23 @@ async function silentLogin() {
 }
 
 async function handleAuth() {
-  const nick = document.getElementById('login-nick').value;
-  const pass = document.getElementById('login-pass').value;
-  if (!nick || !pass) return alert("入力してください");
+  const nick = document.getElementById('login-nick').value.trim();
+  const pass = document.getElementById('login-pass').value.trim();
+  if (!nick || !pass) return alert("ニックネームとパスワードを入力してください");
 
-  showLoading(); // api.jsの関数
   try {
     const method = isSignUpMode ? "signUp" : "getInitialData";
     const res = await api(method, { authID: nick, authPass: pass, nickname: nick });
     
+    // 自動ログインにチェックがあれば保存
     if (document.getElementById('auto-login').checked) {
       localStorage.setItem('kiki_authID', nick);
       localStorage.setItem('kiki_authPass', pass);
     }
     setupAppData(res, nick, pass);
   } catch (e) {
-    alert("認証エラー: " + e.message);
-  } finally {
-    hideLoading();
+    // エラーメッセージは api.js の alert で表示されるためここではログのみ
+    console.error("Auth Error:", e);
   }
 }
 
@@ -84,60 +85,44 @@ function setupAppData(res, id, pass) {
 
 function showLogin() {
   document.body.classList.remove('loading-state');
-  document.getElementById('loading').style.display = 'none';
+  const loader = document.getElementById('loading');
+  if (loader) loader.style.display = 'none';
   document.getElementById('login-overlay').style.display = 'flex';
-}
-
-function logout() {
-  localStorage.removeItem('kiki_authID');
-  localStorage.removeItem('kiki_authPass');
-  location.reload();
 }
 
 // --- 4. 通信アクション ---
 async function upload() {
   if (selectedUnits.size === 0 && !editingLogRow) return;
-  showLoading();
+  if (!confirm(editingLogRow ? "修正を保存しますか？" : "この内容で送信しますか？")) return;
 
   try {
-    await api("addNewRecord", { 
+    // 1. 送信実行
+    const res = await api("addNewRecord", { 
       date: document.getElementById('work-date').value, 
       type: activeType, 
       ids: Array.from(selectedUnits), 
       editRow: editingLogRow 
     });
     
-    // 最新データを再取得して更新
-    const res = await api("getInitialData", { 
-      authID: localStorage.getItem('kiki_authID'), 
-      authPass: localStorage.getItem('kiki_authPass') 
-    });
+    // 2. 成功したら戻り値の最新データを反映
     DATA = res;
     cancelEdit(); 
-    switchView('log');
+    switchView('log'); // 履歴画面へ
+    alert("保存完了しました");
   } catch (e) { 
-    alert("保存に失敗しました: " + e.message);
-  } finally {
-    hideLoading();
+    console.error("Upload Failed:", e);
   }
 }
 
 async function handleDelete(row) { 
-  if (!confirm("この履歴を削除しますか？")) return;
-  showLoading();
+  if (!confirm("この履歴を完全に削除しますか？")) return;
 
   try { 
-    await api("deleteLog", { row }); 
-    const res = await api("getInitialData", { 
-      authID: localStorage.getItem('kiki_authID'), 
-      authPass: localStorage.getItem('kiki_authPass') 
-    });
-    DATA = res;
+    const res = await api("deleteLog", { row }); 
+    DATA = res; // 削除後の最新データを反映
     renderAll();
   } catch (e) {
-    alert("削除に失敗しました");
-  } finally {
-    hideLoading();
+    console.error("Delete Failed:", e);
   }
 }
 
@@ -145,6 +130,7 @@ async function handleDelete(row) {
 function renderAll() {
   if (!DATA || !DATA.cols) return;
 
+  // 種別タブの更新
   const types = ["通常", "セル盤", "計数機", "ユニット", "説明書"];
   const tabContainer = document.getElementById('type-tabs');
   if (tabContainer) {
@@ -180,7 +166,6 @@ function renderList() {
     const originalIdx = DATA.cols.indexOf(z);
     const zoneUnits = getZoneUnits(z, tIdx);
     const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
-    const isAll = zoneUnits.length > 0 && zoneUnits.every(m => selectedUnits.has(Number(m[0])));
     const isFinalZone = (originalIdx === finalIdx);
 
     return `
@@ -216,7 +201,7 @@ function renderTile() {
     return `
       <div id="zone-card-${originalIdx}" class="tile-card ${selCount > 0 ? 'has-selection' : ''}" 
            style="background-color: ${z.color || "#ffffff"} !important;" onclick="handleZoneAction(event, ${originalIdx})">
-        <div class="tile-date-box ${isFinalZone ? 'is-final' : ''}">${isFinalZone ? '🚩' : ''}${formatLastDate(z)}</div>
+        <div class="tile-date-box">${isFinalZone ? '🚩' : ''}${formatLastDate(z)}</div>
         <div class="tile-row-2">${z.name.replace('ゾーン', '')}</div>
         <div class="tile-row-3 f-oswald">No.${z.s}</div>
         <div class="tile-row-4 f-oswald">${selCount}</div>
@@ -239,7 +224,6 @@ function getZoneUnits(z, tIdx) {
 }
 
 function handleZoneAction(event, index) {
-  expandedZoneId = index;
   const z = DATA.cols[index];
   const tIdx = TYPE_MAP[activeType];
   const zoneUnits = getZoneUnits(z, tIdx);
@@ -248,7 +232,7 @@ function handleZoneAction(event, index) {
   overlay.className = 'overlay expanded';
   overlay.id = 'expand-overlay';
   overlay.innerHTML = `
-    <div style="font-weight:900; margin-bottom:10px; font-size:18px; color:#000;">${z.name}</div>
+    <div style="font-weight:900; margin-bottom:15px; font-size:20px; color:#000; text-align:center;">${z.name}</div>
     <div class="unit-grid">
       ${zoneUnits.map(m => `
         <div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" 
@@ -256,9 +240,10 @@ function handleZoneAction(event, index) {
           ${m[0]}
         </div>`).join('')}
     </div>
-    <button class="btn-close-expand" onclick="document.getElementById('expand-overlay').remove()">閉じる</button>
+    <button class="btn-close-expand" onclick="document.getElementById('expand-overlay').remove()">完了</button>
   `;
   document.body.appendChild(overlay);
+  overlay.style.display = 'flex';
 }
 
 function toggleUnit(id, el) {
@@ -270,7 +255,7 @@ function toggleUnit(id, el) {
     if(el) el.classList.add('active');
   }
   updateCount();
-  // 背後の描画も更新
+  // 背後のタイル・リスト描画を遅延なしで更新
   displayMode === 'list' ? renderList() : renderTile();
 }
 
@@ -291,7 +276,7 @@ function renderLogs() {
         <div>
           <div class="log-main-info">${l.zone}</div>
           <div class="log-range">${dateStr} | No.${rangeStr}</div>
-          <div style="font-size:11px; color:var(--text-dim); margin-top:4px;">👤 ${l.user || '---'}</div>
+          <div class="log-user-info">👤 ${l.user || '---'}</div>
         </div>
         <div class="log-unit-large">${l.count}</div>
       </div>
@@ -300,14 +285,19 @@ function renderLogs() {
         <button class="btn-log-del" onclick="handleDelete(${l.row})">削除</button>
       </div>
     </div>`;
-  }).join('') + `<div style="height:100px;"></div>`;
+  }).join('') + `<div style="height:150px;"></div>`;
 }
 
 function getFinalDateByType(type) {
   const tCol = DATE_COL_MAP[type];
   let last = null;
   if (!DATA.master) return "未";
-  DATA.master.forEach(m => { if (m[tCol]) { const d = new Date(m[tCol]); if (!last || d > last) last = d; } });
+  DATA.master.forEach(m => { 
+    if (m[tCol] && m[tCol] !== "未") { 
+      const d = new Date(m[tCol]); 
+      if (!isNaN(d) && (!last || d > last)) last = d; 
+    } 
+  });
   if (!last) return "未";
   return `${last.getMonth() + 1}/${last.getDate()}(${["日","月","火","水","木","金","土"][last.getDay()]})`;
 }
@@ -316,21 +306,41 @@ function getFinalWorkZoneIndex() {
   const tCol = DATE_COL_MAP[activeType];
   let maxDate = null;
   if (!DATA.master || !DATA.cols) return -1;
-  DATA.master.forEach(m => { if (m[tCol]) { const d = new Date(m[tCol]); if (!maxDate || d > maxDate) maxDate = d; } });
+  DATA.master.forEach(m => { 
+    if (m[tCol] && m[tCol] !== "未") { 
+      const d = new Date(m[tCol]); 
+      if (!isNaN(d) && (!maxDate || d > maxDate)) maxDate = d; 
+    } 
+  });
   if (!maxDate) return -1;
   let lastId = -1;
-  DATA.master.forEach(m => { if (m[tCol] && new Date(m[tCol]).getTime() === maxDate.getTime()) lastId = Number(m[0]); });
+  DATA.master.forEach(m => { 
+    if (m[tCol] && new Date(m[tCol]).getTime() === maxDate.getTime()) lastId = Number(m[0]); 
+  });
   return DATA.cols.findIndex(z => lastId >= Math.min(z.s, z.e) && lastId <= Math.max(z.s, z.e));
 }
 
 function updateCount() {
   const count = selectedUnits.size;
-  document.getElementById('u-total').innerText = count;
-  document.getElementById('send-btn').disabled = (count === 0 && !editingLogRow);
-  document.getElementById('cancel-btn').style.display = (count > 0 || editingLogRow) ? "block" : "none";
+  const totalEl = document.getElementById('u-total');
+  if (totalEl) totalEl.innerText = count;
+  
+  const sendBtn = document.getElementById('send-btn');
+  if (sendBtn) {
+    sendBtn.disabled = (count === 0 && !editingLogRow);
+    sendBtn.innerText = editingLogRow ? "修正を保存" : "作業完了を送信";
+  }
+  
+  const cancelBtn = document.getElementById('cancel-btn');
+  if (cancelBtn) cancelBtn.style.display = (count > 0 || editingLogRow) ? "block" : "none";
 }
 
-function changeType(t) { activeType = t; selectedUnits.clear(); renderAll(); }
+function changeType(t) { 
+  activeType = t; 
+  selectedUnits.clear(); 
+  editingLogRow = null;
+  renderAll(); 
+}
 
 function updateDateDisplay() {
   const val = document.getElementById('work-date').value;
@@ -354,7 +364,12 @@ function formatLastDate(z) {
   const tCol = DATE_COL_MAP[activeType];
   const units = getZoneUnits(z, TYPE_MAP[activeType]);
   let last = null;
-  units.forEach(m => { if (m[tCol]) { const d = new Date(m[tCol]); if (!last || d > last) last = d; } });
+  units.forEach(m => { 
+    if (m[tCol] && m[tCol] !== "未") { 
+      const d = new Date(m[tCol]); 
+      if (!isNaN(d) && (!last || d > last)) last = d; 
+    } 
+  });
   if (!last) return "未";
   return `${last.getMonth() + 1}/${last.getDate()}(${["日","月","火","水","木","金","土"][last.getDay()]})`;
 }
@@ -373,6 +388,7 @@ function updateToggleAllBtnState() {
   const allIds = DATA.master.filter(m => Number(m[tIdx]) === 1).map(m => Number(m[0]));
   const isAll = allIds.length > 0 && allIds.every(id => selectedUnits.has(id));
   btn.innerText = isAll ? "全解除" : "全選択";
+  btn.classList.toggle('all-selected', isAll);
 }
 
 function handleZoneCheckAll() {
@@ -383,14 +399,21 @@ function handleZoneCheckAll() {
   renderAll();
 }
 
-function cancelEdit() { editingLogRow = null; selectedUnits.clear(); renderAll(); }
+function cancelEdit() { 
+  editingLogRow = null; 
+  selectedUnits.clear(); 
+  renderAll(); 
+}
 
 function startEdit(row, ids, date, type) {
   editingLogRow = row; 
   const idStr = ids ? String(ids) : "";
   selectedUnits = new Set(idStr.split(',').filter(x => x.trim() !== "").map(Number));
   activeType = type;
-  if (date) document.getElementById('work-date').value = date.split(' ')[0].replace(/\//g, '-');
+  if (date) {
+    // 日付形式 yyyy/MM/dd を yyyy-MM-dd に変換
+    document.getElementById('work-date').value = date.split(' ')[0].replace(/\//g, '-');
+  }
   updateDateDisplay(); 
   switchView('work');
 }
@@ -399,21 +422,12 @@ function toggleAuthMode() {
   isSignUpMode = !isSignUpMode;
   document.getElementById('auth-title').innerText = isSignUpMode ? "KIKI SIGN UP" : "KIKI LOGIN";
   document.getElementById('auth-submit').innerText = isSignUpMode ? "REGISTER & LOGIN" : "LOGIN";
+  document.getElementById('auth-toggle-btn').innerText = isSignUpMode ? "ログインはこちら" : "新規登録はこちら";
 }
-
-function showQR() { 
-  const target = document.getElementById("qr-target"); 
-  target.innerHTML = ""; 
-  new QRCode(target, { text: window.location.href, width: 200, height: 200 }); 
-  document.getElementById("qr-overlay").style.display = "flex"; 
-}
-function hideQR() { document.getElementById("qr-overlay").style.display = "none"; }
-function showManual() { document.getElementById('manual-overlay').style.display = 'flex'; }
-function hideManual() { document.getElementById('manual-overlay').style.display = 'none'; }
 
 function scrollToLastWork() {
   const finalIdx = getFinalWorkZoneIndex();
-  if (finalIdx === -1) return alert("データがありません");
+  if (finalIdx === -1) return alert("作業記録がありません");
   const targetEl = document.getElementById(`zone-card-${finalIdx}`);
   if (targetEl) {
     targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
