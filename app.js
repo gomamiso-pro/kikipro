@@ -1,5 +1,5 @@
 /**
- * KIKI PRO V15 - Complete Stable App Logic (Bug Fixed + Loading Optimized)
+ * KIKI PRO V17 - App Logic (High Performance Version)
  */
 
 // --- 1. グローバル変数の宣言 ---
@@ -13,12 +13,13 @@ let expandedZoneId = null;
 let editingLogRow = null;
 let isSignUpMode = false;
 
+// 列インデックスの定義
 const TYPE_MAP = { "通常": 3, "セル盤": 4, "計数機": 5, "ユニット": 6, "説明書": 7 };
 const DATE_COL_MAP = { "通常": 8, "セル盤": 9, "計数機": 10, "ユニット": 11, "説明書": 12 };
 
 // --- 2. 初期起動処理 ---
 window.onload = () => {
-  silentLogin(); // ここで自動ログイン判定
+  silentLogin(); 
   const d = new Date();
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -40,17 +41,16 @@ async function silentLogin() {
   }
 
   try {
-    // callGAS の戻り値を受け取る
     let res = await callGAS("getInitialData", { authID, authPass });
     
-    // 二重シリアライズ対策：文字列ならパースし、まだ文字列ならさらにパースする
+    // データ展開：文字列ならパースし、不完全なら繰り返す（二重シリアライズ対策）
     while (typeof res === 'string') {
       res = JSON.parse(res);
     }
     
     DATA = res; 
 
-    if (!DATA || !DATA.user) throw new Error("データ構造が不正です");
+    if (!DATA || !DATA.user) throw new Error("Invalid Structure");
 
     document.getElementById('user-display').innerText = DATA.user.toUpperCase();
     renderAll();
@@ -61,7 +61,6 @@ async function silentLogin() {
 
   } catch (e) {
     console.error("Login Error:", e);
-    alert("ログインに失敗しました。再ログインしてください。");
     localStorage.clear();
     location.reload();
   } finally {
@@ -79,7 +78,9 @@ async function handleAuth() {
 
   try {
     const method = isSignUpMode ? "signUp" : "getInitialData";
-    const res = await callGAS(method, { authID: nick, authPass: pass, nickname: nick });
+    let res = await callGAS(method, { authID: nick, authPass: pass, nickname: nick });
+    
+    while (typeof res === 'string') res = JSON.parse(res);
     
     authID = nick;
     authPass = pass;
@@ -87,82 +88,75 @@ async function handleAuth() {
       localStorage.setItem('kiki_authID', authID);
       localStorage.setItem('kiki_authPass', authPass);
     }
+    
     DATA = res;
-    const userDisp = document.getElementById('user-display');
-    if (userDisp) userDisp.innerText = DATA.user.toUpperCase();
+    document.getElementById('user-display').innerText = DATA.user.toUpperCase();
     renderAll();
     document.body.classList.add('ready');
     document.getElementById('login-overlay').style.display = 'none';
     document.getElementById('app-content').style.display = 'flex';
   } catch (e) {
-    // エラーはapi.jsまたはcatchで処理
+    alert("認証に失敗しました。ID/パスワードを確認してください。");
   } finally {
     if (loader) loader.style.display = 'none';
   }
 }
 
-/**
- * 修正版：upload
- * 通信回数を1回に減らし、即座にデータを反映
- */
+// --- 4. 登録・削除処理 ---
 async function upload() {
   if (selectedUnits.size === 0) return;
-  
-  // 1. ユーザーへのフィードバック（Loading開始）
   const loader = document.getElementById('loading');
   loader.style.display = 'flex';
 
   try {
-    // 2. 通信（一括データ取得）
     const result = await callGAS("addNewRecord", { 
+      authID, authPass,
       date: document.getElementById('work-date').value, 
       type: activeType, 
       ids: Array.from(selectedUnits), 
       editRow: editingLogRow 
     });
     
-    // 3. データの即時反映
-    DATA = result; 
+    // 戻り値は最新の getInitialData
+    let res = result;
+    while (typeof res === 'string') res = JSON.parse(res);
+    DATA = res; 
     
-    // 4. UIのクリーンアップ
     editingLogRow = null;
     selectedUnits.clear();
     expandedZoneId = null;
     
-    // 5. 【重要】アラートを出す前に描画を完了させる（ストレス軽減）
     renderAll(); 
     switchView('log'); 
     
-    loader.style.display = 'none'; // 先にローディングを消す
-    
-    // 最後に通知（OKを押すのを待たずに後ろで画面が変わっている状態）
-    setTimeout(() => alert("登録完了しました"), 100);
+    loader.style.display = 'none';
+    setTimeout(() => alert("登録完了しました"), 50);
 
   } catch (e) { 
     loader.style.display = 'none';
-    alert("通信エラーが発生しました。再読み込みしてください。");
+    alert("登録に失敗しました");
   }
 }
 
 async function handleDelete(row) { 
   if (!confirm("この履歴を削除しますか？")) return;
-  
   const loader = document.getElementById('loading');
-  if (loader) loader.style.display = 'flex';
+  loader.style.display = 'flex';
 
   try { 
-    await callGAS("deleteLog", { row }); 
-    const res = await callGAS("getInitialData");
+    const result = await callGAS("deleteLog", { authID, authPass, row: row }); 
+    let res = result;
+    while (typeof res === 'string') res = JSON.parse(res);
     DATA = res;
     renderAll();
   } catch (e) {
     alert("削除に失敗しました");
   } finally {
-    if (loader) loader.style.display = 'none';
+    loader.style.display = 'none';
   }
 }
 
-// --- 5. 描画ロジック ---
+// --- 5. 描画・UIロジック ---
 function renderAll() {
   if (!DATA || !DATA.cols) return;
 
@@ -181,11 +175,7 @@ function renderAll() {
   updateToggleAllBtnState();
   const viewWork = document.getElementById('view-work');
   if (viewWork && viewWork.style.display !== 'none') {
-    if (displayMode === 'list') {
-      renderList();
-    } else {
-      renderTile();
-    }
+    displayMode === 'list' ? renderList() : renderTile();
   } else {
     renderLogs();
   }
@@ -195,7 +185,6 @@ function renderAll() {
 function renderList() {
   const container = document.getElementById('zone-display');
   if (!container) return;
-  
   container.className = "zone-container-list"; 
   
   const tIdx = TYPE_MAP[activeType];
@@ -210,21 +199,15 @@ function renderList() {
     const zoneUnits = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1);
     const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
     const isAll = zoneUnits.length > 0 && zoneUnits.every(m => selectedUnits.has(Number(m[0])));
-    const bgColor = z.bg || z.color || "#ffffff";
-
+    const bgColor = z.color || "#ffffff";
     const isFinalZone = (originalIdx === finalIdx);
 
     return `
-      <div id="zone-card-${originalIdx}" 
-           class="zone-row ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" 
-           onclick="handleZoneAction(event, ${originalIdx})">
-        
+      <div id="zone-card-${originalIdx}" class="zone-row ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" onclick="handleZoneAction(event, ${originalIdx})">
         <div style="display:flex; width:100%; align-items: stretch;">
-          <div class="zone-check-area" onclick="handleZoneCheck(event, ${originalIdx})" 
-               style="width: 60px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.03); border-right: 1px solid rgba(0,0,0,0.05);">
+          <div class="zone-check-area" onclick="handleZoneCheck(event, ${originalIdx})" style="width: 60px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.03); border-right: 1px solid rgba(0,0,0,0.05);">
             <input type="checkbox" ${isAll ? 'checked' : ''} style="transform: scale(1.8); pointer-events: none;">
           </div>
-
           <div style="background:${bgColor}; flex:1; padding: 12px 15px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 4px;">
               <b style="font-size:15px; color: #333;">${z.name}</b>
@@ -232,7 +215,6 @@ function renderList() {
                 ${isFinalZone ? '🚩' : ''}${formatLastDate(z)}
               </span>
             </div>
-            
             <div style="display:flex; justify-content:space-between; align-items:flex-end;">
               <span class="f-oswald" style="font-size:22px; font-weight: 900; letter-spacing: -0.5px;">No.${z.s}-${z.e}</span>
               <div class="f-oswald" style="text-align: right;">
@@ -242,24 +224,14 @@ function renderList() {
             </div>
           </div>
         </div>
-
         <div class="status-bar-bg" style="height:6px; background: rgba(0,0,0,0.1); display: flex;">
-          ${zoneUnits.map(m => `
-            <div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" 
-                 style="flex:1; height:100%; border-right: 0.5px solid rgba(255,255,255,0.2);">
-            </div>`).join('')}
+          ${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" style="flex:1; height:100%; border-right: 0.5px solid rgba(255,255,255,0.2);"></div>`).join('')}
         </div>
-        
         <div class="expand-box" style="display: ${expandedZoneId === originalIdx ? 'block' : 'none'};" onclick="event.stopPropagation()">
           <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(70px, 1fr)); gap:10px; padding:15px; background: rgba(255,255,255,0.7);">
-            ${zoneUnits.map(m => `
-              <div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" 
-                   onclick="toggleUnit(${Number(m[0])})">
-                ${m[0]}
-              </div>`).join('')}
+            ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${Number(m[0])})">${m[0]}</div>`).join('')}
           </div>
-          <button class="btn-close-expand" onclick="closeExpand(event)" 
-                  style="width: 100%; padding: 12px; background: #444; color: #fff; border: none; font-weight: 900;">完了</button>
+          <button class="btn-close-expand" onclick="closeExpand(event)" style="width: 100%; padding: 12px; background: #444; color: #fff; border: none; font-weight: 900;">完了</button>
         </div>
       </div>`;
   }).join('');
@@ -283,8 +255,7 @@ function renderTile() {
     const isFinalZone = (originalIdx === finalIdx);
 
     return `
-      <div id="zone-card-${originalIdx}" class="tile-card ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" 
-           style="background-color: ${z.color || "#ffffff"} !important;" onclick="handleZoneAction(event, ${originalIdx})">
+      <div id="zone-card-${originalIdx}" class="tile-card ${selCount > 0 ? 'has-selection' : ''} ${expandedZoneId === originalIdx ? 'expanded' : ''}" style="background-color: ${z.color || "#ffffff"} !important;" onclick="handleZoneAction(event, ${originalIdx})">
         <div class="tile-row-1">
           <div class="check-wrapper" onclick="handleZoneCheck(event, ${originalIdx})">
             <input type="checkbox" ${isAll ? 'checked' : ''} style="pointer-events:none; transform: scale(0.75);">
@@ -299,28 +270,14 @@ function renderTile() {
         <div class="tile-row-5 status-bar-bg">
           ${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}
         </div>
-        
         <div class="expand-box" style="display: ${expandedZoneId === originalIdx ? 'block' : 'none'};" onclick="event.stopPropagation()">
           <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(70px, 1fr)); gap:10px; padding:15px; background: rgba(255,255,255,0.7);">
-            ${zoneUnits.map(m => `
-              <div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" 
-                   onclick="toggleUnit(${Number(m[0])})">
-                ${m[0]}
-              </div>`).join('')}
+            ${zoneUnits.map(m => `<div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" onclick="toggleUnit(${Number(m[0])})">${m[0]}</div>`).join('')}
           </div>
-          <button class="btn-close-expand" onclick="closeExpand(event)" 
-                  style="width: 100%; padding: 12px; background: #444; color: #fff; border: none; font-weight: 900;">完了</button>
+          <button class="btn-close-expand" onclick="closeExpand(event)" style="width: 100%; padding: 12px; background: #444; color: #fff; border: none; font-weight: 900;">完了</button>
         </div>
       </div>`;
   }).join('');
-}
-
-// --- 6. 残りのユーティリティ関数 ---
-function getFitSpan(text, baseSize, limitWidth) {
-  let estimatedWidth = 0;
-  for (let char of String(text)) estimatedWidth += char.match(/[ -~]/) ? baseSize * 0.52 : baseSize;
-  const scale = estimatedWidth > limitWidth ? limitWidth / estimatedWidth : 1;
-  return `<span style="font-size:${baseSize}px; transform:scaleX(${scale}); transform-origin:left; display:inline-block; white-space:nowrap;">${text}</span>`;
 }
 
 function renderLogs() {
@@ -331,45 +288,29 @@ function renderLogs() {
   logList.innerHTML = filtered.map(l => {
     const ids = l.ids ? String(l.ids).split(',').map(Number).sort((a,b)=>a-b) : [];
     const rangeStr = ids.length > 0 ? `${ids[0]}～${ids[ids.length-1]}` : '---';
-    
-    // 日付に曜日を付与
     const d = new Date(l.date);
     const dateWithDay = `${l.date}(${["日","月","火","水","木","金","土"][d.getDay()]})`;
 
     return `
     <div class="log-card" style="padding: 18px; margin-bottom: 15px;">
       <div class="log-date-badge" style="font-size: 13px; margin-bottom: 8px;">${l.type} - ${dateWithDay}</div>
-      
       <div class="log-content" style="display: flex; justify-content: space-between; align-items: flex-start;">
         <div>
-          <div class="f-oswald" style="font-size: 20px; font-weight: 900; color: var(--text); line-height: 1.2;">
-            ${l.zone}
-          </div>
-          <div class="f-oswald" style="font-size: 18px; font-weight: 700; color: var(--accent); margin-top: 4px;">
-            No.${rangeStr}
-          </div>
-          <div style="font-size: 12px; color: var(--text-dim); margin-top: 8px; font-weight: 700;">
-            👤 ${l.user || '---'}
-          </div>
+          <div class="f-oswald" style="font-size: 20px; font-weight: 900; color: var(--text); line-height: 1.2;">${l.zone}</div>
+          <div class="f-oswald" style="font-size: 18px; font-weight: 700; color: var(--accent); margin-top: 4px;">No.${rangeStr}</div>
+          <div style="font-size: 12px; color: var(--text-dim); margin-top: 8px; font-weight: 700;">👤 ${l.user || '---'}</div>
         </div>
-        
-        <div class="log-unit-large" style="text-align: right; line-height: 1;">
-          ${l.count}<small style="font-size: 14px; margin-left: 2px;">台</small>
-        </div>
+        <div class="log-unit-large" style="text-align: right; line-height: 1;">${l.count}<small style="font-size: 14px; margin-left: 2px;">台</small></div>
       </div>
-
       <div class="log-action-row" style="display: flex; gap: 15px; margin-top: 15px;">
-        <button class="btn-log-edit" 
-                style="flex: 2; padding: 15px; font-size: 16px; font-weight: 900; border-radius: 10px;" 
-                onclick="startEdit(${l.row}, '${l.ids}', '${l.date}', '${l.type}')">編集</button>
-        <button class="btn-log-del" 
-                style="flex: 1; padding: 15px; font-size: 16px; font-weight: 900; border-radius: 10px;" 
-                onclick="handleDelete(${l.row})">削除</button>
+        <button class="btn-log-edit" style="flex: 2; padding: 15px; font-size: 16px; font-weight: 900; border-radius: 10px;" onclick="startEdit(${l.row}, '${l.ids}', '${l.date}', '${l.type}')">編集</button>
+        <button class="btn-log-del" style="flex: 1; padding: 15px; font-size: 16px; font-weight: 900; border-radius: 10px;" onclick="handleDelete(${l.row})">削除</button>
       </div>
     </div>`;
   }).join('') + `<div style="height:150px;"></div>`;
 }
 
+// --- 6. ユーティリティ関数 ---
 function getFinalDateByType(type) {
   const tCol = DATE_COL_MAP[type];
   let last = null;
@@ -388,6 +329,22 @@ function getFinalWorkZoneIndex() {
   let lastId = -1;
   DATA.master.forEach(m => { if (m[tCol] && new Date(m[tCol]).getTime() === maxDate.getTime()) lastId = Number(m[0]); });
   return DATA.cols.findIndex(z => lastId >= Math.min(z.s, z.e) && lastId <= Math.max(z.s, z.e));
+}
+
+function formatLastDate(z, isShort = false) {
+  const tCol = DATE_COL_MAP[activeType];
+  const units = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e));
+  let last = null;
+  units.forEach(m => { if (m[tCol]) { const d = new Date(m[tCol]); if (!last || d > last) last = d; } });
+  if (!last) return "未";
+  return `${last.getMonth() + 1}/${last.getDate()}(${["日", "月", "火", "水", "木", "金", "土"][last.getDay()]})`;
+}
+
+function getFitSpan(text, baseSize, limitWidth) {
+  let estimatedWidth = 0;
+  for (let char of String(text)) estimatedWidth += char.match(/[ -~]/) ? baseSize * 0.52 : baseSize;
+  const scale = estimatedWidth > limitWidth ? limitWidth / estimatedWidth : 1;
+  return `<span style="font-size:${baseSize}px; transform:scaleX(${scale}); transform-origin:left; display:inline-block; white-space:nowrap;">${text}</span>`;
 }
 
 function handleZoneAction(event, index) {
@@ -415,9 +372,9 @@ function toggleUnit(id) {
 
 function updateCount() {
   const count = selectedUnits.size;
-  if (document.getElementById('u-total')) document.getElementById('u-total').innerText = count;
-  if (document.getElementById('send-btn')) document.getElementById('send-btn').disabled = (count === 0);
-  if (document.getElementById('cancel-btn')) document.getElementById('cancel-btn').style.display = (count > 0 || editingLogRow) ? "block" : "none";
+  document.getElementById('u-total').innerText = count;
+  document.getElementById('send-btn').disabled = (count === 0);
+  document.getElementById('cancel-btn').style.display = (count > 0 || editingLogRow) ? "block" : "none";
 }
 
 function changeType(t) { activeType = t; expandedZoneId = null; if (!editingLogRow) selectedUnits.clear(); renderAll(); }
@@ -440,15 +397,6 @@ function switchView(v) {
   document.getElementById('tab-work').className = 'top-tab ' + (isWork ? 'active-work' : '');
   document.getElementById('tab-log').className = 'top-tab ' + (!isWork ? 'active-log' : '');
   renderAll();
-}
-
-function formatLastDate(z, isShort = false) {
-  const tCol = DATE_COL_MAP[activeType];
-  const units = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e));
-  let last = null;
-  units.forEach(m => { if (m[tCol]) { const d = new Date(m[tCol]); if (!last || d > last) last = d; } });
-  if (!last) return "未";
-  return `${last.getMonth() + 1}/${last.getDate()}(${["日", "月", "火", "水", "木", "金", "土"][last.getDay()]})`;
 }
 
 function setMode(m) { 
@@ -475,8 +423,6 @@ function handleZoneCheckAll() {
   renderAll();
 }
 
-function cancelEdit() { editingLogRow = null; selectedUnits.clear(); expandedZoneId = null; renderAll(); }
-
 function startEdit(row, ids, date, type) {
   editingLogRow = row; 
   const idStr = ids ? String(ids) : "";
@@ -486,33 +432,13 @@ function startEdit(row, ids, date, type) {
   updateDateDisplay(); 
   displayMode = 'tile';
   switchView('work');
-  renderAll();
 }
 
-function toggleAuthMode() {
-  isSignUpMode = !isSignUpMode;
-  document.getElementById('auth-title').innerText = isSignUpMode ? "KIKI SIGN UP" : "KIKI LOGIN";
-  document.getElementById('auth-submit').innerText = isSignUpMode ? "REGISTER & LOGIN" : "LOGIN";
-}
-
-function showQR() { 
-  const target = document.getElementById("qr-target"); 
-  if (!target) return;
-  target.innerHTML = ""; 
-  new QRCode(target, { text: window.location.href, width: 200, height: 200 }); 
-  document.getElementById("qr-overlay").style.display = "flex"; 
-}
-function hideQR() { document.getElementById("qr-overlay").style.display = "none"; }
-function showManual() { document.getElementById('manual-overlay').style.display = 'flex'; }
-function hideManual() { document.getElementById('manual-overlay').style.display = 'none'; }
-
+function cancelEdit() { editingLogRow = null; selectedUnits.clear(); renderAll(); }
+function toggleAuthMode() { isSignUpMode = !isSignUpMode; document.getElementById('auth-title').innerText = isSignUpMode ? "KIKI SIGN UP" : "KIKI LOGIN"; document.getElementById('auth-submit').innerText = isSignUpMode ? "REGISTER & LOGIN" : "LOGIN"; }
 function scrollToLastWork() {
   const finalIdx = getFinalWorkZoneIndex();
-  if (finalIdx === -1) return alert("データがありません");
+  if (finalIdx === -1) return;
   const targetEl = document.getElementById(`zone-card-${finalIdx}`);
-  if (targetEl) {
-    targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    targetEl.classList.add('jump-highlight');
-    setTimeout(() => targetEl.classList.remove('jump-highlight'), 1600);
-  }
+  if (targetEl) targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
