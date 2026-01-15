@@ -1,12 +1,15 @@
 /**
- * api.js - KIKI PRO V15 通信モジュール
+ * api.js - KIKI PRO V17 通信モジュール
  */
 
-// api.js の中身を以下に差し替えてください
 const GAS_URL = "https://script.google.com/macros/s/AKfycbwqeriVnECgkJ-EGCQXZA_8s8mEl4cU63rBc_0Ya-jRIQhJvWCet6N5EWLD7QiFbI8jIQ/exec";
 const SECRET_API_KEY = "kiki-secure-2026";
 
 async function callGAS(func, params) {
+  // 処理開始時にLoadingを表示（全画面共通）
+  const loader = document.getElementById('loading');
+  if (loader) loader.style.display = 'flex';
+
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 60000);
 
@@ -16,9 +19,9 @@ async function callGAS(func, params) {
       mode: "cors",
       headers: { "Content-Type": "text/plain" },
       body: JSON.stringify({
-        method: func,         // GAS側の request.method に対応
-        apiKey: SECRET_API_KEY, // GAS側の apiKey に対応
-        data: params          // GAS側の request.data に対応
+        method: func,
+        apiKey: SECRET_API_KEY,
+        data: params
       }),
       signal: controller.signal
     });
@@ -28,22 +31,21 @@ async function callGAS(func, params) {
     let result = await response.json();
     clearTimeout(timeoutId);
 
-    // 文字列で届いたらオブジェクトに戻す
-    if (typeof result === 'string') {
-      try {
-        result = JSON.parse(result);
-      } catch (e) { console.error("Parse error", e); }
+    // 文字列で届いたらオブジェクトに戻す（爆速化のための二重パース対策）
+    while (typeof result === 'string') {
+      result = JSON.parse(result);
     }
 
-    // もしGAS側で {status: "error"} が返ってきたらアラートを出す
     if (result && result.status === "error") {
       throw new Error(result.message);
     }
 
+    // 正常終了時は一旦ここでLoadingを隠さない（app.js側の描画完了後に隠すため）
     return result;
 
   } catch (error) {
     clearTimeout(timeoutId);
+    if (loader) loader.style.display = 'none'; // エラー時のみ即座に隠す
     console.error("GAS Connection Error:", error);
     alert("エラー: " + error.message);
     throw error;
