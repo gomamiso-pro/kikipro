@@ -11,65 +11,71 @@ const SECRET_API_KEY = "kiki-secure-2026";
 /**
  * GASとの通信を管理するメイン関数
  */
-async function callGAS(methodName, params = {}) {
-  const loader = document.getElementById('loading');
-  if (loader) loader.style.display = 'flex';
+/**
+ * GASとの通信用定数
+ * 新しいデプロイを作成したら必ずこのURLを更新してください
+ */
+const GAS_URL = "ここに新しいデプロイURLを貼り付け"; 
 
-  // ログイン済み情報をグローバルから取得（app.jsで定義されているauthID/Passを使用）
-  const payload = {
-    method: methodName,
-    apiKey: SECRET_API_KEY,
-    data: {
-      authID: params.authID || authID,
-      authPass: params.authPass || authPass,
-      ...params
-    }
-  };
+/**
+ * callGAS: GASの関数を呼び出す
+ * @param {string} func - 呼び出す関数名 (addNewRecord, getInitialData など)
+ * @param {object} params - GASに渡す引数
+ * @returns {promise} - パース済みのデータ
+ */
+async function callGAS(func, params) {
+  // 通信のタイムアウトを60秒に設定
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 60000);
 
   try {
-    // タイムアウトを20秒に設定
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 20000);
-
     const response = await fetch(GAS_URL, {
       method: "POST",
-      mode: "cors", // CORSを明示
-      body: JSON.stringify(payload),
+      mode: "cors", // ブラウザの制限を回避
       headers: {
-        "Content-Type": "text/plain;charset=utf-8"
+        "Content-Type": "text/plain", // GAS側の仕様に合わせる
       },
+      body: JSON.stringify({
+        func: func,
+        params: params
+      }),
       signal: controller.signal
     });
 
-    clearTimeout(timeoutId);
-
     if (!response.ok) {
-      throw new Error("サーバー接続エラー (" + response.status + ")");
+      throw new Error(`HTTP Error: ${response.status}`);
     }
 
+    // GASからのレスポンスを取得
     const result = await response.json();
+    clearTimeout(timeoutId);
 
-    // GAS側でstatus: "error"が返ってきた場合
-    if (result.status === "error") {
-      throw new Error(result.message);
+    /**
+     * 【3秒切りの鍵】
+     * GAS側で JSON.stringify() して返された文字列を
+     * ブラウザ側で高速にパース(復元)する
+     */
+    if (typeof result === 'string') {
+      try {
+        return JSON.parse(result);
+      } catch (e) {
+        console.error("JSON Parse Error:", e);
+        return result;
+      }
     }
 
     return result;
 
   } catch (error) {
-    console.error("GAS Call Error:", error);
+    clearTimeout(timeoutId);
+    console.error("GAS Connection Error:", error);
     
-    // ユーザーにわかりやすいエラーメッセージ
-    let msg = error.message;
-    if (error.name === 'AbortError') msg = "通信タイムアウト：電波の良い場所で再試行してください。";
-    if (msg === "Failed to fetch") msg = "GASへの接続に失敗しました。公開設定を確認してください。";
-    
-    alert("【通信エラー】\n" + msg);
-    throw error; // app.js側の catch に流す
-
-  } finally {
-    // 成功・失敗に関わらずLoadingを必ず消す
-    if (loader) loader.style.display = 'none';
+    if (error.name === 'AbortError') {
+      alert("通信タイムアウト：電波の良い場所で再度お試しください。");
+    } else {
+      alert("サーバー通信エラーが発生しました。");
+    }
+    throw error;
   }
 }
 
