@@ -14,7 +14,7 @@ let isApiProcessing = false;
 /**
  * GASとの通信を管理するメイン関数
  */
-async function callGAS(methodName, params = {}) {
+async function api(methodName, params = {}) {
   // 保存・登録処理中の連打をブロック
   if (isApiProcessing && (methodName === 'addNewRecord' || methodName === 'signUp')) {
     console.warn("API処理中のためリクエストをブロック:", methodName);
