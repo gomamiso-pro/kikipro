@@ -108,23 +108,31 @@ async function upload() {
   loader.style.display = 'flex';
 
   try {
-    // addNewRecordの戻り値として、既に最新のDATA（logs, master含む）が返ってくる
-    const newData = await callGAS("addNewRecord", { 
+    // 1. GASへ送信し、戻り値（最新データ）を直接 DATA に入れる
+    const result = await callGAS("addNewRecord", { 
       date: document.getElementById('work-date').value, 
       type: activeType, 
       ids: Array.from(selectedUnits), 
       editRow: editingLogRow 
     });
     
-    // データを一気に更新
-    DATA = newData;
+    // 2. グローバル変数を更新
+    DATA = result; 
     
-    cancelEdit(); // 選択解除
-    renderAll();  // 描画
-    switchView('log'); // 画面切り替え
+    // 3. 状態をリセットして描画
+    editingLogRow = null;
+    selectedUnits.clear();
+    expandedZoneId = null;
     
+    // 4. UIの更新
+    renderAll(); 
+    switchView('log'); // 履歴を表示
+    
+    alert("登録が完了しました");
+
   } catch (e) { 
-    alert("保存に失敗しました");
+    console.error("Upload Error:", e);
+    alert("通信に失敗しました。画面を再読み込みしてください。");
   } finally {
     loader.style.display = 'none';
   }
