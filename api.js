@@ -1,90 +1,73 @@
 /**
- * api.js - KIKI PRO V17 通信モジュール
- * 2026 Stable Version / 爆速レスポンス対応
+ * KIKI PRO V17 - API Manager
+ * GAS (Google Apps Script) との通信を制御
  */
 
-const GAS_URL = "https://script.google.com/macros/s/AKfycbzw6bfQrQIAM1TEYNaVRTpGgnh9TP3W4E87e3X9AasK7WJ64a0Cb2dHsAutKtNZyZpKDA/exec";
-const SECRET_API_KEY = "kiki-secure-2026";
+const API_TIMEOUT = 15000; // 15秒でタイムアウト
 
 /**
- * GASとの通信を一手に引き受ける
- * @param {string} func - 呼び出すメソッド名
- * @param {object} params - GASに渡すデータ
+ * GASのサーバー側関数を呼び出す汎用API関数
+ * @param {string} funcName - 呼び出す関数名 ('login', 'upload', 'deleteLog' など)
+ * @param {object} payload - 送信するデータ
+ * @returns {Promise} - サーバーからのレスポンス
  */
-async function callGAS(func, params) {
-  // 1. 通信開始時にLoadingを表示（ログイン・登録・削除すべて共通）
+async function api(funcName, payload = {}) {
+  return new Promise((resolve, reject) => {
+    // タイムアウト監視
+    const timer = setTimeout(() => {
+      reject(new Error('通信タイムアウト：電波の良い場所で再試行してください'));
+    }, API_TIMEOUT);
+
+    // GASの関数を実行
+    // コード.js の entryPoint(request) を呼び出す構成
+    google.script.run
+      .withSuccessHandler((response) => {
+        clearTimeout(timer);
+        
+        // 文字列で返ってきた場合はパース（安全策）
+        const res = typeof response === 'string' ? JSON.parse(response) : response;
+        
+        if (res && res.success) {
+          resolve(res);
+        } else {
+          reject(new Error(res.message || 'サーバーエラーが発生しました'));
+        }
+      })
+      .withFailureHandler((error) => {
+        clearTimeout(timer);
+        reject(new Error('システムエラー: ' + error.message));
+      })
+      .entryPoint({
+        action: funcName,
+        payload: payload
+      });
+  });
+}
+
+/**
+ * グローバル Loading 表示制御
+ * app.js からも呼び出される
+ */
+function showLoading() {
   const loader = document.getElementById('loading');
-  if (loader) loader.style.display = 'flex';
+  if (loader) {
+    loader.style.display = 'flex';
+    // アクセシビリティ：背後の操作を無効化
+    document.body.style.pointerEvents = 'none';
+  }
+}
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 60000); // 1分のタイムアウト設定
-
-  try {
-    const response = await fetch(GAS_URL, {
-      method: "POST",
-      mode: "cors",
-      headers: { "Content-Type": "text/plain" },
-      body: JSON.stringify({
-        method: func,
-        apiKey: SECRET_API_KEY,
-        data: params
-      }),
-      signal: controller.signal
-    });
-
-    if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
-
-    let result = await response.json();
-    clearTimeout(timeoutId);
-
-    // 文字列パース処理（再帰的にオブジェクト化）
-    while (typeof result === 'string') {
-      result = JSON.parse(result);
-    }
-
-    // GAS側からのエラー通知をキャッチ
-    if (result && result.status === "error") {
-      throw new Error(result.message);
-    }
-
-    /**
-     * 【爆速のポイント】
-     * 登録(addNewRecord)や削除(deleteLog)の場合、GAS側が既に
-     * 最新の getInitialData を含んだ result を返してきているため、
-     * ここでグローバル変数 DATA を更新する準備が整っています。
-     */
-    
-    // 正常終了時はLoadingを消さずにresultを返す
-    // (app.js側で描画が完了したタイミングで loader.style.display = 'none' を行うため)
-    return result;
-
-  } catch (error) {
-    clearTimeout(timeoutId);
-    // エラー時は即座にLoadingを隠して通知
-    if (loader) loader.style.display = 'none';
-    console.error("GAS Connection Error:", error);
-    alert("通信エラーが発生しました: " + error.message);
-    throw error;
+function hideLoading() {
+  const loader = document.getElementById('loading');
+  if (loader) {
+    loader.style.display = 'none';
+    document.body.style.pointerEvents = 'auto';
   }
 }
 
 /**
- * ログアウト処理
- * ローカルストレージをクリアして初期画面に戻す
+ * 初期化時に Loading を一度リセット
  */
-function logout() {
-  if (confirm("ログアウトしますか？")) {
-    localStorage.removeItem('kiki_authID');
-    localStorage.removeItem('kiki_authPass');
-    location.reload();
-  }
-}
-
-/**
- * Loadingを手動で隠すためのユーティリティ
- * app.jsのrenderAllなどの最後に呼び出す
- */
-function hideLoader() {
-  const loader = document.getElementById('loading');
-  if (loader) loader.style.display = 'none';
-}
+window.addEventListener('DOMContentLoaded', () => {
+  // 初期の loading-state クラスは app.js の silentLogin 完了まで維持
+});
