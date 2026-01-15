@@ -2,7 +2,7 @@
  * api.js - KIKI PRO V17 通信モジュール
  */
 
-const GAS_URL = "https://script.google.com/macros/s/AKfycbwqeriVnECgkJ-EGCQXZA_8s8mEl4cU63rBc_0Ya-jRIQhJvWCet6N5EWLD7QiFbI8jIQ/exec";
+const GAS_URL = "https://script.google.com/macros/s/AKfycbzVAwf4OVt0NeLaNK1OPqyrriFUI9AN2vJ78QmOHdwbkndZ1Rysmp5m6WOIM_h-1GYX9w/exec";
 const SECRET_API_KEY = "kiki-secure-2026";
 
 async function callGAS(func, params) {
