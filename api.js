@@ -3,7 +3,7 @@
  */
 
 // 1. GASウェブアプリURL (新しいデプロイ後のURLに差し替えてください)
-const GAS_URL = "https://script.google.com/macros/s/AKfycbxzXaK0VJmXEy2-t6-Wd-SLIYgugDiG_gbEP49zMCoHuU52RivtJ2FYleAUyf-QKXa7rg/exec";
+const GAS_URL = "https://script.google.com/macros/s/AKfycby-fkCdGJTU39ml2tGVmmZjw0RBA7MfP_pIGqrhlDX011kzZYVUKEY1mXxHZH672AB-fw/exec";
 
 // 2. GAS側の SECRET_API_KEY
 const SECRET_API_KEY = "kiki-secure-2026";
