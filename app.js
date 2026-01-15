@@ -13,7 +13,6 @@ let expandedZoneId = null;
 let editingLogRow = null;
 let isSignUpMode = false;
 
-// 列インデックスの定義
 const TYPE_MAP = { "通常": 3, "セル盤": 4, "計数機": 5, "ユニット": 6, "説明書": 7 };
 const DATE_COL_MAP = { "通常": 8, "セル盤": 9, "計数機": 10, "ユニット": 11, "説明書": 12 };
 
@@ -35,22 +34,14 @@ window.onload = () => {
 async function silentLogin() {
   const loader = document.getElementById('loading');
   if (!authID || !authPass) {
-    loader.style.display = 'none';
+    if (loader) loader.style.display = 'none';
     document.getElementById('login-overlay').style.display = 'flex';
     return;
   }
 
   try {
-    let res = await callGAS("getInitialData", { authID, authPass });
-    
-    // データ展開：文字列ならパースし、不完全なら繰り返す（二重シリアライズ対策）
-    while (typeof res === 'string') {
-      res = JSON.parse(res);
-    }
-    
-    DATA = res; 
-
-    if (!DATA || !DATA.user) throw new Error("Invalid Structure");
+    // api.js側でloaderを表示する
+    DATA = await callGAS("getInitialData", { authID, authPass }); 
 
     document.getElementById('user-display').innerText = DATA.user.toUpperCase();
     renderAll();
@@ -64,7 +55,7 @@ async function silentLogin() {
     localStorage.clear();
     location.reload();
   } finally {
-    loader.style.display = 'none';
+    if (loader) loader.style.display = 'none';
   }
 }
 
@@ -74,13 +65,12 @@ async function handleAuth() {
   const loader = document.getElementById('loading');
   if (!nick || !pass) return alert("入力してください");
 
+  // ボタンを押した瞬間に明示的にLoadingを表示
   if (loader) loader.style.display = 'flex';
 
   try {
     const method = isSignUpMode ? "signUp" : "getInitialData";
-    let res = await callGAS(method, { authID: nick, authPass: pass, nickname: nick });
-    
-    while (typeof res === 'string') res = JSON.parse(res);
+    DATA = await callGAS(method, { authID: nick, authPass: pass, nickname: nick });
     
     authID = nick;
     authPass = pass;
@@ -89,38 +79,32 @@ async function handleAuth() {
       localStorage.setItem('kiki_authPass', authPass);
     }
     
-    DATA = res;
     document.getElementById('user-display').innerText = DATA.user.toUpperCase();
     renderAll();
     document.body.classList.add('ready');
     document.getElementById('login-overlay').style.display = 'none';
     document.getElementById('app-content').style.display = 'flex';
   } catch (e) {
-    alert("認証に失敗しました。ID/パスワードを確認してください。");
+    // エラー時はapi.js側でalertが出る
   } finally {
     if (loader) loader.style.display = 'none';
   }
 }
 
-// --- 4. 登録・削除処理 ---
+// --- 4. 登録・削除処理 (爆速化版) ---
 async function upload() {
   if (selectedUnits.size === 0) return;
   const loader = document.getElementById('loading');
-  loader.style.display = 'flex';
 
   try {
-    const result = await callGAS("addNewRecord", { 
+    // 登録とデータ再取得を1回で行う (GAS側が最新データを返すため)
+    DATA = await callGAS("addNewRecord", { 
       authID, authPass,
       date: document.getElementById('work-date').value, 
       type: activeType, 
       ids: Array.from(selectedUnits), 
       editRow: editingLogRow 
     });
-    
-    // 戻り値は最新の getInitialData
-    let res = result;
-    while (typeof res === 'string') res = JSON.parse(res);
-    DATA = res; 
     
     editingLogRow = null;
     selectedUnits.clear();
@@ -129,30 +113,27 @@ async function upload() {
     renderAll(); 
     switchView('log'); 
     
-    loader.style.display = 'none';
+    // 完了通知を少し遅らせて描画を優先
     setTimeout(() => alert("登録完了しました"), 50);
 
   } catch (e) { 
-    loader.style.display = 'none';
-    alert("登録に失敗しました");
+    // エラー処理
+  } finally {
+    if (loader) loader.style.display = 'none';
   }
 }
 
 async function handleDelete(row) { 
   if (!confirm("この履歴を削除しますか？")) return;
   const loader = document.getElementById('loading');
-  loader.style.display = 'flex';
 
   try { 
-    const result = await callGAS("deleteLog", { authID, authPass, row: row }); 
-    let res = result;
-    while (typeof res === 'string') res = JSON.parse(res);
-    DATA = res;
+    DATA = await callGAS("deleteLog", { authID, authPass, row: row }); 
     renderAll();
   } catch (e) {
-    alert("削除に失敗しました");
+    // エラー処理
   } finally {
-    loader.style.display = 'none';
+    if (loader) loader.style.display = 'none';
   }
 }
 
@@ -310,7 +291,7 @@ function renderLogs() {
   }).join('') + `<div style="height:150px;"></div>`;
 }
 
-// --- 6. ユーティリティ関数 ---
+// --- 6. ユーティリティ ---
 function getFinalDateByType(type) {
   const tCol = DATE_COL_MAP[type];
   let last = null;
