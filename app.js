@@ -1,409 +1,423 @@
-// --- グローバル変数 ---
-let MASTER_DATA = [];
-let LOG_DATA = [];
-let ZONES = [];
-let TYPES = [];
-let CUR_USER = null;
-let CUR_TYPE = "";
-let VIEW_MODE = 'list'; // 'list' or 'tile'
-let TEMP_DATA = {}; // { zoneId: [unit, unit...] }
-let EDITING_LOG_ID = null;
+/**
+ * KIKI PRO V17 - Complete Logic
+ * 全機能を維持したまま、爆速化と表示系を最適化
+ */
 
-// --- 初期化 ---
-window.onload = async () => {
-  await silentLogin();
+// --- 1. グローバル変数の宣言 ---
+let DATA = {};
+let activeType = "通常";
+let displayMode = "tile"; 
+let selectedUnits = new Set();
+let expandedZoneId = null;
+let editingLogRow = null;
+let isSignUpMode = false;
+
+// 定数
+const TYPE_MAP = { "通常": 3, "セル盤": 4, "計数機": 5, "ユニット": 6, "説明書": 7 };
+const DATE_COL_MAP = { "通常": 8, "セル盤": 9, "計数機": 10, "ユニット": 11, "説明書": 12 };
+
+// --- 2. 初期起動処理 ---
+window.onload = () => {
+  silentLogin(); 
+  const d = new Date();
+  const dateInput = document.getElementById('work-date');
+  if (dateInput) {
+    dateInput.value = d.toISOString().split('T')[0];
+    updateDateDisplay();
+  }
 };
 
-// --- 認証系 ---
+// --- 3. 認証・データ取得コア ---
 async function silentLogin() {
-  const saved = localStorage.getItem('kiki_auth');
-  if (saved) {
-    const { nick, pass } = JSON.parse(saved);
-    const res = await api('login', { nick, pass });
-    if (res.success) {
-      setupAppData(res);
-      return;
-    }
-  }
-  showLogin();
-}
+  const savedID = localStorage.getItem('kiki_authID');
+  const savedPass = localStorage.getItem('kiki_authPass');
 
-function showLogin() {
-  document.body.classList.remove('loading-state');
-  document.body.classList.add('auth-required');
-  document.getElementById('loading').style.display = 'none';
-  document.getElementById('login-overlay').style.display = 'flex';
+  if (!savedID || !savedPass) {
+    showLogin();
+    return;
+  }
+
+  try {
+    // api.js経由で呼び出し
+    const res = await api('getInitialData', { authID: savedID, authPass: savedPass });
+    setupAppData(res, savedID, savedPass);
+  } catch (e) {
+    console.error("Silent Login Failed:", e);
+    showLogin();
+  }
 }
 
 async function handleAuth() {
   const nick = document.getElementById('login-nick').value;
   const pass = document.getElementById('login-pass').value;
-  if (!nick || !pass) return alert("ニックネームとパスワードを入力してください");
+  if (!nick || !pass) return alert("入力してください");
 
-  showLoading();
+  showLoading(); // api.jsの関数
   try {
-    const res = await api('login', { nick, pass });
-    if (res.success) {
-      if (document.getElementById('auto-login').checked) {
-        localStorage.setItem('kiki_auth', JSON.stringify({ nick, pass }));
-      }
-      setupAppData(res);
-    } else {
-      alert(res.message);
+    const method = isSignUpMode ? "signUp" : "getInitialData";
+    const res = await api(method, { authID: nick, authPass: pass, nickname: nick });
+    
+    if (document.getElementById('auto-login').checked) {
+      localStorage.setItem('kiki_authID', nick);
+      localStorage.setItem('kiki_authPass', pass);
     }
+    setupAppData(res, nick, pass);
   } catch (e) {
-    alert("エラー: " + e.message);
+    alert("認証エラー: " + e.message);
   } finally {
     hideLoading();
   }
 }
 
-function setupAppData(res) {
-  CUR_USER = res.user;
-  MASTER_DATA = res.masterData;
-  LOG_DATA = res.logData;
-  ZONES = res.zones;
-  TYPES = res.types;
-
-  document.getElementById('user-display').textContent = CUR_USER.nick;
-  document.body.classList.remove('loading-state', 'auth-required');
+function setupAppData(res, id, pass) {
+  DATA = res;
+  const userDisp = document.getElementById('user-display');
+  if (userDisp) userDisp.innerText = DATA.user.toUpperCase();
+  
+  document.body.classList.remove('loading-state');
   document.body.classList.add('ready');
   document.getElementById('login-overlay').style.display = 'none';
   document.getElementById('app-content').style.display = 'flex';
+  
+  renderAll();
+}
 
-  // 初期日付セット
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('work-date').value = today;
-
-  initTypeTabs();
-  switchType(TYPES[0]);
-  updateDateDisplay();
+function showLogin() {
+  document.body.classList.remove('loading-state');
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('login-overlay').style.display = 'flex';
 }
 
 function logout() {
-  localStorage.removeItem('kiki_auth');
+  localStorage.removeItem('kiki_authID');
+  localStorage.removeItem('kiki_authPass');
   location.reload();
 }
 
-// --- タブ・表示制御 ---
-function initTypeTabs() {
-  const container = document.getElementById('type-tabs');
-  container.innerHTML = TYPES.map(t => `
-    <button class="type-btn" id="tbtn-${t}" onclick="switchType('${t}')">
-      <div class="type-name-label">${t}</div>
-      <div class="type-last-badge" id="last-${t}">--</div>
-    </button>
-  `).join('');
-  updateTypeBadges();
-}
+// --- 4. 通信アクション ---
+async function upload() {
+  if (selectedUnits.size === 0 && !editingLogRow) return;
+  showLoading();
 
-function switchType(type) {
-  CUR_TYPE = type;
-  document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById(`tbtn-${type}`).classList.add('active');
-  renderWorkView();
-}
-
-function switchView(mode) {
-  const isWork = mode === 'work';
-  document.getElementById('view-work').style.display = isWork ? 'block' : 'none';
-  document.getElementById('view-log').style.display = isWork ? 'none' : 'block';
-  document.getElementById('tab-work').className = isWork ? 'top-tab active-work' : 'top-tab';
-  document.getElementById('tab-log').className = isWork ? '' : 'top-tab active-log';
-  document.getElementById('view-mode-controls').style.display = isWork ? 'flex' : 'none';
-  if (!isWork) renderLogView();
-}
-
-function setMode(m) {
-  VIEW_MODE = m;
-  document.getElementById('mode-list-btn').className = m === 'list' ? 'switch-btn active' : 'switch-btn';
-  document.getElementById('mode-tile-btn').className = m === 'tile' ? 'switch-btn active' : 'switch-btn';
-  renderWorkView();
-}
-
-// --- メイン描画ロジック ---
-function renderWorkView() {
-  const container = document.getElementById('zone-display');
-  container.className = VIEW_MODE === 'list' ? 'zone-container-list' : 'zone-container-tile';
-  
-  const typeZones = ZONES.filter(z => z.type === CUR_TYPE);
-  const targetDate = document.getElementById('work-date').value;
-
-  container.innerHTML = typeZones.map(z => {
-    const masterUnits = MASTER_DATA.filter(m => m.zoneId === z.id).map(m => m.unit);
-    const logEntries = LOG_DATA.filter(l => l.zoneId === z.id && l.date === targetDate);
-    const finishedUnits = [...new Set(logEntries.flatMap(l => l.units))];
-    const tempUnits = TEMP_DATA[z.id] || [];
+  try {
+    await api("addNewRecord", { 
+      date: document.getElementById('work-date').value, 
+      type: activeType, 
+      ids: Array.from(selectedUnits), 
+      editRow: editingLogRow 
+    });
     
-    // ゲージ生成
-    const gauge = masterUnits.map(u => {
-      let status = "";
-      if (finishedUnits.includes(u)) status = "active";
-      if (tempUnits.includes(u)) status = "active has-temp";
-      return `<div class="p-seg ${status}"></div>`;
-    }).join('');
-
-    if (VIEW_MODE === 'list') {
-      return `
-        <div class="zone-row ${tempUnits.length > 0 ? 'has-selection' : ''}" id="zone-${z.id}" onclick="expandZone(${z.id})">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div style="font-weight:900; font-size:16px;">${z.name}</div>
-            <div class="f-oswald" style="font-size:24px; font-weight:900;">${finishedUnits.length + tempUnits.length}</div>
-          </div>
-          <div class="status-bar-bg">${gauge}</div>
-        </div>
-      `;
-    } else {
-      // タイル表示 (曜日なし日付 + ゾーン名 + 台数)
-      return `
-        <div class="tile-card ${tempUnits.length > 0 ? 'has-selection' : ''}" id="zone-${z.id}" onclick="expandZone(${z.id})">
-          <div class="tile-row-1">
-            <div class="tile-date-box">${formatDateWithDay(targetDate)}</div>
-          </div>
-          <div class="tile-row-2">${z.name}</div>
-          <div class="tile-row-3">NO.${z.id}</div>
-          <div class="tile-row-4">${finishedUnits.length + tempUnits.length}</div>
-          <div class="status-bar-bg" style="height:4px; margin-top:2px;">${gauge}</div>
-        </div>
-      `;
-    }
-  }).join('');
-  
-  updateTotal();
+    // 最新データを再取得して更新
+    const res = await api("getInitialData", { 
+      authID: localStorage.getItem('kiki_authID'), 
+      authPass: localStorage.getItem('kiki_authPass') 
+    });
+    DATA = res;
+    cancelEdit(); 
+    switchView('log');
+  } catch (e) { 
+    alert("保存に失敗しました: " + e.message);
+  } finally {
+    hideLoading();
+  }
 }
 
-// --- 展開・入力 ---
-function expandZone(zId) {
-  const zone = ZONES.find(z => z.id === zId);
-  const masterUnits = MASTER_DATA.filter(m => m.zoneId === zId).map(m => m.unit);
-  const targetDate = document.getElementById('work-date').value;
-  const finishedUnits = [...new Set(LOG_DATA.filter(l => l.zoneId === zId && l.date === targetDate).flatMap(l => l.units))];
+async function handleDelete(row) { 
+  if (!confirm("この履歴を削除しますか？")) return;
+  showLoading();
+
+  try { 
+    await api("deleteLog", { row }); 
+    const res = await api("getInitialData", { 
+      authID: localStorage.getItem('kiki_authID'), 
+      authPass: localStorage.getItem('kiki_authPass') 
+    });
+    DATA = res;
+    renderAll();
+  } catch (e) {
+    alert("削除に失敗しました");
+  } finally {
+    hideLoading();
+  }
+}
+
+// --- 5. 描画ロジック ---
+function renderAll() {
+  if (!DATA || !DATA.cols) return;
+
+  const types = ["通常", "セル盤", "計数機", "ユニット", "説明書"];
+  const tabContainer = document.getElementById('type-tabs');
+  if (tabContainer) {
+    tabContainer.innerHTML = types.map(t => {
+      const lastDate = getFinalDateByType(t);
+      return `
+        <button class="type-btn ${t === activeType ? 'active' : ''}" onclick="changeType('${t}')">
+          <div class="type-name-label">${t}</div>
+          <div class="type-last-badge">${lastDate}</div>
+        </button>`;
+    }).join('');
+  }
+  
+  updateToggleAllBtnState();
+  const viewWork = document.getElementById('view-work');
+  if (viewWork && viewWork.style.display !== 'none') {
+    displayMode === 'list' ? renderList() : renderTile();
+  } else {
+    renderLogs();
+  }
+  updateCount();
+}
+
+function renderList() {
+  const container = document.getElementById('zone-display');
+  container.className = "zone-container-list"; 
+  
+  const tIdx = TYPE_MAP[activeType];
+  const finalIdx = getFinalWorkZoneIndex();
+  const filteredZones = getFilteredZones(tIdx);
+
+  container.innerHTML = filteredZones.map((z) => {
+    const originalIdx = DATA.cols.indexOf(z);
+    const zoneUnits = getZoneUnits(z, tIdx);
+    const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
+    const isAll = zoneUnits.length > 0 && zoneUnits.every(m => selectedUnits.has(Number(m[0])));
+    const isFinalZone = (originalIdx === finalIdx);
+
+    return `
+      <div id="zone-card-${originalIdx}" class="zone-row ${selCount > 0 ? 'has-selection' : ''}" onclick="handleZoneAction(event, ${originalIdx})">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="font-weight:900; font-size:16px; color:#333;">${z.name}</div>
+          <div class="f-oswald" style="font-size:13px; color:${isFinalZone ? '#d32f2f' : '#666'};">
+            ${isFinalZone ? '🚩' : ''}${formatLastDate(z)}
+          </div>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-top:4px;">
+           <span class="f-oswald" style="font-size:20px; font-weight:900;">No.${z.s}-${z.e}</span>
+           <div class="f-oswald" style="font-size:24px; font-weight:900;">${selCount}<small style="font-size:12px; opacity:0.6;">/${zoneUnits.length}</small></div>
+        </div>
+        <div class="status-bar-bg">${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}</div>
+      </div>`;
+  }).join('');
+}
+
+function renderTile() {
+  const container = document.getElementById('zone-display');
+  container.className = "zone-container-tile";
+  const tIdx = TYPE_MAP[activeType];
+  const finalIdx = getFinalWorkZoneIndex();
+  const filteredZones = getFilteredZones(tIdx);
+
+  container.innerHTML = filteredZones.map((z) => {
+    const originalIdx = DATA.cols.indexOf(z);
+    const zoneUnits = getZoneUnits(z, tIdx);
+    const selCount = zoneUnits.filter(m => selectedUnits.has(Number(m[0]))).length;
+    const isFinalZone = (originalIdx === finalIdx);
+
+    return `
+      <div id="zone-card-${originalIdx}" class="tile-card ${selCount > 0 ? 'has-selection' : ''}" 
+           style="background-color: ${z.color || "#ffffff"} !important;" onclick="handleZoneAction(event, ${originalIdx})">
+        <div class="tile-date-box ${isFinalZone ? 'is-final' : ''}">${isFinalZone ? '🚩' : ''}${formatLastDate(z)}</div>
+        <div class="tile-row-2">${z.name.replace('ゾーン', '')}</div>
+        <div class="tile-row-3 f-oswald">No.${z.s}</div>
+        <div class="tile-row-4 f-oswald">${selCount}</div>
+        <div class="tile-row-5 status-bar-bg">
+          ${zoneUnits.map(m => `<div class="p-seg ${selectedUnits.has(Number(m[0])) ? 'active' : ''}"></div>`).join('')}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// --- 6. ユーティリティ ---
+function getFilteredZones(tIdx) {
+  return DATA.cols.filter(z => 
+    DATA.master.some(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1)
+  );
+}
+
+function getZoneUnits(z, tIdx) {
+  return DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1);
+}
+
+function handleZoneAction(event, index) {
+  expandedZoneId = index;
+  const z = DATA.cols[index];
+  const tIdx = TYPE_MAP[activeType];
+  const zoneUnits = getZoneUnits(z, tIdx);
   
   const overlay = document.createElement('div');
   overlay.className = 'overlay expanded';
   overlay.id = 'expand-overlay';
-  
   overlay.innerHTML = `
-    <div style="font-weight:900; margin-bottom:10px; font-size:18px; color:#000;">${zone.name}</div>
+    <div style="font-weight:900; margin-bottom:10px; font-size:18px; color:#000;">${z.name}</div>
     <div class="unit-grid">
-      ${masterUnits.map(u => {
-        const isDone = finishedUnits.includes(u);
-        const isTemp = (TEMP_DATA[zId] || []).includes(u);
-        return `
-          <div class="unit-chip ${isDone || isTemp ? 'active' : ''}" 
-               onclick="toggleUnit(this, ${zId}, ${u})" 
-               style="${isDone && !isTemp ? 'opacity:0.5; pointer-events:none;' : ''}">
-            ${u}
-          </div>
-        `;
-      }).join('')}
+      ${zoneUnits.map(m => `
+        <div class="unit-chip ${selectedUnits.has(Number(m[0])) ? 'active' : ''}" 
+             onclick="toggleUnit(${Number(m[0])}, this)">
+          ${m[0]}
+        </div>`).join('')}
     </div>
-    <button class="btn-close-expand" onclick="closeExpand()">閉じる</button>
+    <button class="btn-close-expand" onclick="document.getElementById('expand-overlay').remove()">閉じる</button>
   `;
   document.body.appendChild(overlay);
-  overlay.style.display = 'flex';
 }
 
-function toggleUnit(el, zId, unit) {
-  if (!TEMP_DATA[zId]) TEMP_DATA[zId] = [];
-  const idx = TEMP_DATA[zId].indexOf(unit);
-  if (idx > -1) {
-    TEMP_DATA[zId].splice(idx, 1);
-    el.classList.remove('active');
+function toggleUnit(id, el) {
+  if (selectedUnits.has(id)) {
+    selectedUnits.delete(id);
+    if(el) el.classList.remove('active');
   } else {
-    TEMP_DATA[zId].push(unit);
-    el.classList.add('active');
+    selectedUnits.add(id);
+    if(el) el.classList.add('active');
   }
-  if (TEMP_DATA[zId].length === 0) delete TEMP_DATA[zId];
-  renderWorkView();
+  updateCount();
+  // 背後の描画も更新
+  displayMode === 'list' ? renderList() : renderTile();
 }
 
-function closeExpand() {
-  const el = document.getElementById('expand-overlay');
-  if (el) el.remove();
-}
+function renderLogs() {
+  const filtered = DATA.logs ? DATA.logs.filter(l => l.type === activeType) : [];
+  const logList = document.getElementById('log-list');
+  if(!logList) return;
 
-// --- 登録・アクション ---
-async function upload() {
-  if (Object.keys(TEMP_DATA).length === 0) return;
-  const btn = document.getElementById('send-btn');
-  btn.disabled = true;
-  showLoading();
+  logList.innerHTML = filtered.map(l => {
+    const ids = l.ids ? String(l.ids).split(',').map(Number).sort((a,b)=>a-b) : [];
+    const rangeStr = ids.length > 0 ? `${ids[0]}～${ids[ids.length-1]}` : '---';
+    const d = new Date(l.date);
+    const dateStr = `${d.getMonth() + 1}/${d.getDate()}(${["日","月","火","水","木","金","土"][d.getDay()]})`;
 
-  const payload = {
-    userId: CUR_USER.id,
-    date: document.getElementById('work-date').value,
-    type: CUR_TYPE,
-    editLogId: EDITING_LOG_ID,
-    data: Object.entries(TEMP_DATA).map(([zId, units]) => ({
-      zoneId: parseInt(zId),
-      units: units
-    }))
-  };
-
-  try {
-    const res = await api('upload', payload);
-    if (res.success) {
-      MASTER_DATA = res.masterData;
-      LOG_DATA = res.logData;
-      cancelEdit(); // データクリアとボタン復旧
-      renderWorkView();
-      updateTypeBadges();
-    }
-  } catch (e) {
-    alert(e.message);
-    btn.disabled = false;
-  } finally {
-    hideLoading();
-  }
-}
-
-function handleZoneCheckAll() {
-  const typeZones = ZONES.filter(z => z.type === CUR_TYPE);
-  const targetDate = document.getElementById('work-date').value;
-  let anyNew = false;
-
-  typeZones.forEach(z => {
-    const masterUnits = MASTER_DATA.filter(m => m.zoneId === z.id).map(m => m.unit);
-    const finishedUnits = [...new Set(LOG_DATA.filter(l => l.zoneId === z.id && l.date === targetDate).flatMap(l => l.units))];
-    const remain = masterUnits.filter(u => !finishedUnits.includes(u));
-    
-    if (remain.length > 0) {
-      TEMP_DATA[z.id] = remain;
-      anyNew = true;
-    }
-  });
-
-  if (!anyNew) TEMP_DATA = {};
-  renderWorkView();
-}
-
-function cancelEdit() {
-  TEMP_DATA = {};
-  EDITING_LOG_ID = null;
-  document.getElementById('cancel-btn').style.display = 'none';
-  document.getElementById('send-btn').textContent = '登録実行';
-  renderWorkView();
-}
-
-// --- 履歴描画 ---
-function renderLogView() {
-  const container = document.getElementById('log-list');
-  const sorted = [...LOG_DATA].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
-  container.innerHTML = sorted.map(l => {
-    const zone = ZONES.find(z => z.id === l.zoneId);
     return `
-      <div class="log-card">
-        <div class="log-content">
-          <div>
-            <div class="log-main-info">${zone ? zone.name : '不明'}</div>
-            <div class="log-range">${formatDateWithDay(l.date)}</div>
-            <div class="log-user-info">担当: ${l.userNick} | ${l.timestamp.slice(11, 16)}</div>
-          </div>
-          <div class="log-unit-large">${l.units.length}</div>
+    <div class="log-card">
+      <div class="log-content">
+        <div>
+          <div class="log-main-info">${l.zone}</div>
+          <div class="log-range">${dateStr} | No.${rangeStr}</div>
+          <div style="font-size:11px; color:var(--text-dim); margin-top:4px;">👤 ${l.user || '---'}</div>
         </div>
-        <div class="log-action-row">
-          <button class="btn-log-edit" onclick="editLog(${l.id})">編集</button>
-          <button class="btn-log-del" onclick="deleteLog(${l.id})">削除</button>
-        </div>
+        <div class="log-unit-large">${l.count}</div>
       </div>
-    `;
-  }).join('');
+      <div class="log-action-row">
+        <button class="btn-log-edit" onclick="startEdit(${l.row}, '${l.ids}', '${l.date}', '${l.type}')">編集</button>
+        <button class="btn-log-del" onclick="handleDelete(${l.row})">削除</button>
+      </div>
+    </div>`;
+  }).join('') + `<div style="height:100px;"></div>`;
 }
 
-async function editLog(logId) {
-  const log = LOG_DATA.find(l => l.id === logId);
-  if (!log) return;
-  
-  TEMP_DATA = { [log.zoneId]: [...log.units] };
-  EDITING_LOG_ID = logId;
-  
-  const zone = ZONES.find(z => z.id === log.zoneId);
-  CUR_TYPE = zone.type;
-  document.getElementById('work-date').value = log.date;
-  
-  switchView('work');
-  switchType(CUR_TYPE);
-  document.getElementById('cancel-btn').style.display = 'block';
-  document.getElementById('send-btn').textContent = '更新保存';
-  updateDateDisplay();
+function getFinalDateByType(type) {
+  const tCol = DATE_COL_MAP[type];
+  let last = null;
+  if (!DATA.master) return "未";
+  DATA.master.forEach(m => { if (m[tCol]) { const d = new Date(m[tCol]); if (!last || d > last) last = d; } });
+  if (!last) return "未";
+  return `${last.getMonth() + 1}/${last.getDate()}(${["日","月","火","水","木","金","土"][last.getDay()]})`;
 }
 
-async function deleteLog(logId) {
-  if (!confirm("この履歴を削除しますか？")) return;
-  showLoading();
-  try {
-    const res = await api('deleteLog', { logId });
-    if (res.success) {
-      LOG_DATA = res.logData;
-      renderLogView();
-      updateTypeBadges();
-    }
-  } catch (e) {
-    alert(e.message);
-  } finally {
-    hideLoading();
-  }
+function getFinalWorkZoneIndex() {
+  const tCol = DATE_COL_MAP[activeType];
+  let maxDate = null;
+  if (!DATA.master || !DATA.cols) return -1;
+  DATA.master.forEach(m => { if (m[tCol]) { const d = new Date(m[tCol]); if (!maxDate || d > maxDate) maxDate = d; } });
+  if (!maxDate) return -1;
+  let lastId = -1;
+  DATA.master.forEach(m => { if (m[tCol] && new Date(m[tCol]).getTime() === maxDate.getTime()) lastId = Number(m[0]); });
+  return DATA.cols.findIndex(z => lastId >= Math.min(z.s, z.e) && lastId <= Math.max(z.s, z.e));
 }
 
-// --- ユーティリティ ---
-function updateTotal() {
-  const targetDate = document.getElementById('work-date').value;
-  const typeZones = ZONES.filter(z => z.type === CUR_TYPE);
-  const zIds = typeZones.map(z => z.id);
-  
-  const finishedCount = [...new Set(LOG_DATA.filter(l => l.date === targetDate && zIds.includes(l.zoneId)).flatMap(l => l.units))].length;
-  const tempCount = Object.entries(TEMP_DATA)
-    .filter(([zId]) => zIds.includes(parseInt(zId)))
-    .flatMap(([_, units]) => units).length;
-
-  document.getElementById('u-total').textContent = finishedCount + tempCount;
-  document.getElementById('send-btn').disabled = (tempCount === 0 && !EDITING_LOG_ID);
+function updateCount() {
+  const count = selectedUnits.size;
+  document.getElementById('u-total').innerText = count;
+  document.getElementById('send-btn').disabled = (count === 0 && !editingLogRow);
+  document.getElementById('cancel-btn').style.display = (count > 0 || editingLogRow) ? "block" : "none";
 }
 
-function updateTypeBadges() {
-  TYPES.forEach(t => {
-    const el = document.getElementById(`last-${t}`);
-    if (!el) return;
-    const typeLogs = LOG_DATA.filter(l => {
-      const z = ZONES.find(zone => zone.id === l.zoneId);
-      return z && z.type === t;
-    });
-    if (typeLogs.length > 0) {
-      const latest = typeLogs.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
-      const zone = ZONES.find(z => z.id === latest.zoneId);
-      el.textContent = zone ? zone.name.slice(0,4) : '--';
-    }
-  });
-}
+function changeType(t) { activeType = t; selectedUnits.clear(); renderAll(); }
 
 function updateDateDisplay() {
   const val = document.getElementById('work-date').value;
-  document.getElementById('date-label').textContent = formatDateWithDay(val);
-  renderWorkView();
+  if (!val) return;
+  const d = new Date(val);
+  const days = ["日","月","火","水","木","金","土"];
+  document.getElementById('date-label').innerText = `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
 }
 
-function formatDateWithDay(dateStr) {
-  if (!dateStr) return "--/--(--)";
-  const date = new Date(dateStr);
-  const days = ["日", "月", "火", "水", "木", "金", "土"];
-  return `${date.getMonth() + 1}/${date.getDate()}(${days[date.getDay()]})`;
+function switchView(v) {
+  const isWork = (v === 'work');
+  document.getElementById('view-work').style.display = isWork ? 'block' : 'none';
+  document.getElementById('view-log').style.display = isWork ? 'none' : 'block';
+  document.getElementById('view-mode-controls').style.display = isWork ? 'flex' : 'none';
+  document.getElementById('tab-work').className = 'top-tab ' + (isWork ? 'active-work' : '');
+  document.getElementById('tab-log').className = 'top-tab ' + (!isWork ? 'active-log' : '');
+  renderAll();
 }
+
+function formatLastDate(z) {
+  const tCol = DATE_COL_MAP[activeType];
+  const units = getZoneUnits(z, TYPE_MAP[activeType]);
+  let last = null;
+  units.forEach(m => { if (m[tCol]) { const d = new Date(m[tCol]); if (!last || d > last) last = d; } });
+  if (!last) return "未";
+  return `${last.getMonth() + 1}/${last.getDate()}(${["日","月","火","水","木","金","土"][last.getDay()]})`;
+}
+
+function setMode(m) { 
+  displayMode = m; 
+  document.getElementById('mode-list-btn').classList.toggle('active', m === 'list'); 
+  document.getElementById('mode-tile-btn').classList.toggle('active', m === 'tile'); 
+  renderAll(); 
+}
+
+function updateToggleAllBtnState() {
+  const btn = document.getElementById('toggle-all-btn');
+  if (!btn) return;
+  const tIdx = TYPE_MAP[activeType];
+  const allIds = DATA.master.filter(m => Number(m[tIdx]) === 1).map(m => Number(m[0]));
+  const isAll = allIds.length > 0 && allIds.every(id => selectedUnits.has(id));
+  btn.innerText = isAll ? "全解除" : "全選択";
+}
+
+function handleZoneCheckAll() {
+  const tIdx = TYPE_MAP[activeType];
+  const allIds = DATA.master.filter(m => Number(m[tIdx]) === 1).map(m => Number(m[0]));
+  const isAll = allIds.length > 0 && allIds.every(id => selectedUnits.has(id));
+  allIds.forEach(id => isAll ? selectedUnits.delete(id) : selectedUnits.add(id));
+  renderAll();
+}
+
+function cancelEdit() { editingLogRow = null; selectedUnits.clear(); renderAll(); }
+
+function startEdit(row, ids, date, type) {
+  editingLogRow = row; 
+  const idStr = ids ? String(ids) : "";
+  selectedUnits = new Set(idStr.split(',').filter(x => x.trim() !== "").map(Number));
+  activeType = type;
+  if (date) document.getElementById('work-date').value = date.split(' ')[0].replace(/\//g, '-');
+  updateDateDisplay(); 
+  switchView('work');
+}
+
+function toggleAuthMode() {
+  isSignUpMode = !isSignUpMode;
+  document.getElementById('auth-title').innerText = isSignUpMode ? "KIKI SIGN UP" : "KIKI LOGIN";
+  document.getElementById('auth-submit').innerText = isSignUpMode ? "REGISTER & LOGIN" : "LOGIN";
+}
+
+function showQR() { 
+  const target = document.getElementById("qr-target"); 
+  target.innerHTML = ""; 
+  new QRCode(target, { text: window.location.href, width: 200, height: 200 }); 
+  document.getElementById("qr-overlay").style.display = "flex"; 
+}
+function hideQR() { document.getElementById("qr-overlay").style.display = "none"; }
+function showManual() { document.getElementById('manual-overlay').style.display = 'flex'; }
+function hideManual() { document.getElementById('manual-overlay').style.display = 'none'; }
 
 function scrollToLastWork() {
-  const typeLogs = LOG_DATA.filter(l => {
-    const z = ZONES.find(zone => zone.id === l.zoneId);
-    return z && z.type === CUR_TYPE;
-  }).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
-
-  if (typeLogs.length > 0) {
-    const lastId = typeLogs[0].zoneId;
-    const el = document.getElementById(`zone-${lastId}`);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      el.classList.add('jump-highlight');
-      setTimeout(() => el.classList.remove('jump-highlight'), 2000);
-    }
+  const finalIdx = getFinalWorkZoneIndex();
+  if (finalIdx === -1) return alert("データがありません");
+  const targetEl = document.getElementById(`zone-card-${finalIdx}`);
+  if (targetEl) {
+    targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    targetEl.classList.add('jump-highlight');
+    setTimeout(() => targetEl.classList.remove('jump-highlight'), 1600);
   }
 }
