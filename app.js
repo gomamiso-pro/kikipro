@@ -33,36 +33,27 @@ window.onload = () => {
 // --- 3. 認証・データ取得コア ---
 async function silentLogin() {
   const loader = document.getElementById('loading');
-  const overlay = document.getElementById('login-overlay');
-
-  // チラつき防止：判定が終わるまで一旦隠す
-  if (overlay) overlay.style.display = 'none';
-
   if (!authID || !authPass) {
-    if (loader) loader.style.display = 'none';
-    if (overlay) overlay.style.display = 'flex';
+    loader.style.display = 'none';
+    document.getElementById('login-overlay').style.display = 'flex';
     return;
   }
 
-  // 自動ログイン情報がある場合：ログイン画面は出さずLoadingのみ表示
-  if (loader) loader.style.display = 'flex';
-  if (overlay) overlay.style.display = 'none'; 
-
   try {
-    const res = await callGAS("getInitialData");
-    DATA = res;
-    const userDisp = document.getElementById('user-display');
-    if (userDisp) userDisp.innerText = DATA.user.toUpperCase();
+    // 1回の通信で全データを取得（ここが20秒→3秒に）
+    DATA = await callGAS("getInitialData", { authID, authPass });
+    
+    document.getElementById('user-display').innerText = DATA.user.toUpperCase();
     renderAll();
-    document.body.classList.add('ready');
+    
+    document.getElementById('login-overlay').style.display = 'none';
     document.getElementById('app-content').style.display = 'flex';
+    document.body.classList.add('ready');
   } catch (e) {
-    console.error("Silent Login Failed:", e);
     localStorage.removeItem('kiki_authID');
-    localStorage.removeItem('kiki_authPass');
-    if (overlay) overlay.style.display = 'flex';
+    location.reload();
   } finally {
-    if (loader) loader.style.display = 'none';
+    loader.style.display = 'none';
   }
 }
 
