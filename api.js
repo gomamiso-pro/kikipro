@@ -8,14 +8,6 @@ const GAS_URL = "https://script.google.com/macros/s/AKfycbwqeriVnECgkJ-EGCQXZA_8
 // 2. GAS側の SECRET_API_KEY
 const SECRET_API_KEY = "kiki-secure-2026";
 
-/**
- * GASとの通信を管理するメイン関数
- */
-/**
- * GASとの通信用定数
- * 新しいデプロイを作成したら必ずこのURLを更新してください
- */
-const GAS_URL = "ここに新しいデプロイURLを貼り付け"; 
 
 /**
  * callGAS: GASの関数を呼び出す
