@@ -98,28 +98,35 @@ async function handleAuth() {
   }
 }
 
-// --- 4. 通信を伴うアクション ---
+/**
+ * 修正版：upload
+ * 通信回数を1回に減らし、即座にデータを反映
+ */
 async function upload() {
   if (selectedUnits.size === 0) return;
   const loader = document.getElementById('loading');
-  if (loader) loader.style.display = 'flex';
+  loader.style.display = 'flex';
 
   try {
-    await callGAS("addNewRecord", { 
+    // addNewRecordの戻り値として、既に最新のDATA（logs, master含む）が返ってくる
+    const newData = await callGAS("addNewRecord", { 
       date: document.getElementById('work-date').value, 
       type: activeType, 
       ids: Array.from(selectedUnits), 
       editRow: editingLogRow 
     });
-    // 再取得（silentLoginを流用せず直接取得して描画を更新）
-    const res = await callGAS("getInitialData");
-    DATA = res;
-    cancelEdit(); 
-    switchView('log');
+    
+    // データを一気に更新
+    DATA = newData;
+    
+    cancelEdit(); // 選択解除
+    renderAll();  // 描画
+    switchView('log'); // 画面切り替え
+    
   } catch (e) { 
     alert("保存に失敗しました");
   } finally {
-    if (loader) loader.style.display = 'none';
+    loader.style.display = 'none';
   }
 }
 
