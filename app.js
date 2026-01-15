@@ -40,33 +40,29 @@ async function silentLogin() {
   }
 
   try {
-    // GASからデータを取得
-    let result = await callGAS("getInitialData", { authID, authPass });
+    // callGAS の戻り値を受け取る
+    let res = await callGAS("getInitialData", { authID, authPass });
     
-    // 【重要】文字列で届いたらここでオブジェクトに変換
-    if (typeof result === 'string') {
-      result = JSON.parse(result);
+    // 二重シリアライズ対策：文字列ならパースし、まだ文字列ならさらにパースする
+    while (typeof res === 'string') {
+      res = JSON.parse(res);
     }
     
-    DATA = result; // グローバル変数に格納
-    
-    if (!DATA || !DATA.user) {
-      throw new Error("Invalid Data");
-    }
+    DATA = res; 
+
+    if (!DATA || !DATA.user) throw new Error("データ構造が不正です");
 
     document.getElementById('user-display').innerText = DATA.user.toUpperCase();
     renderAll();
     
-    // 画面切り替え
     document.getElementById('login-overlay').style.display = 'none';
     document.getElementById('app-content').style.display = 'flex';
     document.body.classList.add('ready');
 
   } catch (e) {
     console.error("Login Error:", e);
-    // エラーが起きたらログイン情報を消して再試行させる
-    localStorage.removeItem('kiki_authID');
-    alert("ログインに失敗しました。パスワードを確認してください。");
+    alert("ログインに失敗しました。再ログインしてください。");
+    localStorage.clear();
     location.reload();
   } finally {
     loader.style.display = 'none';
