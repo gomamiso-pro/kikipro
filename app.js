@@ -31,95 +31,101 @@ window.onload = () => {
 };
 
 // --- 3. 認証・データ取得コア ---
+// window.onload を待たずに即実行し、裏で通信を開始する
+silentLogin(); 
+
 async function silentLogin() {
   const loader = document.getElementById('loading');
-  const overlay = document.getElementById('login-overlay');
+  const loginOverlay = document.getElementById('login-overlay');
+  const appContent = document.getElementById('app-content');
 
-  // チラつき防止：判定が終わるまで一旦隠す
-  if (overlay) overlay.style.display = 'none';
+  const storedID = localStorage.getItem('kiki_authID');
+  const storedPass = localStorage.getItem('kiki_authPass');
 
-  if (!authID || !authPass) {
+  // 【最速判定】保存情報がない場合：すぐにLoadingを消してログイン画面を出す
+  if (!storedID || !storedPass) {
     if (loader) loader.style.display = 'none';
-    if (overlay) overlay.style.display = 'flex';
+    if (loginOverlay) loginOverlay.style.display = 'flex';
     return;
   }
 
-  // 自動ログイン情報がある場合：ログイン画面は出さずLoadingのみ表示
-  if (loader) loader.style.display = 'flex';
-  if (overlay) overlay.style.display = 'none'; 
-
+  // 自動ログイン開始
   try {
+    authID = storedID;
+    authPass = storedPass;
+    
+    // GASとの通信（この間、画面には Loading だけが表示されている）
     const res = await callGAS("getInitialData");
     DATA = res;
+    
+    // ユーザー名をあらかじめセット
     const userDisp = document.getElementById('user-display');
-    if (userDisp) userDisp.innerText = DATA.user.toUpperCase();
-    renderAll();
+    if (userDisp && DATA.user) {
+      userDisp.innerText = DATA.user.toUpperCase();
+    }
+
+    // クラス切り替え
+    document.body.classList.remove('loading-state');
     document.body.classList.add('ready');
-    document.getElementById('app-content').style.display = 'flex';
+    
+    // メインコンテンツを表示
+    if (appContent) appContent.style.display = 'block';
+
+    renderAll();
+    
   } catch (e) {
-    console.error("Silent Login Failed:", e);
+    // 認証エラー時はログイン画面へ強制移動
     localStorage.removeItem('kiki_authID');
     localStorage.removeItem('kiki_authPass');
-    if (overlay) overlay.style.display = 'flex';
+    if (loginOverlay) loginOverlay.style.display = 'flex';
   } finally {
+    // 全ての描画準備が終わってから初めてLoadingを消す
     if (loader) loader.style.display = 'none';
   }
 }
-
-async function handleAuth() {
-  const nick = document.getElementById('login-nick').value;
-  const pass = document.getElementById('login-pass').value;
-  const loader = document.getElementById('loading');
-  if (!nick || !pass) return alert("入力してください");
-
-  if (loader) loader.style.display = 'flex';
-
-  try {
-    const method = isSignUpMode ? "signUp" : "getInitialData";
-    const res = await callGAS(method, { authID: nick, authPass: pass, nickname: nick });
-    
-    authID = nick;
-    authPass = pass;
-    if (document.getElementById('auto-login').checked) {
-      localStorage.setItem('kiki_authID', authID);
-      localStorage.setItem('kiki_authPass', authPass);
-    }
-    DATA = res;
-    const userDisp = document.getElementById('user-display');
-    if (userDisp) userDisp.innerText = DATA.user.toUpperCase();
-    renderAll();
-    document.body.classList.add('ready');
-    document.getElementById('login-overlay').style.display = 'none';
-    document.getElementById('app-content').style.display = 'flex';
-  } catch (e) {
-    // エラーはapi.jsまたはcatchで処理
-  } finally {
-    if (loader) loader.style.display = 'none';
-  }
-}
-
 // --- 4. 通信を伴うアクション ---
 async function upload() {
   if (selectedUnits.size === 0) return;
   const loader = document.getElementById('loading');
   if (loader) loader.style.display = 'flex';
 
+  const idsArr = Array.from(selectedUnits).map(Number).sort((a,b)=>a-b);
+  const minId = idsArr[0];
+
+  // アプリ側でゾーン名を判定（GASに計算させないことで高速化）
+  let zoneName = "選択範囲";
+  if (DATA.cols) {
+    const targetCol = DATA.cols.find(c => minId >= Math.min(c.s, c.e) && minId <= Math.max(c.s, c.e));
+    if (targetCol) zoneName = targetCol.name;
+  }
+
   try {
+    // 1. GASへ書き込み（高速版：これ自体は1秒程度で終わる）
     await callGAS("addNewRecord", { 
       date: document.getElementById('work-date').value, 
       type: activeType, 
-      ids: Array.from(selectedUnits), 
+      ids: idsArr, 
+      zone: zoneName, 
       editRow: editingLogRow 
     });
-    // 再取得（silentLoginを流用せず直接取得して描画を更新）
+
+    // 2. 登録完了アラートの前にぐるぐるを消す
+    if (loader) loader.style.display = 'none';
+    alert("登録が完了しました");
+
+    // 3. 【重要】最新データをバックグラウンドで再取得して🚩を更新
     const res = await callGAS("getInitialData");
     DATA = res;
-    cancelEdit(); 
+
+    // 状態をリセットして履歴画面へ
+    editingLogRow = null;
+    selectedUnits.clear();
+    renderAll(); // ここで🚩が新しい位置に描き直される
     switchView('log');
+
   } catch (e) { 
-    alert("保存に失敗しました");
-  } finally {
     if (loader) loader.style.display = 'none';
+    alert("保存に失敗しました");
   }
 }
 
@@ -130,14 +136,20 @@ async function handleDelete(row) {
   if (loader) loader.style.display = 'flex';
 
   try { 
+    // 1. GASで削除
     await callGAS("deleteLog", { row }); 
+
+    // 2. 最新データを取得（これで🚩の計算元データが更新される）
     const res = await callGAS("getInitialData");
     DATA = res;
+    
+    // 3. 描画更新
     renderAll();
-  } catch (e) {
-    alert("削除に失敗しました");
-  } finally {
     if (loader) loader.style.display = 'none';
+    alert("削除しました");
+  } catch (e) {
+    if (loader) loader.style.display = 'none';
+    alert("削除に失敗しました");
   }
 }
 
@@ -145,28 +157,31 @@ async function handleDelete(row) {
 function renderAll() {
   if (!DATA || !DATA.cols) return;
 
+  // タブ（種別ボタン）の生成
   const types = ["通常", "セル盤", "計数機", "ユニット", "説明書"];
   const tabContainer = document.getElementById('type-tabs');
   if (tabContainer) {
     tabContainer.innerHTML = types.map(t => {
       const lastDate = getFinalDateByType(t);
-      return `
-        <button class="type-btn ${t === activeType ? 'active' : ''}" onclick="changeType('${t}')">
-          ${t}<span class="type-last-badge">${lastDate}</span>
-        </button>`;
+      return `<button class="type-btn ${t === activeType ? 'active' : ''}" onclick="changeType('${t}')">
+                ${t}<span class="type-last-badge">${lastDate}</span>
+              </button>`;
     }).join('');
   }
-  
+
   updateToggleAllBtnState();
-  const viewWork = document.getElementById('view-work');
-  if (viewWork && viewWork.style.display !== 'none') {
+
+  // ★ここを修正：displayの値を直接見て判定する
+  const isLogView = (document.getElementById('view-log').style.display === 'block');
+
+  if (isLogView) {
+    renderLogs();
+  } else {
     if (displayMode === 'list') {
       renderList();
     } else {
       renderTile();
     }
-  } else {
-    renderLogs();
   }
   updateCount();
 }
@@ -313,7 +328,9 @@ function renderLogs() {
     
     // 日付に曜日を付与
     const d = new Date(l.date);
-    const dateWithDay = `${l.date}(${["日","月","火","水","木","金","土"][d.getDay()]})`;
+　　const dateStr = `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
+    const dayStr = ["日","月","火","水","木","金","土"][d.getDay()];
+    const dateWithDay = `${dateStr}(${dayStr})`;
 
     return `
     <div class="log-card" style="padding: 18px; margin-bottom: 15px;">
@@ -353,22 +370,60 @@ function getFinalDateByType(type) {
   const tCol = DATE_COL_MAP[type];
   let last = null;
   if (!DATA.master) return "未";
-  DATA.master.forEach(m => { if (m[tCol]) { const d = new Date(m[tCol]); if (!last || d > last) last = d; } });
+  
+  DATA.master.forEach(m => {
+    if (m[tCol]) {
+      const d = new Date(m[tCol]);
+      if (!isNaN(d.getTime())) {
+        if (!last || d > last) last = d;
+      }
+    }
+  });
+  
   if (!last) return "未";
   return `${last.getMonth() + 1}/${last.getDate()}(${["日","月","火","水","木","金","土"][last.getDay()]})`;
 }
 
+// app.js の該当箇所をこれに差し替えてください
 function getFinalWorkZoneIndex() {
   const tCol = DATE_COL_MAP[activeType];
-  let maxDate = null;
-  if (!DATA.master || !DATA.cols) return -1;
-  DATA.master.forEach(m => { if (m[tCol]) { const d = new Date(m[tCol]); if (!maxDate || d > maxDate) maxDate = d; } });
-  if (!maxDate) return -1;
+  let maxTime = -1;
   let lastId = -1;
-  DATA.master.forEach(m => { if (m[tCol] && new Date(m[tCol]).getTime() === maxDate.getTime()) lastId = Number(m[0]); });
-  return DATA.cols.findIndex(z => lastId >= Math.min(z.s, z.e) && lastId <= Math.max(z.s, z.e));
-}
 
+  if (!DATA.master || !DATA.cols) return -1;
+
+  DATA.master.forEach(m => {
+    const rawValue = m[tCol];
+    const id = Number(m[0]);
+    
+    // 値が存在し、かつIDが有効な場合のみチェック
+    if (rawValue && !isNaN(id) && id > 0) {
+      // どんな形式(数値、文字列)でも日付として解析を試みる
+      const d = new Date(rawValue);
+      const time = d.getTime();
+      
+      // 無効な日付(NaN)を除外し、最新(より大きい数値)を保持
+      if (!isNaN(time) && time > 0) {
+        if (time >= maxTime) {
+          maxTime = time;
+          lastId = id;
+        }
+      }
+    }
+  });
+
+  // デバッグ用：もし🚩が出ないならコンソールでこれを確認
+  console.log(`ActiveType: ${activeType}, LastID: ${lastId}, MaxTime: ${maxTime}`);
+
+  if (lastId === -1) return -1;
+
+  // 全ゾーンから最新IDが含まれるインデックスを返す
+  return DATA.cols.findIndex(z => {
+    const start = Math.min(Number(z.s), Number(z.e));
+    const end = Math.max(Number(z.s), Number(z.e));
+    return lastId >= start && lastId <= end;
+  });
+}
 function handleZoneAction(event, index) {
   if (event.target.type === 'checkbox' || event.target.closest('.check-wrapper') || event.target.closest('.expand-box')) return;
   event.stopPropagation();
@@ -399,7 +454,18 @@ function updateCount() {
   if (document.getElementById('cancel-btn')) document.getElementById('cancel-btn').style.display = (count > 0 || editingLogRow) ? "block" : "none";
 }
 
-function changeType(t) { activeType = t; expandedZoneId = null; if (!editingLogRow) selectedUnits.clear(); renderAll(); }
+function changeType(t) {
+  if (activeType === t) return;
+
+  // 編集・選択中なら確認
+  if (selectedUnits.size > 0 || editingLogRow) {
+    if (!confirm("編集中の内容は破棄され、日付は今日に戻ります。よろしいですか？")) return;
+  }
+
+  activeType = t;
+  resetState(); // 共通リセット実行
+  renderAll();
+}
 function closeExpand(e) { e.stopPropagation(); expandedZoneId = null; renderAll(); }
 
 function updateDateDisplay() {
@@ -411,30 +477,80 @@ function updateDateDisplay() {
 }
 
 function switchView(v) {
+  const hasData = (DATA && DATA.master);
+  
+  // 現在の表示状態を確実に取得
+  const workDisp = document.getElementById('view-work').style.display;
+  const isCurrentlyWork = (workDisp === 'block' || workDisp === ''); // 初期状態も考慮
+
+  // 切り替え先が現在と同じなら何もしない（ただしデータがない初期状態は通す）
+  if (hasData) {
+    if (v === 'work' && isCurrentlyWork) return;
+    if (v === 'log' && workDisp === 'none') return;
+  }
+
+  // 編集中のチェック
+  if (hasData && isCurrentlyWork && v === 'log' && (selectedUnits.size > 0 || editingLogRow)) {
+    if (!confirm("編集中の内容は破棄され、日付は今日に戻ります。よろしいですか？")) return;
+  }
+
+  // 画面の切り替え処理
   const isWork = (v === 'work');
   document.getElementById('view-work').style.display = isWork ? 'block' : 'none';
   document.getElementById('view-log').style.display = isWork ? 'none' : 'block';
   document.getElementById('view-mode-controls').style.display = isWork ? 'flex' : 'none';
   document.getElementById('footer-content-wrap').style.display = isWork ? 'block' : 'none';
+  
+  // タブのクラス更新
   document.getElementById('tab-work').className = 'top-tab ' + (isWork ? 'active-work' : '');
   document.getElementById('tab-log').className = 'top-tab ' + (!isWork ? 'active-log' : '');
-  renderAll();
-}
 
+  // 状態のリセット（種別ボタンを押したときと同じ挙動にする）
+  resetState(); 
+  
+  if (hasData) {
+    renderAll();
+  }
+}
+// --- app.js の formatLastDate を修正 ---
 function formatLastDate(z, isShort = false) {
   const tCol = DATE_COL_MAP[activeType];
-  const units = DATA.master.filter(m => Number(m[0]) >= Math.min(z.s, z.e) && Number(m[0]) <= Math.max(z.s, z.e));
-  let last = null;
-  units.forEach(m => { if (m[tCol]) { const d = new Date(m[tCol]); if (!last || d > last) last = d; } });
-  if (!last) return "未";
-  return `${last.getMonth() + 1}/${last.getDate()}(${["日", "月", "火", "水", "木", "金", "土"][last.getDay()]})`;
-}
+  const units = DATA.master.filter(m => {
+    const id = Number(m[0]);
+    return id >= Math.min(z.s, z.e) && id <= Math.max(z.s, z.e);
+  });
 
-function setMode(m) { 
-  displayMode = m; 
-  document.getElementById('mode-list-btn').classList.toggle('active', m === 'list'); 
-  document.getElementById('mode-tile-btn').classList.toggle('active', m === 'tile'); 
-  renderAll(); 
+  let maxTime = -1;
+  units.forEach(m => {
+    const val = m[tCol];
+    if (val) {
+      const time = new Date(val).getTime();
+      if (!isNaN(time) && time > maxTime) maxTime = time;
+    }
+  });
+
+  if (maxTime === -1) return "未";
+
+  const d = new Date(maxTime);
+  const month = d.getMonth() + 1;
+  const date = d.getDate();
+  const day = ["日","月","火","水","木","金","土"][d.getDay()];
+
+  return isShort ? `${month}/${date}` : `${month}/${date}(${day})`;
+}
+function setMode(m) {
+  if (displayMode === m) return;
+
+  if (selectedUnits.size > 0 || editingLogRow) {
+    if (!confirm("編集中の内容は破棄され、日付は今日に戻ります。よろしいですか？")) return;
+  }
+
+  displayMode = m;
+  document.getElementById('mode-list-btn').classList.toggle('active', m === 'list');
+  document.getElementById('mode-tile-btn').classList.toggle('active', m === 'tile');
+  
+  resetState(); // 共通リセット実行
+  renderAll();
 }
 
 function updateToggleAllBtnState() {
@@ -458,14 +574,47 @@ function cancelEdit() { editingLogRow = null; selectedUnits.clear(); expandedZon
 
 function startEdit(row, ids, date, type) {
   editingLogRow = row; 
-  const idStr = ids ? String(ids) : "";
-  selectedUnits = new Set(idStr.split(',').filter(x => x.trim() !== "").map(Number));
   activeType = type;
-  if (date) document.getElementById('work-date').value = date.replace(/\//g, '-');
+
+  // 1. IDリストを数値のセットに変換（空文字を除去）
+  const idArray = String(ids).split(',').filter(x => x.trim() !== "").map(Number);
+  selectedUnits = new Set(idArray);
+
+  // 2. 日付をセット
+  if (date) {
+    const d = new Date(date);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    document.getElementById('work-date').value = `${y}-${m}-${day}`;
+  }
   updateDateDisplay(); 
+
+  // 3. 表示モードを切り替え
   displayMode = 'tile';
-  switchView('work');
+
+  // 4. 【重要】まず画面を「入力」に切り替える（描画関数のガードを外すため）
+  document.getElementById('view-work').style.display = 'block';
+  document.getElementById('view-log').style.display = 'none';
+  document.getElementById('view-mode-controls').style.display = 'flex';
+  document.getElementById('footer-content-wrap').style.display = 'block';
+  document.getElementById('tab-work').className = 'top-tab active-work';
+  document.getElementById('tab-log').className = 'top-tab';
+
+  // 5. 切り替わった後に描画を実行
   renderAll();
+  
+  // 6. 選択された台がある場所までスクロール（親切設計）
+  if (idArray.length > 0) {
+    setTimeout(() => {
+      const firstId = idArray[0];
+      const zoneIdx = DATA.cols.findIndex(z => firstId >= Math.min(z.s, z.e) && firstId <= Math.max(z.s, z.e));
+      if (zoneIdx !== -1) {
+        const el = document.getElementById(`zone-card-${zoneIdx}`);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 100);
+  }
 }
 
 function toggleAuthMode() {
@@ -494,4 +643,132 @@ function scrollToLastWork() {
     targetEl.classList.add('jump-highlight');
     setTimeout(() => targetEl.classList.remove('jump-highlight'), 1600);
   }
+}
+// 日付入力欄を今日に戻す関数
+function resetToToday() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const dateInput = document.getElementById('work-date');
+  if (dateInput) {
+    dateInput.value = `${y}-${m}-${day}`;
+    updateDateDisplay(); // 曜日ラベルなどの表示更新
+  }
+}
+
+// 全てを真っさらな状態（今日の日付・未選択）に戻す共通処理
+function resetState() {
+  editingLogRow = null;
+  if (selectedUnits) selectedUnits.clear(); // selectedUnitsが存在するか確認
+  expandedZoneId = null;
+
+  const dateInput = document.getElementById('work-date');
+  if (dateInput) {
+    const d = new Date();
+    dateInput.value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    
+    // updateDateDisplayが存在し、かつ関数である場合のみ実行
+    if (typeof updateDateDisplay === "function") {
+      updateDateDisplay();
+    }
+  }
+}
+/**
+ * ログイン・新規登録ボタンが押された時のメイン処理
+ */
+async function handleAuth() {
+  const nickEl = document.getElementById('login-nick');
+  const passEl = document.getElementById('login-pass');
+  const loader = document.getElementById('loading');
+  const autoLoginCheck = document.getElementById('auto-login');
+
+  if (!nickEl || !passEl) return;
+  
+  const id = nickEl.value.trim();
+  const pass = passEl.value.trim();
+
+  // 1. 入力チェック
+  if (!id || !pass) {
+    alert("ニックネームとパスワードを入力してください");
+    return;
+  }
+
+  // 2. ぐるぐる(Loading)を表示
+  if (loader) loader.style.display = 'flex';
+
+  try {
+    authID = id;
+    authPass = pass;
+
+    // 3. モード判定（ログインか新規登録か）
+    // authModeが定義されていない場合はデフォルトで "login"
+    const mode = (typeof authMode !== 'undefined') ? authMode : 'login';
+    
+    // 4. GAS通信（データの取得 ＝ 認証）
+    const res = await callGAS("getInitialData", { mode: mode });
+    DATA = res;
+
+    // 5. ログイン成功時の保存処理
+    // 「次回から自動ログイン」にチェックがある場合のみ保存
+    if (autoLoginCheck && autoLoginCheck.checked) {
+      localStorage.setItem('kiki_authID', id);
+      localStorage.setItem('kiki_authPass', pass);
+    } else {
+      // チェックがない場合は以前の情報を削除
+      localStorage.removeItem('kiki_authID');
+      localStorage.removeItem('kiki_authPass');
+    }
+
+    // 6. 【最重要】画面の切り替え
+    // CSSで定義した body.ready のルールを発動させる
+    document.body.classList.remove('loading-state');
+    document.body.classList.add('ready');
+
+    // 7. ユーザー名の表示更新
+    const userDisp = document.getElementById('user-display');
+    if (userDisp && DATA.user) {
+      userDisp.innerText = DATA.user.toUpperCase();
+    }
+
+    // 8. アプリ画面の初期描画
+    if (typeof resetState === 'function') resetState();
+    renderAll();
+
+  } catch (e) {
+    console.error("Auth Error:", e);
+    // 失敗した場合は認証情報をリセット
+    authID = "";
+    authPass = "";
+    alert("認証に失敗しました。入力内容を確認してください。");
+  } finally {
+    // 9. 最後に必ずぐるぐるを消す
+    if (loader) loader.style.display = 'none';
+  }
+}
+/**
+ * ログアウト処理
+ */
+function logout() {
+  if (!confirm("ログアウトしますか？（自動ログインも解除されます）")) return;
+
+  // 1. ローカルストレージをクリア
+  localStorage.removeItem('kiki_authID');
+  localStorage.removeItem('kiki_authPass');
+
+  // 2. 認証変数をリセット
+  authID = "";
+  authPass = "";
+  DATA = {};
+
+  // 3. 画面表示をログイン前に戻す
+  document.body.classList.remove('ready');
+  document.body.classList.add('loading-state');
+  
+  document.getElementById('app-content').style.display = 'none';
+  document.getElementById('login-overlay').style.display = 'flex';
+
+  // 4. 入力フォームを空にする
+  document.getElementById('login-nick').value = "";
+  document.getElementById('login-pass').value = "";
 }
