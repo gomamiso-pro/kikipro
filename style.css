@@ -308,3 +308,44 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background:
 .jump-highlight { animation: blink-accent 0.5s ease-in-out 3; z-index: 100; position: relative; }
 
 .f-oswald { font-family: 'Oswald', sans-serif; }
+
+/* 1. ログイン/アプリ表示の切り替え（必須） */
+/* bodyのclassに応じて表示・非表示を厳密に制御します */
+body:not(.ready) #app-content { display: none !important; }
+body.ready #login-overlay { display: none !important; }
+body:not(.ready) #login-overlay { display: flex !important; }
+
+/* 2. 履歴画面の文字色修正（必須） */
+/* .zone-row, .tile-card の color: #000 !important が履歴カードにも効いてしまい、
+   背景も文字も暗くて見えなくなるのを防ぎます */
+.log-card, .log-card * { 
+  color: var(--text) !important; 
+}
+.log-card .log-range, 
+.log-card .log-unit-large { 
+  color: var(--accent) !important; 
+}
+
+/* 3. ボタンの無効化状態（親切設計） */
+/* 台を選択していない時に「登録実行」ボタンを暗くします */
+.btn-exec:disabled {
+  background: var(--panel) !important;
+  color: var(--text-dim) !important;
+  box-shadow: none !important;
+  transform: none !important;
+  opacity: 0.6;
+}
+
+/* 4. タップ領域の確保 */
+/* 前の返信で触れた日付コンテナのスタイルです */
+.date-container-simple {
+  background: #000;
+  border: 2px solid var(--accent);
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  min-width: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
