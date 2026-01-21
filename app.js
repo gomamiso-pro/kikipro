@@ -1,5 +1,5 @@
 /**
- * KIKI PRO V15 - Complete Stable App Logic (Bug Fixed + Loading Optimized)
+ * KIKI PRO V16 - Complete Stable App Logic (Bug Fixed + Loading Optimized)
  */
 
 // --- 1. グローバル変数の宣言 ---
@@ -65,12 +65,22 @@ async function silentLogin() {
     }
 
     // クラス切り替え
-    document.body.classList.remove('loading-state');
+　　document.body.classList.remove('loading-state');
     document.body.classList.add('ready');
     
     // メインコンテンツを表示
     if (appContent) appContent.style.display = 'block';
 
+    document.getElementById('view-work').style.display = 'block'; 
+    document.getElementById('view-log').style.display = 'none';
+    
+    // 【重要】ここで明示的にワーク画面を表示状態にする
+    const vw = document.getElementById('view-work');
+    const vl = document.getElementById('view-log');
+    if (vw) vw.style.display = 'block';
+    if (vl) vl.style.display = 'none';
+
+    // 最後に描画を実行
     renderAll();
     
   } catch (e) {
@@ -92,7 +102,6 @@ async function upload() {
   const idsArr = Array.from(selectedUnits).map(Number).sort((a,b)=>a-b);
   const minId = idsArr[0];
 
-  // アプリ側でゾーン名を判定（GASに計算させないことで高速化）
   let zoneName = "選択範囲";
   if (DATA.cols) {
     const targetCol = DATA.cols.find(c => minId >= Math.min(c.s, c.e) && minId <= Math.max(c.s, c.e));
@@ -100,7 +109,7 @@ async function upload() {
   }
 
   try {
-    // 1. GASへ書き込み（高速版：これ自体は1秒程度で終わる）
+    // 1. GASへ書き込み（ここだけ待つ）
     await callGAS("addNewRecord", { 
       date: document.getElementById('work-date').value, 
       type: activeType, 
@@ -109,19 +118,20 @@ async function upload() {
       editRow: editingLogRow 
     });
 
-    // 2. 登録完了アラートの前にぐるぐるを消す
+    // 2. 書き込みが終わったら、まずLoadingを消してアラートを出す
     if (loader) loader.style.display = 'none';
     alert("登録が完了しました");
 
-    // 3. 【重要】最新データをバックグラウンドで再取得して🚩を更新
-    const res = await callGAS("getInitialData");
-    DATA = res;
-
-    // 状態をリセットして履歴画面へ
+    // 3. 画面を即座にリセットして履歴へ移動（この時点ではまだ古いデータの可能性あり）
     editingLogRow = null;
     selectedUnits.clear();
-    renderAll(); // ここで🚩が新しい位置に描き直される
     switchView('log');
+
+    // 4. 【重要】バックグラウンドでデータを更新（Loadingを出さずに最新にする）
+    callGAS("getInitialData").then(res => {
+      DATA = res;
+      renderAll(); // 🚩マークなどを最新の状態に静かに更新
+    });
 
   } catch (e) { 
     if (loader) loader.style.display = 'none';
@@ -136,17 +146,18 @@ async function handleDelete(row) {
   if (loader) loader.style.display = 'flex';
 
   try { 
-    // 1. GASで削除
+    // 1. GASで削除（これだけ待つ）
     await callGAS("deleteLog", { row }); 
 
-    // 2. 最新データを取得（これで🚩の計算元データが更新される）
-    const res = await callGAS("getInitialData");
-    DATA = res;
-    
-    // 3. 描画更新
-    renderAll();
+    // 2. 即座にLoadingを消して通知
     if (loader) loader.style.display = 'none';
-    alert("削除しました");
+    
+    // 3. 裏で最新データを取って描画を更新
+    callGAS("getInitialData").then(res => {
+      DATA = res;
+      renderAll();
+    });
+
   } catch (e) {
     if (loader) loader.style.display = 'none';
     alert("削除に失敗しました");
@@ -157,7 +168,7 @@ async function handleDelete(row) {
 function renderAll() {
   if (!DATA || !DATA.cols) return;
 
-  // タブ（種別ボタン）の生成
+  // 種別タブの更新（ここは既存のまま）
   const types = ["通常", "セル盤", "計数機", "ユニット", "説明書"];
   const tabContainer = document.getElementById('type-tabs');
   if (tabContainer) {
@@ -171,12 +182,17 @@ function renderAll() {
 
   updateToggleAllBtnState();
 
-  // ★ここを修正：displayの値を直接見て判定する
-  const isLogView = (document.getElementById('view-log').style.display === 'block');
+  // --- 【修正箇所】表示判別ロジック ---
+  const workView = document.getElementById('view-work');
+  const logView = document.getElementById('view-log');
 
-  if (isLogView) {
+  // 「履歴画面が明示的に block である」時以外は、すべて入力画面（タイル/リスト）を描画する
+  const isActuallyLog = logView && logView.style.display === 'block';
+
+  if (isActuallyLog) {
     renderLogs();
   } else {
+    // 起動時は必ずこちらを通るように強制
     if (displayMode === 'list') {
       renderList();
     } else {
@@ -283,7 +299,7 @@ function renderTile() {
           <div class="check-wrapper" onclick="handleZoneCheck(event, ${originalIdx})">
             <input type="checkbox" ${isAll ? 'checked' : ''} style="pointer-events:none; transform: scale(0.75);">
           </div>
-          <div class="tile-date-box ${isFinalZone ? 'is-final' : ''}">${isFinalZone ? '🚩' : ''}${formatLastDate(z, true)}</div>
+          <div class="tile-date-box ${isFinalZone ? 'is-final' : ''}">${isFinalZone ? '🚩' : ''}${formatLastDate(z)}</div>
         </div>
         <div class="tile-row-2"><b>${getFitSpan(rawName, 18, 70)}</b></div>
         <div class="tile-row-3 f-oswald">${getFitSpan(`No.${z.s}-${z.e}`, 18, 75)}</div>
@@ -326,9 +342,8 @@ function renderLogs() {
     const ids = l.ids ? String(l.ids).split(',').map(Number).sort((a,b)=>a-b) : [];
     const rangeStr = ids.length > 0 ? `${ids[0]}～${ids[ids.length-1]}` : '---';
     
-    // 日付に曜日を付与
     const d = new Date(l.date);
-　　const dateStr = `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
+    const dateStr = `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
     const dayStr = ["日","月","火","水","木","金","土"][d.getDay()];
     const dateWithDay = `${dateStr}(${dayStr})`;
 
@@ -341,16 +356,16 @@ function renderLogs() {
           <div class="f-oswald" style="font-size: 20px; font-weight: 900; color: var(--text); line-height: 1.2;">
             ${l.zone}
           </div>
-          <div class="f-oswald" style="font-size: 18px; font-weight: 700; color: var(--accent); margin-top: 4px;">
+          <div class="f-oswald" style="font-size: 22px; font-weight: 900; color: #ffd700 !important; margin-top: 6px; letter-spacing: 0.5px;">
             No.${rangeStr}
           </div>
-          <div style="font-size: 12px; color: var(--text-dim); margin-top: 8px; font-weight: 700;">
+          <div style="font-size: 12px; color: var(--text-dim); margin-top: 10px; font-weight: 700;">
             👤 ${l.user || '---'}
           </div>
         </div>
         
-        <div class="log-unit-large" style="text-align: right; line-height: 1;">
-          ${l.count}<small style="font-size: 14px; margin-left: 2px;">台</small>
+        <div class="log-unit-large" style="text-align: right; line-height: 1; color: #ffd700 !important;">
+          ${l.count}<small style="font-size: 14px; margin-left: 2px; color: #ffd700 !important;">台</small>
         </div>
       </div>
 
@@ -384,46 +399,82 @@ function getFinalDateByType(type) {
   return `${last.getMonth() + 1}/${last.getDate()}(${["日","月","火","水","木","金","土"][last.getDay()]})`;
 }
 
-// app.js の該当箇所をこれに差し替えてください
+// 🚩の位置を「最新日」かつ「リストの一番下」にするロジック
 function getFinalWorkZoneIndex() {
-  const tCol = DATE_COL_MAP[activeType];
+  const tIdx = TYPE_MAP[activeType];     // 現在の種別フラグ列 (例: 説明書なら7)
+  const tCol = DATE_COL_MAP[activeType]; // 現在の種別日付列 (例: 説明書なら12)
   let maxTime = -1;
-  let lastId = -1;
-
   if (!DATA.master || !DATA.cols) return -1;
 
+  // 1. 【重要】今開いているタブの種別の台（m[tIdx] === 1）だけで最新日を探す
   DATA.master.forEach(m => {
+    const isTypeMatch = Number(m[tIdx]) === 1;
     const rawValue = m[tCol];
-    const id = Number(m[0]);
-    
-    // 値が存在し、かつIDが有効な場合のみチェック
-    if (rawValue && !isNaN(id) && id > 0) {
-      // どんな形式(数値、文字列)でも日付として解析を試みる
+    if (isTypeMatch && rawValue) {
       const d = new Date(rawValue);
+      d.setHours(0, 0, 0, 0);
       const time = d.getTime();
-      
-      // 無効な日付(NaN)を除外し、最新(より大きい数値)を保持
-      if (!isNaN(time) && time > 0) {
-        if (time >= maxTime) {
-          maxTime = time;
-          lastId = id;
-        }
-      }
+      if (!isNaN(time) && time > maxTime) maxTime = time;
     }
   });
 
-  // デバッグ用：もし🚩が出ないならコンソールでこれを確認
-  console.log(`ActiveType: ${activeType}, LastID: ${lastId}, MaxTime: ${maxTime}`);
+  if (maxTime === -1) return -1;
 
-  if (lastId === -1) return -1;
+  // 2. その最新日付を持つ台が含まれるゾーンを特定
+  for (let i = DATA.cols.length - 1; i >= 0; i--) {
+    const z = DATA.cols[i];
+    const s = Math.min(Number(z.s), Number(z.e));
+    const e = Math.max(Number(z.s), Number(z.e));
 
-  // 全ゾーンから最新IDが含まれるインデックスを返す
-  return DATA.cols.findIndex(z => {
-    const start = Math.min(Number(z.s), Number(z.e));
-    const end = Math.max(Number(z.s), Number(z.e));
-    return lastId >= start && lastId <= end;
-  });
+    const hasLatest = DATA.master.some(m => {
+      const id = Number(m[0]);
+      // 範囲内 かつ その種別の対象台 かつ 日付が一致
+      if (id >= s && id <= e && Number(m[tIdx]) === 1) {
+        const val = m[tCol];
+        if (val) {
+          const d = new Date(val);
+          d.setHours(0, 0, 0, 0);
+          return d.getTime() === maxTime;
+        }
+      }
+      return false;
+    });
+
+    if (hasLatest) return i; 
+  }
+  return -1;
 }
+
+// ジャンプボタンの挙動：データがない時にアラートを出さない
+function scrollToLastWork() {
+  // 最新のインデックスを再計算
+  const finalIdx = getFinalWorkZoneIndex();
+  
+  if (finalIdx === -1) {
+    alert(activeType + "の作業データがありません");
+    return;
+  }
+
+  const targetEl = document.getElementById(`zone-card-${finalIdx}`);
+  if (targetEl) {
+    // コンテンツがヘッダーに被らないよう、少し余裕を持ってスクロール
+    const offset = 210; // 前に計算したバーの合計高さ
+    const elementPosition = targetEl.getBoundingClientRect().top + window.pageYOffset;
+    const offsetPosition = elementPosition - offset - 20; // 20pxの余白
+
+    window.scrollTo({
+      top: offsetPosition,
+      behavior: 'smooth'
+    });
+
+    // 点滅アニメーション
+    targetEl.classList.add('jump-highlight');
+    setTimeout(() => targetEl.classList.remove('jump-highlight'), 1600);
+  } else {
+    alert("対象のゾーンが見つかりません。もう一度お試しください。");
+  }
+}
+
 function handleZoneAction(event, index) {
   if (event.target.type === 'checkbox' || event.target.closest('.check-wrapper') || event.target.closest('.expand-box')) return;
   event.stopPropagation();
@@ -495,29 +546,36 @@ function switchView(v) {
   }
 
   // 画面の切り替え処理
-  const isWork = (v === 'work');
+const isWork = (v === 'work');
   document.getElementById('view-work').style.display = isWork ? 'block' : 'none';
   document.getElementById('view-log').style.display = isWork ? 'none' : 'block';
-  document.getElementById('view-mode-controls').style.display = isWork ? 'flex' : 'none';
-  document.getElementById('footer-content-wrap').style.display = isWork ? 'block' : 'none';
   
+  // コントロール類の表示切り替え
+  const controls = document.getElementById('view-mode-controls');
+  if (controls) controls.style.display = isWork ? 'flex' : 'none';
+
+  const footer = document.getElementById('footer-content-wrap');
+  if (footer) footer.style.display = isWork ? 'block' : 'none';
+
   // タブのクラス更新
   document.getElementById('tab-work').className = 'top-tab ' + (isWork ? 'active-work' : '');
   document.getElementById('tab-log').className = 'top-tab ' + (!isWork ? 'active-log' : '');
 
-  // 状態のリセット（種別ボタンを押したときと同じ挙動にする）
-  resetState(); 
-  
-  if (hasData) {
-    renderAll();
-  }
+  // renderAll を呼ぶことで、現在の displayMode (list or tile) が反映される
+  renderAll();
 }
-// --- app.js の formatLastDate を修正 ---
-function formatLastDate(z, isShort = false) {
+/**
+ * 最終作業日をフォーマットする関数
+ * タイル表示（isShort=true）でも曜日が出るように修正
+ */
+function formatLastDate(z) {
   const tCol = DATE_COL_MAP[activeType];
+  const tIdx = TYPE_MAP[activeType]; // ここを追加
+  
+  // その種別の台だけを抽出
   const units = DATA.master.filter(m => {
     const id = Number(m[0]);
-    return id >= Math.min(z.s, z.e) && id <= Math.max(z.s, z.e);
+    return id >= Math.min(z.s, z.e) && id <= Math.max(z.s, z.e) && Number(m[tIdx]) === 1;
   });
 
   let maxTime = -1;
@@ -532,35 +590,42 @@ function formatLastDate(z, isShort = false) {
   if (maxTime === -1) return "未";
 
   const d = new Date(maxTime);
-  const month = d.getMonth() + 1;
-  const date = d.getDate();
-  const day = ["日","月","火","水","木","金","土"][d.getDay()];
-
-  return isShort ? `${month}/${date}` : `${month}/${date}(${day})`;
+  return `${d.getMonth() + 1}/${d.getDate()}(${["日","月","火","水","木","金","土"][d.getDay()]})`;
 }
+
 function setMode(m) {
-  if (displayMode === m) return;
-
-  if (selectedUnits.size > 0 || editingLogRow) {
-    if (!confirm("編集中の内容は破棄され、日付は今日に戻ります。よろしいですか？")) return;
-  }
-
+  // displayMode === m の時の return を削除（または、初回のみ通るようにする）
   displayMode = m;
-  document.getElementById('mode-list-btn').classList.toggle('active', m === 'list');
-  document.getElementById('mode-tile-btn').classList.toggle('active', m === 'tile');
+
+  // ボタンの見た目を更新
+  const listBtn = document.getElementById('mode-list-btn');
+  const tileBtn = document.getElementById('mode-tile-btn');
+  if (listBtn) listBtn.classList.toggle('active', m === 'list');
+  if (tileBtn) tileBtn.classList.toggle('active', m === 'tile');
   
-  resetState(); // 共通リセット実行
+  // 重要：一度中身を空にしてから再描画を強制する
+  const container = document.getElementById('zone-display');
+  if (container) container.innerHTML = "";
+
   renderAll();
 }
-
 function updateToggleAllBtnState() {
   const btn = document.getElementById('toggle-all-btn');
   if (!btn) return;
   const tIdx = TYPE_MAP[activeType];
   const allIds = DATA.master.filter(m => Number(m[tIdx]) === 1).map(m => Number(m[0]));
   const isAll = allIds.length > 0 && allIds.every(id => selectedUnits.has(id));
+  
   btn.innerText = isAll ? "全解除" : "全選択";
+  
+  // ここを追加：全選択されている時にクラスを付与する
+  if (isAll) {
+    btn.classList.add('all-selected');
+  } else {
+    btn.classList.remove('all-selected');
+  }
 }
+
 
 function handleZoneCheckAll() {
   const tIdx = TYPE_MAP[activeType];
