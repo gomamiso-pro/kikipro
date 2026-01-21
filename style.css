@@ -6,9 +6,20 @@
 
 /* スクロールフリーズ・ヘッダー消失対策 */
 body { 
-  font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: var(--text); 
-  margin: 0; display: flex; flex-direction: column; height: 100dvh; width: 100vw;
-  overflow: hidden; position: fixed; 
+  font-family: 'Noto Sans JP', sans-serif; 
+  background: var(--bg); 
+  color: var(--text); 
+  margin: 0; 
+  display: flex; 
+  flex-direction: column; 
+  /* height: 100dvh;  ← これを削除または auto に */
+  /* width: 100vw;   ← これを削除 */
+  /* overflow: hidden; ← これを削除 */
+  /* position: fixed;  ← これを削除（ズーム中のスクロールを阻害します） */
+  
+  min-height: 100vh;
+  overflow-x: hidden; /* 横揺れ防止 */
+  overflow-y: auto;   /* 縦スクロールを許可 */
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
@@ -63,34 +74,118 @@ body.ready #app-content { display: flex !important; }
 #auth-toggle-btn { color: var(--accent); font-weight: 900; text-decoration: underline; cursor: pointer; }
 
 /* --- ヘッダー --- */
-.header { flex-shrink: 0; height: 60px; background: var(--header-bg); border-bottom: 1px solid var(--panel); display: flex; justify-content: space-between; align-items: center; padding: 0 8px; }
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  z-index: 2000;
+  background: var(--header-bg);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 8px;
+  border-bottom: 1px solid var(--panel);
+}
 .header-logo { font-family: 'Oswald'; color: var(--accent); font-size: 18px; font-weight: 900; letter-spacing: 0px; flex-shrink: 0; }
 .header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 1; }
 .user-profile { font-size: 10px; font-weight: 900; color: var(--text-dim); white-space: nowrap; }
 
 /* --- タブ・バー --- */
-.nav-row { display: flex; background: var(--header-bg); border-bottom: 1px solid var(--panel); flex-shrink: 0; }
+.nav-row {
+  position: fixed;
+  top: 60px; /* headerの高さ */
+  left: 0;
+  width: 100%;
+  height: 45px;
+  z-index: 1950;
+  display: flex;
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--panel);
+}
 .top-tab { flex: 1; padding: 12px; text-align: center; font-size: 13px; font-weight: 700; color: var(--text-dim); cursor: pointer; }
 .top-tab.active-work { background: #5e81ac !important; color: #fff !important; box-shadow: inset 0 -4px 0 rgba(0,0,0,0.2); }
 .top-tab.active-log { background: #d08770 !important; color: #fff !important; box-shadow: inset 0 -4px 0 rgba(0,0,0,0.2); }
 
-.type-bar { display: grid; grid-template-columns: repeat(5, 1fr); background: var(--panel); flex-shrink: 0; gap: 1px; border-bottom: 2px solid #000; }
+.type-bar {
+  position: fixed;
+  top: 105px; /* header(60) + nav(45) */
+  left: 0;
+  width: 100%;
+  height: 50px;
+  z-index: 1900;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  background: var(--panel);
+  gap: 1px;
+  border-bottom: 2px solid #000;
+}
 .type-btn { background: var(--header-bg); border: none; color: var(--text-dim); padding: 8px 0; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .type-btn.active { background: var(--accent) !important; color: #000 !important; }
 .type-name-label { font-size: 14px; font-weight: 900; letter-spacing: 0.15em; margin-bottom: 2px; }
 .type-last-badge { font-family: 'Oswald', sans-serif; font-size: 12px; font-weight: 700; color: #333; display: flex; align-items: center; gap: 2px; }
 
 /* --- コントロールバー --- */
-.view-mode-bar { display: flex; align-items: center; justify-content: space-between; padding: 8px; gap: 8px; border-bottom: 1px solid var(--panel); flex-shrink: 0; background: var(--bg); }
+.view-mode-bar {
+  position: fixed;
+  top: 155px; /* header(60) + nav(45) + type(50) */
+  left: 0;
+  width: 100%;
+  height: 55px;
+  z-index: 1850;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--panel);
+}
 .switch-group { display: flex; background: #000; padding: 4px; border-radius: 8px; }
 .switch-btn { border: none; background: transparent; color: #666; padding: 10px 16px; font-size: 13px; font-weight: 900; border-radius: 6px; min-width: 70px; }
 .switch-btn.active { background: var(--panel); color: var(--accent); }
-.action-toggle-btn { background: linear-gradient(145deg, #3a3f4d, #242832); color: var(--accent); border: 1px solid var(--accent); border-radius: 20px; font-weight: 900; font-size: 11px; padding: 8px 12px; }
-.action-toggle-btn.all-selected { background: var(--accent); color: #000; box-shadow: 0 4px 0 #b8970f !important; }
-.btn-final-jump { background: #5e81ac; color: #fff; border: 1px solid #81a1c1; border-radius: 8px; font-weight: 900; font-size: 10px; padding: 6px 10px; }
+.action-toggle-btn {
+  background: linear-gradient(145deg, #3a3f4d, #242832);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 20px;
+  font-weight: 900;
+  font-size: 11px;
+  padding: 8px 12px;
+  
+  /* リアルなボタン感を追加 */
+  box-shadow: 0 4px 0 #1e212b; /* 下に影 */
+  transition: transform 0.05s, box-shadow 0.05s; /* 押下時のアニメーション */
+  cursor: pointer;
+}
+
+/* 押下時のスタイル */
+.action-toggle-btn:active {
+  transform: translateY(3px); /* 少し下に沈む */
+  box-shadow: 0 1px 0 #1e212b; /* 影を小さくする */
+}
+
+/* 全選択時のボタンの見た目 */
+.action-toggle-btn.all-selected {
+  background: var(--accent) !important;
+  color: #000 !important;
+  box-shadow: 0 4px 0 var(--accent-dim) !important; /* 全選択時の影 */
+}
+
+/* 全選択状態で押下時 */
+.action-toggle-btn.all-selected:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--accent-dim) !important;
+}.btn-final-jump { background: #5e81ac; color: #fff; border: 1px solid #81a1c1; border-radius: 8px; font-weight: 900; font-size: 10px; padding: 6px 10px; }
 
 /* --- メインエリア --- */
-main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background: var(--bg); padding-bottom: 200px; }
+main { 
+  flex: 1; 
+  /* overflow-y: auto; ← bodyで管理するため削除してもOK */
+  background: var(--bg); 
+  padding-top: 210px;
+  padding-bottom: 200px; 
+}
 .zone-row, .tile-card, .zone-row *, .tile-card * { color: #000 !important; }
 .has-selection { border: 4px solid var(--accent) !important; box-shadow: 0 0 10px rgba(250, 204, 21, 0.5); }
 
@@ -297,7 +392,7 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background:
 }
 
 /* --- フッター --- */
-.footer { flex-shrink: 0; background: var(--header-bg); border-top: 1px solid var(--panel); padding: 12px 12px calc(15px + env(safe-area-inset-bottom)); position: absolute; bottom: 0; width: 100%; z-index: 1000; }
+.footer { flex-shrink: 0; background: var(--header-bg); border-top: 1px solid var(--panel); padding: 12px 12px calc(15px + env(safe-area-inset-bottom)); position: sticky;; bottom: 0; width: 100%; z-index: 1000; }
 .footer-main-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 #u-total { font-family: 'Oswald'; font-size: 50px; color: var(--accent); font-weight: 900; line-height: 1; }
 .btn-exec { background: #5e81ac; color: #fff; width: 100%; padding: 18px; border-radius: 12px; font-weight: 900; font-size: 20px; border: none; }
@@ -321,11 +416,15 @@ body:not(.ready) #login-overlay { display: flex !important; }
 .log-card, .log-card * { 
   color: var(--text) !important; 
 }
-.log-card .log-range, 
-.log-card .log-unit-large { 
-  color: var(--accent) !important; 
+/* 台番号と台数だけを黄色にする */
+.log-card .f-oswald[style*="color: #ffd700"], 
+.log-card .log-unit-large,
+.log-card .log-unit-large small {
+  color: var(--accent) !important; /* CSS変数を使うことで統一感が出ます */
 }
-
+.log-card .log-date-badge {
+  color: var(--text-dim) !important;
+}
 /* 3. ボタンの無効化状態（親切設計） */
 /* 台を選択していない時に「登録実行」ボタンを暗くします */
 .btn-exec:disabled {
