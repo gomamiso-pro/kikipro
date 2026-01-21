@@ -3,129 +3,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KIKI PRO V13 操作マニュアル</title>
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+    <title>KIKI PRO V16 操作マニュアル</title>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700;900&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #1a1c23; --card: #2d313d; --header-bg: #111318;
-            --accent: #facc15; --text: #e5e9f0; --text-dim: #9ca3af; --danger: #bf616a; --blue: #5e81ac;
+            --bg: #1a1c23; --card: #2d313d; --header-bg: #111318; --panel: #3a3f4d;
+            --accent: #facc15; --accent-dim: #b8970f; --text: #e5e9f0; --text-dim: #9ca3af; --danger: #bf616a; --blue: #5e81ac;
         }
         body {
             font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: var(--text);
             margin: 0; padding-bottom: 50px; line-height: 1.6;
         }
         .container { max-width: 500px; margin: 0 auto; padding: 20px; }
-        header { text-align: center; padding: 30px 0; border-bottom: 1px solid var(--card); }
-        .logo { font-family: 'Oswald'; font-size: 32px; color: var(--accent); font-weight: 900; }
+        header { text-align: center; padding: 40px 0; border-bottom: 1px solid var(--panel); }
+        .logo { font-family: 'Oswald'; font-size: 38px; color: var(--accent); font-weight: 900; letter-spacing: 2px; }
         
-        h2 { border-left: 5px solid var(--accent); padding-left: 15px; margin-top: 40px; font-size: 20px; }
-        h3 { color: var(--accent); font-size: 16px; margin-top: 25px; }
+        h2 { border-left: 6px solid var(--blue); padding-left: 15px; margin-top: 50px; font-size: 22px; font-weight: 900; background: rgba(94, 129, 172, 0.1); padding-top: 5px; padding-bottom: 5px; }
+        h3 { color: var(--accent); font-size: 18px; margin-top: 30px; display: flex; align-items: center; gap: 8px; }
+        h3::before { content: '●'; font-size: 12px; }
 
-        .card { background: var(--card); border-radius: 12px; padding: 20px; margin: 15px 0; border: 1px solid #3a3f4d; }
-        .point { font-weight: bold; color: var(--accent); }
+        .card { background: var(--card); border-radius: 15px; padding: 20px; margin: 15px 0; border: 1px solid var(--panel); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .point { font-weight: 900; color: var(--accent); }
         
-        /* シミュレーション表示 */
+        /* ゾーン再現 */
         .mock-zone {
-            border: 3px solid var(--accent); border-radius: 8px; background: #fff; color: #000;
-            padding: 10px; margin: 10px 0; box-shadow: 0 0 10px rgba(250,204,21,0.3);
+            border-radius: 10px; background: #fff; color: #000;
+            padding: 15px; margin: 10px 0; border: 1px solid rgba(0,0,0,0.1);
+            position: relative;
         }
-        .mock-badge { background: var(--accent); color: #000; font-weight: 900; font-size: 10px; padding: 2px 8px; border-radius: 4px; display: inline-block; }
+        .mock-zone.selected { border: 4px solid var(--accent); box-shadow: 0 0 15px rgba(250,204,21,0.5); }
+        .mock-flag { color: #d32f2f; font-weight: 900; font-family: 'Oswald'; }
         
         .btn-sample {
-            display: inline-block; padding: 10px 20px; border-radius: 6px; 
-            font-weight: 900; font-size: 14px; text-decoration: none; margin: 5px 0;
+            display: flex; align-items: center; justify-content: center;
+            padding: 16px; border-radius: 12px; font-weight: 900; font-size: 18px; 
+            text-decoration: none; margin: 15px 0; border: none;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.4);
         }
         .btn-exec { background: var(--blue); color: #fff; }
-        .btn-all { border: 2px solid var(--accent); color: var(--accent); }
+        .btn-jump { background: var(--panel); color: var(--accent); border: 1px solid var(--accent); font-size: 14px; padding: 8px; }
 
-        .unit-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-top: 10px; }
-        .unit { background: #333; color: #fff; text-align: center; padding: 5px; border-radius: 4px; font-family: 'Oswald'; font-size: 12px; }
-        .unit.active { background: var(--accent); color: #000; font-weight: bold; }
+        .unit-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 15px; }
+        .unit { background: #f0f0f0; color: #333; text-align: center; padding: 10px 0; border-radius: 6px; font-family: 'Oswald'; font-size: 16px; font-weight: 700; border: 1px solid #ddd; }
+        .unit.active { background: var(--accent); color: #000; border-color: #000; font-weight: 900; box-shadow: 0 3px 0 var(--accent-dim); }
 
-        footer { text-align: center; font-size: 12px; color: var(--text-dim); margin-top: 50px; padding: 20px; }
+        .status-bar { display: flex; height: 6px; background: #eee; margin-top: 10px; gap: 1px; }
+        .seg { flex: 1; height: 100%; background: #ddd; }
+        .seg.active { background: var(--accent); }
+
+        footer { text-align: center; font-size: 12px; color: var(--text-dim); margin-top: 60px; padding: 30px; border-top: 1px solid var(--panel); }
+        
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 900; margin-right: 5px; vertical-align: middle; }
+        .badge-blue { background: var(--blue); color: white; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <header>
-        <div class="logo">KIKI PRO V13</div>
-        <p style="font-size: 14px;">現場スタッフ向け操作ガイド</p>
+        <div class="logo">KIKI PRO V16</div>
+        <p style="font-size: 14px; color: var(--text-dim); margin-top: 10px;">2026 High-Stable Edition</p>
     </header>
 
     <section>
-        <h2>1. ログイン</h2>
+        <h2>1. ログインと安全設定</h2>
         <div class="card">
-            <p>各自で決めたIDとパスワードでログインします。</p>
+            <p><span class="point">ID/パスワード:</span> 登録したニックネームでログインします。暗号化通信により安全に保護されています。</p>
+            <p><span class="point">自動ログイン:</span> 自分のスマホならチェックを入れると便利です。共有端末の場合は、終了時に必ず<span class="point">ログアウト</span>してください。</p>
+        </div>
+    </section>
+
+    <section>
+        <h2>2. 作業の登録</h2>
+        <p>上部の <span class="badge badge-blue">入力</span> タブを使用します。</p>
+        
+        <h3>① 種別の選択</h3>
+        <p>「通常」「セル盤」「説明書」など、対象のタブをタップ。各タブには<span class="point">最終作業日</span>が表示されています。</p>
+
+        <h3>② 表示モードの切り替え</h3>
+        <div class="card">
+            <p>状況に応じてボタン一つで切り替え可能です。</p>
             <ul>
-                <li><span class="point">自動ログイン:</span> チェックを入れると次回からログイン入力を省略できます。</li>
-                <li><span class="point">共有:</span> 右上のQRアイコンから仲間にアプリを教えられます。</li>
+                <li><span class="point">リスト:</span> 情報を縦に詳しく表示。</li>
+                <li><span class="point">タイル:</span> 多くのゾーンを一覧で表示。</li>
             </ul>
         </div>
-    </section>
 
-    <section>
-        <h2>2. 作業の登録（入力）</h2>
-        <p>「入力」タブで行うメインの操作です。</p>
-        
-        <h3>① 種別を選択</h3>
-        <p>画面一番上のバーで「通常」「セル盤」などを選びます。</p>
-
-        <h3>② ゾーン・台を選択</h3>
+        <h3>③ ゾーン・台の選択</h3>
         <div class="card">
-            <p>やり方は2つあります：</p>
-            <ol>
-                <li><span class="point">チェックボックス:</span> ゾーン丸ごと選択。</li>
-                <li><span class="point">中央タップ:</span> 台番号チップが開き、個別に選べます。</li>
-            </ol>
-            <div class="mock-zone">
-                <div style="display:flex; justify-content:space-between; font-weight:bold;">
-                    <span>サンプルゾーン</span>
-                    <span style="font-family:Oswald;">🚩1/9(金)</span>
+            <p>ゾーンの左にある<span class="point">チェック領域</span>をタップすると、そのゾーンの台を全選択。中央をタップすると<span class="point">個別選択</span>画面が開きます。</p>
+            
+            <div class="mock-zone selected">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <b style="font-size:15px;">Aゾーン (No.1-20)</b>
+                    <span class="mock-flag">🚩1/21(水)</span>
+                </div>
+                <div class="status-bar">
+                    <div class="seg active"></div><div class="seg active"></div><div class="seg"></div><div class="seg active"></div><div class="seg"></div>
                 </div>
                 <div class="unit-grid">
-                    <div class="unit active">101</div>
-                    <div class="unit">102</div>
-                    <div class="unit active">103</div>
+                    <div class="unit active">001</div>
+                    <div class="unit">002</div>
+                    <div class="unit active">003</div>
+                    <div class="unit active">004</div>
                 </div>
             </div>
-            <p style="font-size:12px; color:var(--text-dim);">※選択されたゾーンは上記のように<span class="point">黄色い太枠</span>になります。</p>
+            <p style="font-size:12px; color:var(--text-dim); margin-top:10px;">※選択中のゾーンは<span class="point">黄色い枠</span>で光ります。</p>
         </div>
 
-        <h3>③ 便利な機能</h3>
-        <div class="card">
-            <p><span class="point">全選択/解除:</span> 一気に全部の台を選べます。</p>
-            <p><span class="point">最終🚩:</span> 最後に作業した場所へ自動でジャンプして点滅します。</p>
-        </div>
+        <h3>④ 最終🚩へジャンプ</h3>
+        <div class="btn-sample btn-jump">GO TO 最終 🚩</div>
+        <p>「前回の続きはどこだっけ？」という時に。最新の作業箇所まで自動スクロールし、点滅してお知らせします。</p>
 
-        <h3>④ 登録実行</h3>
-        <div class="btn-sample btn-exec">登録実行</div>
-        <p>最後にこのボタンを押せば完了です！</p>
+        <h3>⑤ 登録実行</h3>
+        <div class="btn-sample btn-exec">登録実行（合計を保存）</div>
+        <p>画面下の黄色い合計台数を確認してボタンをタップ。通信が完了すれば保存成功です。</p>
     </section>
 
     <section>
-        <h2>3. 履歴の確認・修正</h2>
-        <p>「履歴」タブをタップします。</p>
+        <h2>3. 履歴の管理</h2>
+        <p>上部の <span style="background:#d08770; color:white;" class="badge">履歴</span> タブを使用します。</p>
         <div class="card" style="border-left: 6px solid var(--accent);">
-            <div class="mock-badge">通常</div>
-            <div style="font-size: 18px; font-weight: 900;">Aゾーン</div>
-            <div style="display: flex; justify-content: space-between; align-items: flex-end;">
-                <div style="font-size: 12px; color: var(--text-dim);">No.1-20</div>
-                <div style="font-family: 'Oswald'; color: var(--accent); font-size: 32px; font-weight: 700;">20<small style="font-size:12px;">台</small></div>
+            <div style="font-family:Oswald; font-size:12px; color:var(--text-dim);">通常 - 2026/1/21(水)</div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-top:5px;">
+                <div>
+                    <div style="font-family:Oswald; font-size: 20px; font-weight: 900;">Bゾーン</div>
+                    <div style="font-family:Oswald; color: var(--accent); font-weight:700;">No.21～40</div>
+                </div>
+                <div style="font-family: 'Oswald'; color: var(--accent); font-size: 40px; font-weight: 900; line-height:1;">20<small style="font-size:14px;">台</small></div>
             </div>
             <div style="display: flex; gap: 10px; margin-top: 15px;">
-                <div style="flex:1; border: 1px solid var(--accent); color: var(--accent); text-align:center; padding:5px; border-radius:4px; font-weight:bold; font-size:12px;">編集</div>
-                <div style="flex:1; border: 1px solid var(--danger); color: var(--danger); text-align:center; padding:5px; border-radius:4px; font-weight:bold; font-size:12px;">削除</div>
+                <div style="flex:2; background: var(--blue); color: #fff; text-align:center; padding:12px; border-radius:8px; font-weight:900;">編集</div>
+                <div style="flex:1; background: var(--danger); color: #fff; text-align:center; padding:12px; border-radius:8px; font-weight:900;">削除</div>
             </div>
         </div>
-        <p><span class="point">編集ボタン:</span> 間違えて登録しても、ここから修正して上書きできます。</p>
+        <p><span class="point">編集ボタン:</span> 登録した内容を「入力画面」に呼び戻して修正できます。修正後は再度「登録実行」を押してください。</p>
+    </section>
+
+    <section>
+        <h2>4. 困ったときは</h2>
+        <div class="card">
+            <p><span class="point">通信タイムアウト:</span> 電波の良い場所で再試行してください。</p>
+            <p><span class="point">ボタンが押せない:</span> 台が1台も選択されていないと登録ボタンは反応しません。</p>
+            <p><span class="point">画面がガタつく:</span> ブラウザの更新ボタンを押して再読み込みしてください。保存済みのデータは消えません。</p>
+        </div>
     </section>
 
     <footer>
-        &copy; 2026 KIKI PRO Project. All Rights Reserved.
+        &copy; 2026 KIKI PRO Project V16.<br>
+        Stable Communication Module Installed.
     </footer>
 </div>
 
 </body>
-
 </html>
