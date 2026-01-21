@@ -1,5 +1,5 @@
 /**
- * api.js - KIKI PRO V15 通信モジュール
+ * api.js - KIKI PRO V16 通信モジュール
  */
 
 // 1. GASウェブアプリURL (新しいデプロイ後のURLに差し替えてください)
