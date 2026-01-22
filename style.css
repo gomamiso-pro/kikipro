@@ -223,10 +223,9 @@ main {
 .zone-container-tile {
   display: grid;
   grid-template-columns: repeat(4, 1fr); 
-  gap: 6px; 
-  padding: 6px;
-  width: 100%;
-  box-sizing: border-box;
+  gap: 3px; /* 隙間を広げることで影が綺麗に見える */
+  padding: 4px 4px;
+  background: var(--bg);
 }
 
 .tile-card {
@@ -236,11 +235,38 @@ main {
   flex-direction: column;
   justify-content: flex-start !important;
   gap: 0 !important;
-  border-radius: 6px;
+  border-radius: 10px; /* 角を少し丸くして柔らかい質感に */
   overflow: hidden;
-  background: #fff;
+  
+  /* 質感のコア：外側の影で「厚み」を、内側の白線で「エッジの光」を表現 */
+  background: #ffffff;
+  position: relative;
+  border: none;
+  box-shadow: 
+    0 4px 0 rgba(0, 0, 0, 0.15),           /* 下側の厚み（影） */
+    inset 0 1px 1px rgba(255, 255, 255, 0.8), /* 上端の反射光 */
+    0 2px 4px rgba(0, 0, 0, 0.1);          /* 全体の接地感 */
+  
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
 }
 
+/* --- 2. 選択中の状態（より手前に浮き上がる） --- */
+.tile-card.has-selection {
+  /* 枠線を内側に太く入れることで、隣とくっついていても黄色が隠れない */
+  border: 3px solid var(--accent) !important; 
+  transform: scale(1.02); /* わずかに大きくして隣より前面に出す */
+  z-index: 10; /* 隣のタイルより上に表示 */
+  
+  /* 黄色の発光エフェクト */
+  box-shadow: 0 0 12px rgba(250, 204, 21, 0.8);
+}
+/* 選択されたタイルを押した時の「カチッ」とした沈み込み */
+.tile-card:active {
+  transform: translateY(2px);
+  box-shadow: 
+    0 1px 0 rgba(0, 0, 0, 0.1), 
+    inset 0 1px 2px rgba(0,0,0,0.1);
+}
 .tile-row-1 { display: flex; justify-content: space-between; align-items: center; height: 16px; margin-bottom: 2px; }
 
 .tile-date-box {
@@ -288,13 +314,31 @@ main {
   flex-grow: 1;
 }
 
+/* ゲージ（プログレスバー）を「溝」に埋まったような質感に */
 .tile-row-5.status-bar-bg {
-  height: 4px !important;
-  margin-top: 2px !important;
-  background: rgba(0,0,0,0.05);
-  border-radius: 2px;
+  height: 5px !important;
+  margin-top: auto !important;
+  margin-bottom: 2px;
+  background: rgba(0, 0, 0, 0.08) !important;
+  border-radius: 10px;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2); /* 溝の影 */
+  overflow: hidden;
 }
 
+.tile-row-5 .p-seg.active {
+  background: var(--accent) !important;
+  border-radius: 10px;
+  /* ゲージ自体も少し光らせる */
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+/* 🚩フラグの日付ボックスに背景色を付けて視認性アップ */
+.tile-date-box.is-final {
+  background: rgba(211, 47, 47, 0.08);
+  padding: 1px 4px;
+  border-radius: 4px;
+  color: #d32f2f !important;
+}
 /* --- 展開表示（共通：中央ポップアップ） --- */
 .expanded { 
   position: fixed !important; 
