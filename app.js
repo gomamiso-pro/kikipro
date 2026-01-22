@@ -304,7 +304,7 @@ function renderTile() {
            style="background-color: ${z.color || "#ffffff"} !important;" onclick="handleZoneAction(event, ${originalIdx})">
         <div class="tile-row-1">
           <div class="check-wrapper" onclick="handleZoneCheck(event, ${originalIdx})">
-            <input type="checkbox" ${isAll ? 'checked' : ''} style="pointer-events:none; transform: scale(0.75);">
+            <input type="checkbox" ${isAll ? 'checked' : ''} style="pointer-events:none; transform: scale(1);">
           </div>
           <div class="tile-date-box ${isFinalZone ? 'is-final' : ''}">${isFinalZone ? '🚩' : ''}${formatLastDate(z)}</div>
         </div>
