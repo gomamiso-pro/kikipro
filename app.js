@@ -94,6 +94,7 @@ async function silentLogin() {
   }
 }
 // --- 4. 通信を伴うアクション ---
+// --- 4. 通信を伴うアクション ---
 async function upload() {
   if (selectedUnits.size === 0) return;
   const loader = document.getElementById('loading');
@@ -109,8 +110,10 @@ async function upload() {
   }
 
   try {
-    // 1. GASへ書き込み（ここだけ待つ）
-    await callGAS("addNewRecord", { 
+    // 🚀 【爆速化】通信はこれ1回だけに集約！
+    // GAS側の addNewRecord が最新データを return する仕様になったため、
+    // ここで受け取る res にはすでに最新の DATA が入っています。
+    const res = await callGAS("addNewRecord", { 
       date: document.getElementById('work-date').value, 
       type: activeType, 
       ids: idsArr, 
@@ -118,24 +121,28 @@ async function upload() {
       editRow: editingLogRow 
     });
 
-    // 2. 書き込みが終わったら、まずLoadingを消してアラートを出す
-    if (loader) loader.style.display = 'none';
-    alert("登録が完了しました");
+    // 🚀 そのまま最新データを変数に格納（再取得の callGAS は不要！）
+    DATA = res;
 
-    // 3. 画面を即座にリセットして履歴へ移動（この時点ではまだ古いデータの可能性あり）
+    // 内部状態のリセット
     editingLogRow = null;
     selectedUnits.clear();
-    switchView('log');
+    
+    // 画面の更新準備
+    if (loader) loader.style.display = 'none';
+    
+    // 履歴画面へ切り替えて描画（一瞬で終わります）
+    switchView('log'); 
+    renderAll(); 
 
-    // 4. 【重要】バックグラウンドでデータを更新（Loadingを出さずに最新にする）
-    callGAS("getInitialData").then(res => {
-      DATA = res;
-      renderAll(); // 🚩マークなどを最新の状態に静かに更新
-    });
+    // 最後にメッセージを表示
+    setTimeout(() => {
+        alert("登録が完了しました");
+    }, 50);
 
   } catch (e) { 
     if (loader) loader.style.display = 'none';
-    alert("保存に失敗しました");
+    alert("保存に失敗しました。電波状況を確認してください。");
   }
 }
 
